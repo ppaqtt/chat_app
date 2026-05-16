@@ -1,11 +1,11 @@
 
-&lt;!DOCTYPE html&gt;
-&lt;html lang="zh-CN"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-    &lt;title&gt;极简聊天室&lt;/title&gt;
-    &lt;style&gt;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简聊天室</title>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -31,6 +31,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         .header {
@@ -125,6 +126,7 @@
             border-top: 1px solid #eee;
             display: flex;
             gap: 12px;
+            align-items: center;
         }
 
         .input-area input {
@@ -217,31 +219,94 @@
         .login-box button:hover {
             transform: translateY(-2px);
         }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;div class="login-screen" id="loginScreen"&gt;
-        &lt;div class="login-box"&gt;
-            &lt;h2&gt;欢迎来到聊天室&lt;/h2&gt;
-            &lt;input type="text" id="usernameInput" placeholder="输入你的昵称" maxlength="20" autocomplete="off"&gt;
-            &lt;button id="loginBtn"&gt;进入聊天室&lt;/button&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
 
-    &lt;div class="chat-container"&gt;
-        &lt;div class="header"&gt;
-            &lt;h1&gt;极简聊天室&lt;/h1&gt;
-            &lt;div class="users-list" id="usersList"&gt;
-                &lt;span&gt;在线：0 人&lt;/span&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        &lt;div class="messages-area" id="messagesArea"&gt;&lt;/div&gt;
-        &lt;div class="input-area"&gt;
-            &lt;input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off"&gt;
-            &lt;button id="sendBtn"&gt;发送&lt;/button&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
+        .emoji-btn {
+            background: none;
+            border: 2px solid #eee;
+            padding: 10px 14px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
 
-    &lt;script src="app.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+        .emoji-btn:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .emoji-picker {
+            position: absolute;
+            bottom: 80px;
+            left: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 12px;
+            display: none;
+            flex-wrap: wrap;
+            max-width: 300px;
+            gap: 8px;
+        }
+
+        .emoji-picker.active {
+            display: flex;
+        }
+
+        .emoji-item {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .emoji-item:hover {
+            background: #f0f0f0;
+            transform: scale(1.2);
+        }
+
+        .typing-indicator {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            font-size: 13px;
+            color: #999;
+            display: none;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h2>欢迎来到聊天室</h2>
+            <input type="text" id="usernameInput" placeholder="输入你的昵称" maxlength="20" autocomplete="off">
+            <button id="loginBtn">进入聊天室</button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="header">
+            <h1>极简聊天室</h1>
+            <div class="users-list" id="usersList">
+                <span>在线：0 人</span>
+            </div>
+        </div>
+        <div class="messages-area" id="messagesArea"></div>
+        <div class="typing-indicator" id="typingIndicator"></div>
+        <div class="emoji-picker" id="emojiPicker"></div>
+        <div class="input-area">
+            <button class="emoji-btn" id="emojiBtn">😀</button>
+            <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
+            <button id="sendBtn">发送</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

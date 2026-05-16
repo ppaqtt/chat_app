@@ -26,7 +26,7 @@ const server = http.createServer((req, res) => {
         if (error) {
             if (error.code === 'ENOENT') {
                 res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('&lt;h1&gt;404 Not Found&lt;/h1&gt;', 'utf-8');
+                res.end('<h1>404 Not Found</h1>', 'utf-8');
             } else {
                 res.writeHead(500);
                 res.end('Server Error: ' + error.code, 'utf-8');
@@ -58,11 +58,22 @@ wss.on('connection', (ws) => {
                     users: Array.from(users.values())
                 });
             } else if (data.type === 'message') {
+                const timestamp = data.timestamp || new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
                 broadcast({
                     type: 'message',
                     username: username,
                     content: data.content,
-                    timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+                    timestamp: timestamp
+                });
+            } else if (data.type === 'typing') {
+                broadcastToOthers(ws, {
+                    type: 'typing',
+                    username: username
+                });
+            } else if (data.type === 'stopTyping') {
+                broadcastToOthers(ws, {
+                    type: 'stopTyping',
+                    username: username
                 });
             }
         } catch (e) {
@@ -85,6 +96,14 @@ wss.on('connection', (ws) => {
 function broadcast(data) {
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+function broadcastToOthers(sender, data) {
+    wss.clients.forEach((client) => {
+        if (client !== sender && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(data));
         }
     });
