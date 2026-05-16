@@ -1,0 +1,17 @@
+
+{
+  "name": "simple-chat-app",
+  "version": "1.0.0",
+  "description": "极简实时聊天应用",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "keywords": ["chat", "websocket", "nodejs"],
+  "author": "",
+  "license": "MIT"
+}
