@@ -118,6 +118,67 @@
             font-size: 11px;
             color: #999;
             margin-top: 4px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .message-actions {
+            display: none;
+        }
+
+        .message.own:hover .message-actions {
+            display: flex;
+        }
+
+        .message-action-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .message-action-btn:hover {
+            background: rgba(0,0,0,0.1);
+            color: #666;
+        }
+
+        .message-action-btn.recall {
+            color: #ff6b6b;
+        }
+
+        .message.recalled .message-bubble {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .message.recalled .message-bubble::after {
+            content: '（已撤回）';
+            display: block;
+            font-size: 12px;
+            margin-top: 4px;
+            color: #999;
+        }
+
+        .message-bubble img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .read-status {
+            font-size: 11px;
+            color: #999;
+            margin-left: 8px;
+        }
+
+        .read-status.read {
+            color: #4CAF50;
         }
 
         .input-area {
@@ -220,7 +281,7 @@
             transform: translateY(-2px);
         }
 
-        .emoji-btn {
+        .emoji-btn, .image-btn {
             background: none;
             border: 2px solid #eee;
             padding: 10px 14px;
@@ -231,7 +292,7 @@
             flex-shrink: 0;
         }
 
-        .emoji-btn:hover {
+        .emoji-btn:hover, .image-btn:hover {
             border-color: #667eea;
             background: rgba(102, 126, 234, 0.1);
         }
@@ -246,7 +307,7 @@
             padding: 12px;
             display: none;
             flex-wrap: wrap;
-            max-width: 300px;
+            max-width: 200px;
             gap: 8px;
         }
 
@@ -260,6 +321,8 @@
             padding: 4px;
             border-radius: 6px;
             transition: all 0.2s;
+            width: calc(25% - 8px);
+            text-align: center;
         }
 
         .emoji-item:hover {
@@ -279,6 +342,184 @@
         .typing-indicator.active {
             display: block;
         }
+
+        .chat-mode-toggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-mode-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-mode-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .room-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .room-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .private-chat-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 250px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .private-chat-panel.active {
+            display: block;
+        }
+
+        .private-chat-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .private-chat-user {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .private-chat-user:hover {
+            background: #f5f5f5;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .private-target-info {
+            flex: 1;
+        }
+
+        .private-target-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .private-target-status {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .private-badge {
+            background: #ff6b6b;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .room-panel {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            width: 250px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .room-panel.active {
+            display: block;
+        }
+
+        .room-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .room-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .room-item:hover {
+            background: #f5f5f5;
+        }
+
+        .room-item.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .room-create {
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+        }
+
+        .room-create input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .room-create button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -293,15 +534,34 @@
     <div class="chat-container">
         <div class="header">
             <h1>极简聊天室</h1>
+            <div class="chat-mode-toggle">
+                <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
+                <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
+            </div>
+            <button class="room-btn" id="roomBtn">🏠 房间</button>
             <div class="users-list" id="usersList">
                 <span>在线：0 人</span>
+            </div>
+        </div>
+        <div class="private-chat-panel" id="privateChatPanel">
+            <div class="private-chat-header">选择私聊对象</div>
+            <div id="privateChatUsers"></div>
+        </div>
+        <div class="room-panel" id="roomPanel">
+            <div class="room-header">选择聊天室</div>
+            <div id="roomList"></div>
+            <div class="room-create">
+                <input type="text" id="newRoomInput" placeholder="新房间名称">
+                <button id="createRoomBtn">创建</button>
             </div>
         </div>
         <div class="messages-area" id="messagesArea"></div>
         <div class="typing-indicator" id="typingIndicator"></div>
         <div class="emoji-picker" id="emojiPicker"></div>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;">
         <div class="input-area">
             <button class="emoji-btn" id="emojiBtn">😀</button>
+            <button class="image-btn" id="imageBtn">🖼️</button>
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
         </div>

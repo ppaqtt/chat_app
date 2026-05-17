@@ -163,6 +163,11 @@ privateChatBtn.addEventListener('click', () => {
     privateChatPanel.classList.toggle('active');
 });
 
+document.getElementById('roomBtn').addEventListener('click', () => {
+    const roomPanel = document.getElementById('roomPanel');
+    roomPanel.classList.toggle('active');
+});
+
 function login() {
     const username = usernameInput.value.trim();
     if (!username) {
