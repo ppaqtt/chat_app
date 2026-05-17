@@ -1,7 +1,11 @@
 
 let ws;
 let currentUsername = '';
+let currentAvatar = '';
 let typingTimeout;
+let isPrivateMode = false;
+let privateTarget = null;
+let currentRoom = '大厅';
 
 const loginScreen = document.getElementById('loginScreen');
 const usernameInput = document.getElementById('usernameInput');
@@ -13,6 +17,16 @@ const usersList = document.getElementById('usersList');
 const emojiBtn = document.getElementById('emojiBtn');
 const emojiPicker = document.getElementById('emojiPicker');
 const typingIndicator = document.getElementById('typingIndicator');
+const groupChatBtn = document.getElementById('groupChatBtn');
+const privateChatBtn = document.getElementById('privateChatBtn');
+const privateChatPanel = document.getElementById('privateChatPanel');
+const privateChatUsers = document.getElementById('privateChatUsers');
+const imageBtn = document.getElementById('imageBtn');
+const imageInput = document.getElementById('imageInput');
+const roomPanel = document.getElementById('roomPanel');
+const roomList = document.getElementById('roomList');
+const newRoomInput = document.getElementById('newRoomInput');
+const createRoomBtn = document.getElementById('createRoomBtn');
 
 const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '👍', '👎', '👏', '🙌'];
 
@@ -39,6 +53,69 @@ emojiBtn.addEventListener('click', toggleEmojiPicker);
 document.addEventListener('click', (e) => {
     if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
         emojiPicker.classList.remove('active');
+    }
+});
+
+imageBtn.addEventListener('click', () => {
+    imageInput.click();
+});
+
+imageInput.addEventListener('change', handleImageUpload);
+
+async function handleImageUpload() {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        
+        if (data.url) {
+            sendImageMessage(data.url);
+        }
+    } catch (error) {
+        console.error('上传失败:', error);
+        alert('图片上传失败');
+    }
+    
+    imageInput.value = '';
+}
+
+function sendImageMessage(imageUrl) {
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    if (isPrivateMode && privateTarget) {
+        ws.send(JSON.stringify({
+            type: 'privateMessage',
+            content: '[图片]',
+            imageUrl: imageUrl,
+            toUser: privateTarget,
+            timestamp: timestamp
+        }));
+    } else {
+        ws.send(JSON.stringify({
+            type: 'imageMessage',
+            imageUrl: imageUrl,
+            timestamp: timestamp
+        }));
+    }
+}
+
+createRoomBtn.addEventListener('click', () => {
+    const roomName = newRoomInput.value.trim();
+    if (roomName) {
+        ws.send(JSON.stringify({
+            type: 'createRoom',
+            roomName: roomName
+        }));
+        newRoomInput.value = '';
     }
 });
 
@@ -69,6 +146,23 @@ messageInput.addEventListener('input', () => {
     }
 });
 
+groupChatBtn.addEventListener('click', () => {
+    isPrivateMode = false;
+    privateTarget = null;
+    groupChatBtn.classList.add('active');
+    privateChatBtn.classList.remove('active');
+    privateChatPanel.classList.remove('active');
+    messageInput.placeholder = `在 ${currentRoom} 发消息...`;
+    messagesArea.innerHTML = '';
+});
+
+privateChatBtn.addEventListener('click', () => {
+    isPrivateMode = true;
+    groupChatBtn.classList.remove('active');
+    privateChatBtn.classList.add('active');
+    privateChatPanel.classList.toggle('active');
+});
+
 function login() {
     const username = usernameInput.value.trim();
     if (!username) {
@@ -83,9 +177,10 @@ function login() {
         loginScreen.style.display = 'none';
         ws.send(JSON.stringify({
             type: 'login',
-            username: username
+            username: username,
+            avatar: '',
+            room: currentRoom
         }));
-        loadMessages();
         messageInput.focus();
     };
 
@@ -105,37 +200,163 @@ function login() {
 }
 
 function handleMessage(data) {
-    if (data.type === 'message') {
-        addMessage(data);
-        saveMessage(data);
-    } else if (data.type === 'system') {
-        addSystemMessage(data.message);
-        updateUsersList(data.users);
-    } else if (data.type === 'typing') {
-        if (data.username !== currentUsername) {
-            showTypingIndicator(data.username);
-        }
-    } else if (data.type === 'stopTyping') {
-        hideTypingIndicator();
+    switch(data.type) {
+        case 'loginSuccess':
+            currentUsername = data.username;
+            currentAvatar = data.avatar;
+            currentRoom = data.room || '大厅';
+            if (data.rooms) {
+                updateRoomList(data.rooms);
+            }
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    addMessage(msg);
+                });
+            }
+            scrollToBottom();
+            break;
+        case 'message':
+            addMessage(data);
+            scrollToBottom();
+            break;
+        case 'imageMessage':
+            addMessage(data);
+            scrollToBottom();
+            break;
+        case 'privateMessage':
+            addMessage(data);
+            scrollToBottom();
+            break;
+        case 'system':
+            addSystemMessage(data.message);
+            if (data.users) {
+                updateUsersList(data.users);
+            }
+            scrollToBottom();
+            break;
+        case 'typing':
+            if (data.username !== currentUsername) {
+                showTypingIndicator(data.username);
+            }
+            break;
+        case 'stopTyping':
+            hideTypingIndicator();
+            break;
+        case 'messageRecalled':
+            recallMessage(data.messageId, data.username);
+            break;
+        case 'messageRead':
+            updateMessageReadStatus(data.messageId, data.reader);
+            break;
+        case 'roomCreated':
+            addRoomToList(data.room);
+            break;
+        case 'joinedRoom':
+            currentRoom = data.room;
+            messageInput.placeholder = `在 ${currentRoom} 发消息...`;
+            messagesArea.innerHTML = '';
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    addMessage(msg);
+                });
+            }
+            if (data.users) {
+                updateUsersList(data.users);
+            }
+            updateRoomList(Object.keys(rooms));
+            scrollToBottom();
+            break;
     }
 }
 
 function addMessage(data) {
+    if (isPrivateMode && privateTarget) {
+        if (data.type !== 'privateMessage' || (data.toUser !== privateTarget && data.username !== privateTarget)) {
+            return;
+        }
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${data.username === currentUsername ? 'own' : 'other'}`;
+    messageDiv.dataset.messageId = data.id;
 
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';
-    bubble.textContent = data.content;
+    
+    if (data.type === 'imageMessage' && data.imageUrl) {
+        const img = document.createElement('img');
+        img.src = data.imageUrl;
+        img.alt = '发送的图片';
+        img.onclick = () => window.open(data.imageUrl, '_blank');
+        bubble.appendChild(img);
+    } else {
+        bubble.textContent = data.content;
+    }
 
     const info = document.createElement('div');
     info.className = 'message-info';
-    info.textContent = `${data.username} ${data.timestamp}`;
+    
+    if (data.isPrivate) {
+        info.innerHTML = `${data.username} ${data.timestamp} <span class="private-badge">私</span>`;
+    } else {
+        info.textContent = `${data.username} ${data.timestamp}`;
+    }
+
+    if (data.username === currentUsername) {
+        const actions = document.createElement('div');
+        actions.className = 'message-actions';
+        
+        const recallBtn = document.createElement('button');
+        recallBtn.className = 'message-action-btn recall';
+        recallBtn.textContent = '撤回';
+        recallBtn.onclick = () => recallMessage(data.id);
+        actions.appendChild(recallBtn);
+        
+        info.appendChild(actions);
+        
+        if (!data.isPrivate) {
+            const readStatus = document.createElement('span');
+            readStatus.className = 'read-status';
+            readStatus.id = `read-${data.id}`;
+            readStatus.textContent = '未读';
+            info.appendChild(readStatus);
+        }
+    }
 
     messageDiv.appendChild(bubble);
     messageDiv.appendChild(info);
     messagesArea.appendChild(messageDiv);
-    scrollToBottom();
+
+    if (data.username !== currentUsername && !data.isPrivate) {
+        ws.send(JSON.stringify({
+            type: 'readMessage',
+            messageId: data.id
+        }));
+    }
+}
+
+function recallMessage(messageId, username) {
+    if (username === currentUsername || !username) {
+        ws.send(JSON.stringify({
+            type: 'recall',
+            messageId: messageId
+        }));
+    }
+    
+    const messageEl = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
+    if (messageEl) {
+        messageEl.classList.add('recalled');
+        const bubble = messageEl.querySelector('.message-bubble');
+        bubble.textContent = '此消息已被撤回';
+    }
+}
+
+function updateMessageReadStatus(messageId, reader) {
+    const readStatus = document.getElementById(`read-${messageId}`);
+    if (readStatus) {
+        readStatus.textContent = '已读';
+        readStatus.classList.add('read');
+    }
 }
 
 function addSystemMessage(text) {
@@ -148,17 +369,90 @@ function addSystemMessage(text) {
 
     messageDiv.appendChild(bubble);
     messagesArea.appendChild(messageDiv);
-    scrollToBottom();
+}
+
+let rooms = {};
+
+function updateRoomList(roomList) {
+    rooms = {};
+    roomList.forEach(room => {
+        rooms[room] = true;
+    });
+    renderRoomList();
+}
+
+function addRoomToList(room) {
+    rooms[room] = true;
+    renderRoomList();
+}
+
+function renderRoomList() {
+    roomList.innerHTML = '';
+    Object.keys(rooms).forEach(room => {
+        const roomItem = document.createElement('div');
+        roomItem.className = `room-item ${room === currentRoom ? 'active' : ''}`;
+        roomItem.innerHTML = `<span>${room}</span>`;
+        roomItem.onclick = () => {
+            if (room !== currentRoom) {
+                ws.send(JSON.stringify({
+                    type: 'joinRoom',
+                    room: room
+                }));
+                roomPanel.classList.remove('active');
+            }
+        };
+        roomList.appendChild(roomItem);
+    });
 }
 
 function updateUsersList(users) {
     usersList.innerHTML = `<span>在线：${users.length} 人</span>`;
+    
+    privateChatUsers.innerHTML = '';
     users.forEach(user => {
-        const tag = document.createElement('span');
-        tag.className = 'user-tag';
-        tag.textContent = user;
-        usersList.appendChild(tag);
+        if (user.username !== currentUsername) {
+            const tag = document.createElement('span');
+            tag.className = 'user-tag';
+            tag.textContent = user.username;
+            usersList.appendChild(tag);
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'private-chat-user';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            avatarDiv.style.backgroundColor = user.avatar || generateAvatarColor(user.username);
+            avatarDiv.textContent = user.username.charAt(0).toUpperCase();
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'private-target-info';
+            
+            const nameSpan = document.createElement('div');
+            nameSpan.className = 'private-target-name';
+            nameSpan.textContent = user.username;
+            
+            const statusSpan = document.createElement('div');
+            statusSpan.className = 'private-target-status';
+            statusSpan.textContent = '在线';
+            
+            userInfo.appendChild(nameSpan);
+            userInfo.appendChild(statusSpan);
+            
+            userDiv.appendChild(avatarDiv);
+            userDiv.appendChild(userInfo);
+            
+            userDiv.onclick = () => selectPrivateChat(user.username);
+            
+            privateChatUsers.appendChild(userDiv);
+        }
     });
+}
+
+function selectPrivateChat(username) {
+    privateTarget = username;
+    privateChatPanel.classList.remove('active');
+    messageInput.placeholder = `私聊 ${username}...`;
+    messagesArea.innerHTML = '';
 }
 
 function sendMessage() {
@@ -168,11 +462,20 @@ function sendMessage() {
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-    ws.send(JSON.stringify({
-        type: 'message',
-        content: content,
-        timestamp: timestamp
-    }));
+    if (isPrivateMode && privateTarget) {
+        ws.send(JSON.stringify({
+            type: 'privateMessage',
+            content: content,
+            toUser: privateTarget,
+            timestamp: timestamp
+        }));
+    } else {
+        ws.send(JSON.stringify({
+            type: 'message',
+            content: content,
+            timestamp: timestamp
+        }));
+    }
 
     ws.send(JSON.stringify({
         type: 'stopTyping',
@@ -192,24 +495,12 @@ function hideTypingIndicator() {
     typingIndicator.classList.remove('active');
 }
 
-function saveMessage(data) {
-    const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-    messages.push(data);
-    if (messages.length > 100) {
-        messages.shift();
-    }
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
-}
-
-function loadMessages() {
-    const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-    messages.forEach(data => {
-        if (data.type === 'message') {
-            addMessage(data);
-        } else if (data.type === 'system') {
-            addSystemMessage(data.message);
-        }
-    });
+function generateAvatarColor(username) {
+    const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+        '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B500', '#00CED1'
+    ];
+    return colors[username.charCodeAt(0) % colors.length];
 }
 
 function scrollToBottom() {
