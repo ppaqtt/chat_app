@@ -411,23 +411,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateUsersList(users) {
+        if (!Array.isArray(users)) {
+            usersList.innerHTML = `<span>在线：0 人</span>`;
+            return;
+        }
+        
         usersList.innerHTML = `<span>在线：${users.length} 人</span>`;
         
         privateChatUsers.innerHTML = '';
         users.forEach(user => {
-            if (user.username !== currentUsername) {
-                const tag = document.createElement('span');
-                tag.className = 'user-tag';
-                tag.textContent = user.username;
-                usersList.appendChild(tag);
-    
-                const userDiv = document.createElement('div');
-                userDiv.className = 'private-chat-user';
-                
-                const avatarDiv = document.createElement('div');
-                avatarDiv.className = 'avatar';
-                avatarDiv.style.backgroundColor = user.avatar || generateAvatarColor(user.username);
-                avatarDiv.textContent = user.username.charAt(0).toUpperCase();
+            if (!user || !user.username || user.username === currentUsername) {
+                return;
+            }
+            
+            const tag = document.createElement('span');
+            tag.className = 'user-tag';
+            tag.textContent = user.username;
+            usersList.appendChild(tag);
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'private-chat-user';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            avatarDiv.style.backgroundColor = user.avatar || generateAvatarColor(user.username);
+            avatarDiv.textContent = (user.username.charAt(0) || '?').toUpperCase();
                 
                 const userInfo = document.createElement('div');
                 userInfo.className = 'private-target-info';
@@ -501,11 +509,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function generateAvatarColor(username) {
+        if (!username) {
+            return '#667eea'; // 默认颜色
+        }
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
             '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B500', '#00CED1'
         ];
-        return colors[username.charCodeAt(0) % colors.length];
+        return colors[(username.charCodeAt(0) || 0) % colors.length];
     }
     
     function scrollToBottom() {
