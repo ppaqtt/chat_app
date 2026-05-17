@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }));
         }
         
-        const messageEl = messagesArea.querySelector(`[data-messageId="${messageId}"]`);
+        const messageEl = messagesArea.querySelector(`[data-message-id="${messageId}"]`);
         if (messageEl) {
             messageEl.classList.add('recalled');
             const bubble = messageEl.querySelector('.message-bubble');
@@ -412,11 +412,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateUsersList(users) {
         if (!Array.isArray(users)) {
-            usersList.innerHTML = `<span>在线：0 人</span>`;
+            usersList.innerHTML = '<span>在线：0 人</span>';
             return;
         }
         
-        usersList.innerHTML = `<span>在线：${users.length} 人</span>`;
+        usersList.innerHTML = '<span>在线：' + users.length + ' 人</span>';
         
         privateChatUsers.innerHTML = '';
         users.forEach(user => {
@@ -436,35 +436,34 @@ document.addEventListener('DOMContentLoaded', function() {
             avatarDiv.className = 'avatar';
             avatarDiv.style.backgroundColor = user.avatar || generateAvatarColor(user.username);
             avatarDiv.textContent = (user.username.charAt(0) || '?').toUpperCase();
-                
-                const userInfo = document.createElement('div');
-                userInfo.className = 'private-target-info';
-                
-                const nameSpan = document.createElement('div');
-                nameSpan.className = 'private-target-name';
-                nameSpan.textContent = user.username;
-                
-                const statusSpan = document.createElement('div');
-                statusSpan.className = 'private-target-status';
-                statusSpan.textContent = '在线';
-                
-                userInfo.appendChild(nameSpan);
-                userInfo.appendChild(statusSpan);
-                
-                userDiv.appendChild(avatarDiv);
-                userDiv.appendChild(userInfo);
-                
-                userDiv.onclick = () => selectPrivateChat(user.username);
-                
-                privateChatUsers.appendChild(userDiv);
-            }
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'private-target-info';
+            
+            const nameSpan = document.createElement('div');
+            nameSpan.className = 'private-target-name';
+            nameSpan.textContent = user.username;
+            
+            const statusSpan = document.createElement('div');
+            statusSpan.className = 'private-target-status';
+            statusSpan.textContent = '在线';
+            
+            userInfo.appendChild(nameSpan);
+            userInfo.appendChild(statusSpan);
+            
+            userDiv.appendChild(avatarDiv);
+            userDiv.appendChild(userInfo);
+            
+            userDiv.onclick = () => selectPrivateChat(user.username);
+            
+            privateChatUsers.appendChild(userDiv);
         });
     }
     
     function selectPrivateChat(username) {
         privateTarget = username;
         privateChatPanel.classList.remove('active');
-        messageInput.placeholder = `私聊 ${username}...`;
+        messageInput.placeholder = '私聊 ' + username + '...';
         messagesArea.innerHTML = '';
     }
     
@@ -500,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showTypingIndicator(username) {
-        typingIndicator.textContent = `${username} 正在输入...`;
+        typingIndicator.textContent = username + ' 正在输入...';
         typingIndicator.classList.add('active');
     }
     
@@ -510,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function generateAvatarColor(username) {
         if (!username) {
-            return '#667eea'; // 默认颜色
+            return '#667eea';
         }
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
@@ -525,4 +524,3 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initEmojiPicker();
 });
-
