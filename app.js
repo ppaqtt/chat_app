@@ -72,8 +72,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeCallStatus = document.getElementById('activeCallStatus');
     const endCallBtn = document.getElementById('endCallBtn');
     const locationBtn = document.getElementById('locationBtn');
+    const atAllBtn = document.getElementById('atAllBtn');
+    const quickReplyBtn = document.getElementById('quickReplyBtn');
+    const quickReplyPanel = document.getElementById('quickReplyPanel');
+    const quickReplyClose = document.getElementById('quickReplyClose');
+    const quickReplyList = document.getElementById('quickReplyList');
+    const quickReplyAdd = document.getElementById('quickReplyAdd');
+    const quickReplyInput = document.getElementById('quickReplyInput');
+    const forwardPanel = document.getElementById('forwardPanel');
+    const forwardClose = document.getElementById('forwardClose');
+    const forwardTargetList = document.getElementById('forwardTargetList');
+    const starredBtn = document.getElementById('starredBtn');
+    const starredPanel = document.getElementById('starredPanel');
+    const starredClose = document.getElementById('starredClose');
+    const starredList = document.getElementById('starredList');
+    const backgroundBtn = document.getElementById('backgroundBtn');
+    const backgroundPanel = document.getElementById('backgroundPanel');
+    const backgroundClose = document.getElementById('backgroundClose');
+    const backgroundOptions = document.getElementById('backgroundOptions');
+    const bgUploadInput = document.getElementById('bgUploadInput');
+    const bgUploadBtn = document.getElementById('bgUploadBtn');
+    const searchFilterUser = document.getElementById('searchFilterUser');
+    const searchFilterStarred = document.getElementById('searchFilterStarred');
+    const exportBtn = document.getElementById('exportBtn');
+    const blockedPanel = document.getElementById('blockedPanel');
+    const blockedList = document.getElementById('blockedList');
+    const blockedClose = document.getElementById('blockedClose');
 
     let newAvatarUrl = '';
+    let editingMessageId = null;
+    let forwardingMessageId = null;
+    let starredMessages = [];
+    let quickReplies = [];
+    let customBackground = '';
+    let blockedUsers = [];
     let activeReactionMessageId = null;
     let pendingFile = null;
     let pinnedMessages = {};
@@ -275,33 +307,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchBtn.addEventListener('click', toggleSearch);
 
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim().toLowerCase();
-        if (query.length === 0) {
-            searchResults.innerHTML = '';
-            return;
-        }
+    searchInput.addEventListener('input', performSearch);
+    searchFilterUser.addEventListener('change', performSearch);
+    searchFilterStarred.addEventListener('change', performSearch);
 
-        const results = allMessages.filter(msg => 
-            msg.content && msg.content.toLowerCase().includes(query)
-        );
-
-        searchResults.innerHTML = '';
-        if (results.length === 0) {
-            searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">没有找到匹配的聊天记录</div>';
-            return;
-        }
-
-        results.slice(0, 20).forEach(msg => {
-            const item = document.createElement('div');
-            item.className = 'search-result-item';
-            item.innerHTML = '<div class="search-result-author">' + msg.username + '</div><div class="search-result-content">' + msg.content + '</div>';
-            item.onclick = () => {
-                scrollToMessage(msg.id);
-                toggleSearch();
-            };
-            searchResults.appendChild(item);
+    function updateSearchFilterUsers() {
+        if (!searchFilterUser) return;
+        searchFilterUser.innerHTML = '<option value="">全部用户</option>';
+        const usernames = new Set();
+        allMessages.forEach(msg => {
+            if (msg.username) {
+                usernames.add(msg.username);
+            }
         });
+        usernames.forEach(username => {
+            const option = document.createElement('option');
+            option.value = username;
+            option.textContent = username;
+            searchFilterUser.appendChild(option);
+        });
+    }
+
+    searchBtn.addEventListener('click', () => {
+        toggleSearch();
+        if (searchPanel.classList.contains('active')) {
+            updateSearchFilterUsers();
+        }
     });
 
     function scrollToMessage(messageId) {
@@ -556,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }));
             messageInput.focus();
             initTheme();
+            initExtraFeatures();
         };
 
         ws.onmessage = (event) => {
@@ -842,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function addMessage(data) {
+    function originalAddMessage(data) {
         if (isPrivateMode && privateTarget) {
             if (data.type !== 'privateMessage' || (data.toUser !== privateTarget && data.username !== privateTarget)) {
                 return;
@@ -918,12 +950,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const locationDiv = document.createElement('div');
             locationDiv.className = 'message-location';
             locationDiv.onclick = () => {
-                window.open('https://maps.google.com/?q=' + data.latitude + ',' + data.longitude, '_blank');
+                window.open('https://uri.amap.com/marker?position=' + data.longitude + ',' + data.latitude + '&name=位置&coordinate=wgs84&callnative=0', '_blank');
             };
 
             const mapDiv = document.createElement('div');
             mapDiv.className = 'message-location-map';
-            mapDiv.innerHTML = '<img src="https://maps.googleapis.com/maps/api/staticmap?center=' + data.latitude + ',' + data.longitude + '&zoom=15&size=300x150&maptype=roadmap&markers=color:red%7C' + data.latitude + ',' + data.longitude + '" alt="位置地图" onerror="this.parentElement.innerHTML=\'📍\'">';
+            mapDiv.innerHTML = '<img src="https://restapi.amap.com/v3/staticmap?location=' + data.longitude + ',' + data.latitude + '&zoom=15&size=300x150&markers=mid,0xFF0000,A:' + data.longitude + ',' + data.latitude + '&key=your-amap-key" alt="位置地图" onerror="this.parentElement.innerHTML=\'📍\'">';
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'message-location-info';
@@ -939,10 +971,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const info = document.createElement('div');
         info.className = 'message-info';
 
+        let infoText = data.username + ' ' + data.timestamp;
+        if (data.edited) {
+            infoText += ' (已编辑)';
+        }
+
         if (data.isPrivate) {
-            info.innerHTML = data.username + ' ' + data.timestamp + ' <span class="private-badge">私</span>';
+            info.innerHTML = infoText + ' <span class="private-badge">私</span>';
         } else {
-            info.textContent = data.username + ' ' + data.timestamp;
+            info.textContent = infoText;
         }
 
         if (data.username === currentUsername) {
@@ -958,6 +995,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageInput.focus();
             };
             actions.appendChild(replyBtn);
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'message-action-btn edit';
+            editBtn.textContent = '编辑';
+            editBtn.onclick = () => startEditMessage(data.id);
+            actions.appendChild(editBtn);
+
+            const forwardBtn = document.createElement('button');
+            forwardBtn.className = 'message-action-btn forward';
+            forwardBtn.textContent = '转发';
+            forwardBtn.onclick = () => showForwardPanel(data.id);
+            actions.appendChild(forwardBtn);
+
+            const starBtn = document.createElement('button');
+            starBtn.className = 'message-action-btn star';
+            starBtn.textContent = isStarred(data.id) ? '★' : '☆';
+            starBtn.onclick = () => toggleStarMessage(data.id);
+            actions.appendChild(starBtn);
 
             const recallBtn = document.createElement('button');
             recallBtn.className = 'message-action-btn recall';
@@ -1022,6 +1077,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageInput.focus();
             };
             actions.appendChild(replyBtn);
+
+            const forwardBtn = document.createElement('button');
+            forwardBtn.className = 'message-action-btn forward';
+            forwardBtn.textContent = '转发';
+            forwardBtn.onclick = () => showForwardPanel(data.id);
+            actions.appendChild(forwardBtn);
+
+            const starBtn = document.createElement('button');
+            starBtn.className = 'message-action-btn star';
+            starBtn.textContent = isStarred(data.id) ? '★' : '☆';
+            starBtn.onclick = () => toggleStarMessage(data.id);
+            actions.appendChild(starBtn);
+
+            const blockBtn = document.createElement('button');
+            blockBtn.className = 'message-action-btn block';
+            blockBtn.textContent = blockedUsers.includes(data.username) ? '取消拉黑' : '拉黑';
+            blockBtn.onclick = () => toggleBlockUser(data.username);
+            actions.appendChild(blockBtn);
 
             const reactBtn = document.createElement('button');
             reactBtn.className = 'message-action-btn react';
@@ -1290,6 +1363,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             userDiv.appendChild(avatarDiv);
             userDiv.appendChild(userInfo);
+
+            const blockBtn = document.createElement('button');
+            blockBtn.className = 'block-user-btn';
+            blockBtn.textContent = blockedUsers.includes(user.username) ? '取消拉黑' : '拉黑';
+            blockBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleBlockUser(user.username);
+            };
+            userDiv.appendChild(blockBtn);
 
             userDiv.onclick = () => selectPrivateChat(user.username);
 
@@ -1772,6 +1854,482 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 
+    function initExtraFeatures() {
+        loadExtraFeaturesFromStorage();
+        bindExtraFeatureEvents();
+        applyCustomBackground();
+        renderQuickReplies();
+    }
+
+    function loadExtraFeaturesFromStorage() {
+        const savedStarred = localStorage.getItem('chatStarredMessages');
+        if (savedStarred) starredMessages = JSON.parse(savedStarred);
+        
+        const savedQuickReplies = localStorage.getItem('chatQuickReplies');
+        if (savedQuickReplies) quickReplies = JSON.parse(savedQuickReplies);
+        
+        const savedBg = localStorage.getItem('chatCustomBg');
+        if (savedBg) customBackground = savedBg;
+        
+        const savedBlocked = localStorage.getItem('chatBlockedUsers');
+        if (savedBlocked) blockedUsers = JSON.parse(savedBlocked);
+    }
+
+    function bindExtraFeatureEvents() {
+        atAllBtn.addEventListener('click', () => {
+            messageInput.value += '@all ';
+            messageInput.focus();
+        });
+
+        quickReplyBtn.addEventListener('click', () => {
+            renderQuickReplies();
+            quickReplyPanel.classList.add('active');
+        });
+
+        quickReplyClose.addEventListener('click', () => {
+            quickReplyPanel.classList.remove('active');
+        });
+
+        quickReplyAdd.addEventListener('click', addQuickReply);
+
+        quickReplyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addQuickReply();
+        });
+
+        forwardClose.addEventListener('click', () => {
+            forwardPanel.classList.remove('active');
+        });
+
+        starredBtn.addEventListener('click', () => {
+            renderStarredMessages();
+            starredPanel.classList.add('active');
+        });
+
+        starredClose.addEventListener('click', () => {
+            starredPanel.classList.remove('active');
+        });
+
+        backgroundBtn.addEventListener('click', () => {
+            renderBackgroundOptions();
+            backgroundPanel.classList.add('active');
+        });
+
+        backgroundClose.addEventListener('click', () => {
+            backgroundPanel.classList.remove('active');
+        });
+
+        bgUploadBtn.addEventListener('click', () => {
+            bgUploadInput.click();
+        });
+
+        bgUploadInput.addEventListener('change', async function() {
+            const file = bgUploadInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (data.url) {
+                    setCustomBackground(data.url);
+                }
+            } catch (error) {
+                console.error('背景上传失败:', error);
+                alert('背景上传失败');
+            }
+        });
+
+        searchFilterUser.addEventListener('change', performSearch);
+        searchFilterStarred.addEventListener('change', performSearch);
+
+        exportBtn.addEventListener('click', exportChatHistory);
+
+        blockedClose.addEventListener('click', () => {
+            blockedPanel.classList.remove('active');
+        });
+    }
+
+    function addQuickReply() {
+        const text = quickReplyInput.value.trim();
+        if (text) {
+            quickReplies.push(text);
+            localStorage.setItem('chatQuickReplies', JSON.stringify(quickReplies));
+            quickReplyInput.value = '';
+            renderQuickReplies();
+        }
+    }
+
+    function renderQuickReplies() {
+        quickReplyList.innerHTML = '';
+        
+        if (quickReplies.length === 0) {
+            quickReplyList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无快捷回复</div>';
+            return;
+        }
+        
+        quickReplies.forEach((text, index) => {
+            const item = document.createElement('div');
+            item.className = 'quick-reply-item';
+            item.innerHTML = '<span>' + text + '</span><button class="quick-reply-delete">×</button>';
+            
+            item.querySelector('span').onclick = () => {
+                messageInput.value = text;
+                quickReplyPanel.classList.remove('active');
+                messageInput.focus();
+            };
+            
+            item.querySelector('button').onclick = (e) => {
+                e.stopPropagation();
+                quickReplies.splice(index, 1);
+                localStorage.setItem('chatQuickReplies', JSON.stringify(quickReplies));
+                renderQuickReplies();
+            };
+            
+            quickReplyList.appendChild(item);
+        });
+    }
+
+    function toggleStarMessage(messageId) {
+        const msg = allMessages.find(m => m.id === messageId);
+        if (!msg) return;
+        
+        const index = starredMessages.findIndex(id => id === messageId);
+        if (index !== -1) {
+            starredMessages.splice(index, 1);
+        } else {
+            starredMessages.push(messageId);
+        }
+        
+        localStorage.setItem('chatStarredMessages', JSON.stringify(starredMessages));
+        refreshMessages();
+    }
+
+    function isStarred(messageId) {
+        return starredMessages.includes(messageId);
+    }
+
+    function renderStarredMessages() {
+        starredList.innerHTML = '';
+        
+        const msgs = allMessages.filter(m => starredMessages.includes(m.id));
+        
+        if (msgs.length === 0) {
+            starredList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无星标消息</div>';
+            return;
+        }
+        
+        msgs.forEach(msg => {
+            const item = document.createElement('div');
+            item.className = 'starred-message-item';
+            const content = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
+            item.innerHTML = '<strong>' + msg.username + ':</strong> ' + content;
+            item.onclick = () => {
+                const el = messagesArea.querySelector('[data-message-id="' + msg.id + '"]');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                starredPanel.classList.remove('active');
+            };
+            starredList.appendChild(item);
+        });
+    }
+
+    function renderBackgroundOptions() {
+        const presets = [
+            '',
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+        ];
+        
+        backgroundOptions.innerHTML = '';
+        
+        presets.forEach((bg, index) => {
+            const option = document.createElement('div');
+            option.className = 'bg-option ' + (customBackground === bg ? 'active' : '');
+            if (bg) {
+                option.style.background = bg;
+            } else {
+                option.textContent = '默认';
+                option.style.background = 'var(--bg-secondary)';
+            }
+            option.onclick = () => setCustomBackground(bg);
+            backgroundOptions.appendChild(option);
+        });
+    }
+
+    function setCustomBackground(bg) {
+        customBackground = bg;
+        localStorage.setItem('chatCustomBg', customBackground);
+        applyCustomBackground();
+        renderBackgroundOptions();
+    }
+
+    function applyCustomBackground() {
+        if (customBackground && customBackground.startsWith('http')) {
+            document.body.style.backgroundImage = 'url("' + customBackground + '")';
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+        } else if (customBackground) {
+            document.body.style.backgroundImage = customBackground;
+            document.body.style.backgroundSize = '';
+            document.body.style.backgroundPosition = '';
+        } else {
+            document.body.style.backgroundImage = '';
+            document.body.style.backgroundSize = '';
+            document.body.style.backgroundPosition = '';
+        }
+    }
+
+    function startEditMessage(messageId) {
+        const msg = allMessages.find(m => m.id === messageId);
+        if (!msg || msg.username !== currentUsername) return;
+        
+        editingMessageId = messageId;
+        messageInput.value = msg.content || '';
+        messageInput.focus();
+        
+        const originalSend = sendBtn.textContent;
+        sendBtn.textContent = '保存';
+        sendBtn.onclick = () => saveEditMessage();
+        
+        const originalKeypress = messageInput.onkeypress;
+        messageInput.onkeypress = (e) => {
+            if (e.key === 'Enter' && !mentionMode) saveEditMessage();
+        };
+    }
+
+    function saveEditMessage() {
+        if (!editingMessageId) return;
+        
+        const newContent = messageInput.value.trim();
+        if (!newContent) {
+            cancelEditMessage();
+            return;
+        }
+        
+        const msgIndex = allMessages.findIndex(m => m.id === editingMessageId);
+        if (msgIndex !== -1) {
+            allMessages[msgIndex].content = newContent;
+            allMessages[msgIndex].edited = true;
+            refreshMessages();
+        }
+        
+        cancelEditMessage();
+    }
+
+    function cancelEditMessage() {
+        editingMessageId = null;
+        messageInput.value = '';
+        sendBtn.textContent = '发送';
+        sendBtn.onclick = sendMessage;
+        messageInput.onkeypress = (e) => {
+            if (e.key === 'Enter' && !mentionMode) sendMessage();
+        };
+    }
+
+    function showForwardPanel(messageId) {
+        forwardingMessageId = messageId;
+        
+        forwardTargetList.innerHTML = '';
+        
+        Object.keys(rooms).forEach(room => {
+            const item = document.createElement('div');
+            item.className = 'forward-target-item';
+            item.innerHTML = '<span>🏠 ' + room + '</span>';
+            item.onclick = () => forwardMessage(room, 'room');
+            forwardTargetList.appendChild(item);
+        });
+        
+        onlineUsers.forEach(user => {
+            if (!user || user.username === currentUsername) return;
+            const item = document.createElement('div');
+            item.className = 'forward-target-item';
+            item.innerHTML = '<span>👤 ' + user.username + '</span>';
+            item.onclick = () => forwardMessage(user.username, 'user');
+            forwardTargetList.appendChild(item);
+        });
+        
+        forwardPanel.classList.add('active');
+    }
+
+    function forwardMessage(target, type) {
+        if (!forwardingMessageId) return;
+        
+        const msg = allMessages.find(m => m.id === forwardingMessageId);
+        if (!msg) return;
+        
+        const forwardText = '转发自 ' + msg.username + ': ' + (msg.content || '[图片/文件]');
+        
+        const now = new Date();
+        const timestamp = formatTime(now);
+        
+        const messageData = {
+            type: type === 'room' ? 'message' : 'privateMessage',
+            content: forwardText,
+            timestamp: timestamp
+        };
+        
+        if (type === 'user') {
+            messageData.toUser = target;
+        } else {
+            messageData.room = target;
+        }
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(messageData));
+        }
+        
+        forwardPanel.classList.remove('active');
+        forwardingMessageId = null;
+    }
+
+    function performSearch() {
+        const keyword = searchInput.value.toLowerCase().trim();
+        const filterUser = searchFilterUser.value;
+        const filterStarred = searchFilterStarred.checked;
+        
+        searchResults.innerHTML = '';
+        
+        let filtered = allMessages;
+        
+        if (keyword) {
+            filtered = filtered.filter(msg => 
+                (msg.content && msg.content.toLowerCase().includes(keyword)) ||
+                msg.username.toLowerCase().includes(keyword)
+            );
+        }
+        
+        if (filterUser) {
+            filtered = filtered.filter(msg => msg.username === filterUser);
+        }
+        
+        if (filterStarred) {
+            filtered = filtered.filter(msg => starredMessages.includes(msg.id));
+        }
+        
+        if (filtered.length === 0) {
+            searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">无搜索结果</div>';
+            return;
+        }
+        
+        filtered.slice(0, 50).forEach(msg => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            const content = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
+            item.innerHTML = '<div class="search-result-author">' + msg.username + '</div><div class="search-result-content">' + content + '</div>';
+            item.onclick = () => {
+                scrollToMessage(msg.id);
+                toggleSearch();
+            };
+            searchResults.appendChild(item);
+        });
+    }
+
+    function exportChatHistory() {
+        const exportData = {
+            exportedAt: new Date().toISOString(),
+            messages: allMessages,
+            username: currentUsername
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'chat-history-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function toggleBlockUser(username) {
+        const index = blockedUsers.indexOf(username);
+        if (index !== -1) {
+            blockedUsers.splice(index, 1);
+        } else {
+            blockedUsers.push(username);
+        }
+        
+        localStorage.setItem('chatBlockedUsers', JSON.stringify(blockedUsers));
+        refreshMessages();
+        renderBlockedUsers();
+    }
+
+    function renderBlockedUsers() {
+        blockedList.innerHTML = '';
+        
+        if (blockedUsers.length === 0) {
+            blockedList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无黑名单用户</div>';
+            return;
+        }
+        
+        blockedUsers.forEach(username => {
+            const item = document.createElement('div');
+            item.className = 'blocked-user-item';
+            item.innerHTML = '<span>' + username + '</span><button>取消拉黑</button>';
+            item.querySelector('button').onclick = () => toggleBlockUser(username);
+            blockedList.appendChild(item);
+        });
+    }
+
+    function refreshMessages() {
+        messagesArea.innerHTML = '';
+        allMessages.forEach(msg => {
+            if (isPrivateMode && privateTarget) {
+                if (!msg.isPrivate || (msg.toUser !== privateTarget && msg.username !== privateTarget)) {
+                    return;
+                }
+            } else if (msg.isPrivate && msg.toUser !== currentUsername && msg.username !== currentUsername) {
+                return;
+            }
+            
+            if (blockedUsers.includes(msg.username)) {
+                return;
+            }
+            
+            addMessage(msg);
+        });
+    }
+
+    function requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    function sendNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body: body });
+        }
+    }
+
+    const originalAddMessage = addMessage;
+    function addMessage(data) {
+        if (blockedUsers.includes(data.username)) {
+            return;
+        }
+        
+        if (data.username !== currentUsername && document.hidden) {
+            sendNotification(data.username, data.content || '[新消息]');
+        }
+        
+        originalAddMessage(data);
+    }
+
+    const originalShowCallIncoming = showCallIncoming;
+    function showCallIncoming(data) {
+        originalShowCallIncoming(data);
+        if (document.hidden) {
+            sendNotification('来电', data.from + ' 发起了通话');
+        }
+    }
+
     initEmojiPicker();
     initTheme();
+    requestNotificationPermission();
 });

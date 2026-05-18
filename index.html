@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -80,7 +79,7 @@
             align-items: center;
         }
 
-        .theme-btn {
+        .theme-btn, .settings-btn, .search-btn, .call-btn, .starred-btn, .quick-reply-btn, .export-btn, .bg-btn {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
@@ -91,22 +90,8 @@
             transition: all 0.3s;
         }
 
-        .theme-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .settings-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .settings-btn:hover {
+        .theme-btn:hover, .settings-btn:hover, .search-btn:hover, .call-btn:hover, 
+        .starred-btn:hover, .quick-reply-btn:hover, .export-btn:hover, .bg-btn:hover {
             background: rgba(255,255,255,0.3);
         }
 
@@ -237,8 +222,7 @@
             display: none;
         }
 
-        .message.own:hover .message-actions,
-        .message.other:hover .message-actions {
+        .message.own:hover .message-actions, .message.other:hover .message-actions {
             display: flex;
         }
 
@@ -258,25 +242,14 @@
             color: var(--text-color);
         }
 
-        .message-action-btn.recall {
-            color: #ff6b6b;
-        }
-
-        .message-action-btn.reply {
-            color: var(--primary-color);
-        }
-
-        .message-action-btn.react {
-            color: #ff9f43;
-        }
-
-        .message-action-btn.translate {
-            color: #3498db;
-        }
-
-        .message-action-btn.pin {
-            color: #e74c3c;
-        }
+        .message-action-btn.recall { color: #ff6b6b; }
+        .message-action-btn.reply { color: var(--primary-color); }
+        .message-action-btn.react { color: #ff9f43; }
+        .message-action-btn.translate { color: #3498db; }
+        .message-action-btn.pin { color: #e74c3c; }
+        .message-action-btn.edit { color: #9c27b0; }
+        .message-action-btn.forward { color: #00bcd4; }
+        .message-action-btn.star { color: #ffc107; }
 
         .message-translation {
             margin-top: 8px;
@@ -337,6 +310,11 @@
             border-left: 3px solid #e74c3c;
             padding: 8px;
             border-radius: 8px;
+        }
+
+        .message.starred {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
         }
 
         .message-reactions {
@@ -433,6 +411,14 @@
             color: var(--text-secondary);
         }
 
+        .message.edited .message-bubble::after {
+            content: '（已编辑）';
+            display: inline;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-left: 6px;
+        }
+
         .message-bubble img {
             max-width: 200px;
             max-height: 200px;
@@ -503,6 +489,52 @@
 
         .reply-box-close:hover {
             color: var(--text-color);
+        }
+
+        .edit-box {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            display: none;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .edit-box.active {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .edit-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .edit-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .edit-box button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .edit-box .save-edit-btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .edit-box .cancel-edit-btn {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
         }
 
         .input-area {
@@ -627,7 +659,7 @@
             background: rgba(102, 126, 234, 0.1);
         }
 
-        .file-btn {
+        .file-btn, .location-btn, .at-all-btn {
             background: none;
             border: 2px solid var(--border-color);
             padding: 10px 14px;
@@ -639,7 +671,7 @@
             color: var(--text-color);
         }
 
-        .file-btn:hover {
+        .file-btn:hover, .location-btn:hover, .at-all-btn:hover {
             border-color: var(--primary-color);
             background: rgba(102, 126, 234, 0.1);
         }
@@ -1028,6 +1060,7 @@
             border-bottom: 1px solid var(--border-color);
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .search-header input {
@@ -1038,6 +1071,30 @@
             font-size: 14px;
             background: var(--bg-secondary);
             color: var(--text-color);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 0 16px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-filter {
+            padding: 4px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .search-filter.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
         .search-results {
@@ -1071,11 +1128,17 @@
             color: var(--text-color);
         }
 
+        .search-result-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
         .settings-panel {
             position: absolute;
             top: 60px;
             right: 20px;
-            width: 320px;
+            width: 360px;
             background: var(--bg-color);
             border-radius: 12px;
             box-shadow: 0 4px 20px var(--shadow-color);
@@ -1499,6 +1562,353 @@
         .message-location-info span:first-child {
             color: var(--primary-color);
         }
+
+        /* 快捷回复面板 */
+        .quick-reply-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 60px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            padding: 12px;
+            display: none;
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .quick-reply-panel.active {
+            display: block;
+        }
+
+        .quick-reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .quick-reply-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .quick-reply-add {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .quick-reply-item {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            transition: background 0.2s;
+        }
+
+        .quick-reply-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .quick-reply-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quick-reply-item .delete-quick-reply {
+            float: right;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 转发面板 */
+        .forward-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 20px;
+            display: none;
+            width: 350px;
+            max-height: 400px;
+            z-index: 200;
+        }
+
+        .forward-panel.active {
+            display: block;
+        }
+
+        .forward-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .forward-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .forward-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .forward-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .forward-target {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: var(--text-color);
+        }
+
+        .forward-target:hover {
+            background: var(--hover-bg);
+        }
+
+        .forward-target-label {
+            font-size: 12px;
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        /* 收藏消息面板 */
+        .starred-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 350px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .starred-panel.active {
+            display: block;
+        }
+
+        .starred-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .starred-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .starred-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .starred-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .starred-item:last-child {
+            border-bottom: none;
+        }
+
+        .starred-author {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .starred-content {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .starred-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .unstar-btn {
+            background: none;
+            border: none;
+            color: #ffc107;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 黑名单面板 */
+        .blocked-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 300px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .blocked-panel.active {
+            display: block;
+        }
+
+        .blocked-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .blocked-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .blocked-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .blocked-item {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .blocked-item:last-child {
+            border-bottom: none;
+        }
+
+        .unblock-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: #ff6b6b;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 背景设置面板 */
+        .bg-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .bg-panel.active {
+            display: block;
+        }
+
+        .bg-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bg-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .bg-options {
+            padding: 16px;
+        }
+
+        .bg-option {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin: 0 8px 8px 0;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .bg-option:hover, .bg-option.active {
+            border-color: var(--primary-color);
+        }
+
+        .bg-upload {
+            padding: 0 16px 16px;
+        }
+
+        .bg-upload input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -1518,6 +1928,10 @@
                 <button class="search-btn" id="searchBtn">🔍</button>
                 <button class="settings-btn" id="settingsBtn">⚙️</button>
                 <button class="call-btn" id="callBtn">📞</button>
+                <button class="starred-btn" id="starredBtn">⭐</button>
+                <button class="quick-reply-btn" id="quickReplyBtn">💬</button>
+                <button class="export-btn" id="exportBtn">📤</button>
+                <button class="bg-btn" id="bgBtn">🎨</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
@@ -1551,6 +1965,11 @@
         <div class="search-panel" id="searchPanel">
             <div class="search-header">
                 <input type="text" id="searchInput" placeholder="搜索聊天记录...">
+            </div>
+            <div class="search-filters">
+                <span class="search-filter active" data-filter="all">全部</span>
+                <span class="search-filter" data-filter="user">按用户</span>
+                <span class="search-filter" data-filter="starred">仅收藏</span>
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -1595,6 +2014,52 @@
             </div>
         </div>
 
+        <!-- 快捷回复面板 -->
+        <div class="quick-reply-panel" id="quickReplyPanel">
+            <div class="quick-reply-header">
+                <span class="quick-reply-title">💬 快捷回复</span>
+                <button class="quick-reply-add" id="addQuickReplyBtn">+ 添加</button>
+            </div>
+            <div id="quickReplyList"></div>
+        </div>
+
+        <!-- 转发面板 -->
+        <div class="forward-panel" id="forwardPanel">
+            <div class="forward-header">
+                <span class="forward-title">📤 转发消息</span>
+                <button class="forward-close" id="forwardClose">×</button>
+            </div>
+            <div class="forward-list" id="forwardList"></div>
+        </div>
+
+        <!-- 收藏消息面板 -->
+        <div class="starred-panel" id="starredPanel">
+            <div class="starred-header">
+                <span>⭐ 收藏的消息</span>
+                <button class="starred-close" id="starredClose">×</button>
+            </div>
+            <div id="starredList"></div>
+        </div>
+
+        <!-- 背景设置面板 -->
+        <div class="bg-panel" id="bgPanel">
+            <div class="bg-header">
+                <span>🎨 聊天背景</span>
+                <button class="bg-close" id="bgClose">×</button>
+            </div>
+            <div class="bg-options" id="bgOptions">
+                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-bg="default"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-bg="pink"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-bg="blue"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-bg="green"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="orange"></div>
+                <div class="bg-option" style="background: #f5f5f5;" data-bg="light"></div>
+            </div>
+            <div class="bg-upload">
+                <input type="file" id="bgUploadInput" accept="image/*" placeholder="上传自定义背景">
+            </div>
+        </div>
+
         <!-- 通话状态栏 -->
         <div class="active-call-bar" id="activeCallBar">
             <div class="active-call-info">
@@ -1604,6 +2069,13 @@
             <div class="active-call-controls">
                 <button class="end-call-btn" id="endCallBtn">挂断</button>
             </div>
+        </div>
+
+        <!-- 编辑框 -->
+        <div class="edit-box" id="editBox">
+            <input type="text" id="editInput" placeholder="编辑消息..." maxlength="500">
+            <button class="cancel-edit-btn" id="cancelEditBtn">取消</button>
+            <button class="save-edit-btn" id="saveEditBtn">保存</button>
         </div>
 
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
@@ -1621,6 +2093,7 @@
             <button class="image-btn" id="imageBtn">🖼️</button>
             <button class="file-btn" id="fileBtn">📎</button>
             <button class="location-btn" id="locationBtn">📍</button>
+            <button class="at-all-btn" id="atAllBtn">@</button>
             <input type="file" id="fileInput" style="display: none;">
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
@@ -1634,6 +2107,15 @@
             <button class="call-close" id="callClose">×</button>
         </div>
         <div class="call-users" id="callUsers"></div>
+    </div>
+
+    <!-- 黑名单面板 -->
+    <div class="blocked-panel" id="blockedPanel">
+        <div class="blocked-header">
+            <span>🚫 黑名单</span>
+            <button class="blocked-close" id="blockedClose">×</button>
+        </div>
+        <div class="blocked-list" id="blockedList"></div>
     </div>
 
     <!-- 来电弹窗 -->
