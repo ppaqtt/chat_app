@@ -853,6 +853,18 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other');
         messageDiv.dataset.messageId = data.id;
 
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        if (data.avatar) {
+            const img = document.createElement('img');
+            img.src = data.avatar;
+            img.alt = data.username;
+            avatarDiv.appendChild(img);
+        } else {
+            avatarDiv.textContent = (data.username.charAt(0) || '?').toUpperCase();
+            avatarDiv.style.backgroundColor = generateAvatarColor(data.username);
+        }
+
         if (data.replyTo) {
             const replyDiv = document.createElement('div');
             replyDiv.className = 'message-reply';
@@ -1044,8 +1056,14 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.classList.add('pinned');
         }
 
-        messageDiv.appendChild(bubble);
-        messageDiv.appendChild(info);
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'message-content-wrapper';
+
+        messageDiv.appendChild(avatarDiv);
+
+        contentWrapper.appendChild(bubble);
+        contentWrapper.appendChild(info);
+        messageDiv.appendChild(contentWrapper);
         messagesArea.appendChild(messageDiv);
 
         if (data.reactions && Object.keys(data.reactions).length > 0) {
