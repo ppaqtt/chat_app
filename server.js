@@ -443,6 +443,56 @@ wss.on('connection', (ws) => {
                     type: 'unpinMessage',
                     messageId: messageId
                 });
+            } else if (data.type === 'callOffer') {
+                const callId = Date.now().toString();
+                broadcastToUser(data.toUser, {
+                    type: 'callOffer',
+                    from: username,
+                    avatar: avatar,
+                    callType: data.callType,
+                    callId: callId
+                });
+            } else if (data.type === 'callAnswer') {
+                broadcastToUser(data.toUser, {
+                    type: 'callAnswer',
+                    from: username,
+                    callId: data.callId
+                });
+            } else if (data.type === 'callReject') {
+                broadcastToUser(data.toUser, {
+                    type: 'callReject',
+                    from: username,
+                    callId: data.callId
+                });
+            } else if (data.type === 'callEnd') {
+                broadcastToUser(data.toUser, {
+                    type: 'callEnd',
+                    from: username
+                });
+            } else if (data.type === 'locationMessage') {
+                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const roomMsgs = getRoomMessages(currentRoom);
+                const messageData = {
+                    type: 'locationMessage',
+                    id: Date.now().toString(),
+                    username: username,
+                    avatar: avatar,
+                    content: data.content || '[位置共享]',
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    timestamp: timestamp,
+                    room: currentRoom,
+                    isPrivate: false,
+                    reads: {},
+                    reactions: {}
+                };
+
+                roomMsgs.push(messageData);
+                if (roomMsgs.length > MAX_MESSAGES) {
+                    roomMsgs.shift();
+                }
+
+                broadcastToRoom(currentRoom, messageData);
             }
         } catch (e) {
             console.error('解析消息失败:', e);

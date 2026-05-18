@@ -1413,6 +1413,69 @@
         .end-call-btn:hover {
             transform: translateY(-2px);
         }
+
+        .location-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            color: var(--text-color);
+        }
+
+        .location-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .message-location {
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .message-location:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .message-location-map {
+            width: 100%;
+            height: 150px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--primary-color);
+            position: relative;
+        }
+
+        .message-location-map img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message-location-info {
+            padding: 8px 12px;
+            background: var(--bg-color);
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .message-location-info span:first-child {
+            color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -1508,6 +1571,18 @@
                 <div class="file-preview-progress-bar" id="filePreviewProgressBar"></div>
             </div>
         </div>
+
+        <!-- 通话状态栏 -->
+        <div class="active-call-bar" id="activeCallBar">
+            <div class="active-call-info">
+                <span>📞</span>
+                <span class="active-call-status" id="activeCallStatus">通话中...</span>
+            </div>
+            <div class="active-call-controls">
+                <button class="end-call-btn" id="endCallBtn">挂断</button>
+            </div>
+        </div>
+
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
         
         <div class="reply-box" id="replyBox">
@@ -1522,9 +1597,32 @@
             <button class="emoji-btn" id="emojiBtn">😀</button>
             <button class="image-btn" id="imageBtn">🖼️</button>
             <button class="file-btn" id="fileBtn">📎</button>
+            <button class="location-btn" id="locationBtn">📍</button>
             <input type="file" id="fileInput" style="display: none;">
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
+        </div>
+    </div>
+
+    <!-- 通话面板 -->
+    <div class="call-panel" id="callPanel">
+        <div class="call-header">
+            <h3>📞 通话</h3>
+            <button class="call-close" id="callClose">×</button>
+        </div>
+        <div class="call-users" id="callUsers"></div>
+    </div>
+
+    <!-- 来电弹窗 -->
+    <div class="incoming-call-modal" id="incomingCallModal">
+        <div class="incoming-call-content">
+            <div class="incoming-call-avatar" id="incomingCallAvatar">?</div>
+            <div class="incoming-call-text" id="incomingCallText">用户名</div>
+            <div class="incoming-call-type" id="incomingCallType">语音通话</div>
+            <div class="incoming-call-buttons">
+                <button class="call-action-btn reject" id="rejectCallBtn">拒绝</button>
+                <button class="call-action-btn accept" id="acceptCallBtn">接听</button>
+            </div>
         </div>
     </div>
 
