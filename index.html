@@ -95,6 +95,21 @@
             background: rgba(255,255,255,0.3);
         }
 
+        .settings-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
         .users-list {
             display: flex;
             gap: 10px;
@@ -226,6 +241,91 @@
 
         .message-action-btn.reply {
             color: var(--primary-color);
+        }
+
+        .message-action-btn.react {
+            color: #ff9f43;
+        }
+
+        .message-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .message-reaction {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .message-reaction:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+        }
+
+        .reaction-emoji {
+            font-size: 14px;
+        }
+
+        .reaction-count {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .reaction-users {
+            position: absolute;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            box-shadow: 0 2px 8px var(--shadow-color);
+            z-index: 10;
+            display: none;
+            max-width: 200px;
+        }
+
+        .reaction-users.active {
+            display: block;
+        }
+
+        .reaction-selector {
+            position: absolute;
+            bottom: 80px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            padding: 8px;
+            display: none;
+            gap: 4px;
+            z-index: 100;
+        }
+
+        .reaction-selector.active {
+            display: flex;
+        }
+
+        .reaction-selector-item {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .reaction-selector-item:hover {
+            background: var(--hover-bg);
+            transform: scale(1.2);
         }
 
         .message.recalled .message-bubble {
@@ -422,6 +522,124 @@
         .emoji-btn:hover, .image-btn:hover, .search-btn:hover {
             border-color: var(--primary-color);
             background: rgba(102, 126, 234, 0.1);
+        }
+
+        .file-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            color: var(--text-color);
+        }
+
+        .file-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .file-preview {
+            position: absolute;
+            bottom: 80px;
+            left: 60px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: none;
+            max-width: 300px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .file-preview.active {
+            display: block;
+        }
+
+        .file-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .file-preview-name {
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .file-preview-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 8px;
+        }
+
+        .file-preview-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .file-preview-progress-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .message-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-color);
+        }
+
+        .message-file:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+        }
+
+        .message-file-icon {
+            font-size: 24px;
+        }
+
+        .message-file-info {
+            flex: 1;
+        }
+
+        .message-file-name {
+            font-size: 13px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        .message-file-size {
+            font-size: 11px;
+            color: var(--text-secondary);
         }
 
         .emoji-picker {
@@ -749,6 +967,141 @@
             font-size: 14px;
             color: var(--text-color);
         }
+
+        .settings-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .settings-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-header h3 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .settings-close:hover {
+            color: var(--text-color);
+        }
+
+        .settings-content {
+            padding: 20px;
+        }
+
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 3px solid var(--border-color);
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-upload-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .avatar-upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .settings-field {
+            margin-bottom: 20px;
+        }
+
+        .settings-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .settings-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .settings-field input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .settings-save {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .settings-save:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -766,6 +1119,7 @@
             <div class="header-controls">
                 <button class="theme-btn" id="themeBtn">🌙</button>
                 <button class="search-btn" id="searchBtn">🔍</button>
+                <button class="settings-btn" id="settingsBtn">⚙️</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
@@ -774,6 +1128,25 @@
                 <div class="users-list" id="usersList">
                     <span>在线：0 人</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <h3>个人设置</h3>
+                <button class="settings-close" id="settingsClose">×</button>
+            </div>
+            <div class="settings-content">
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview">?</div>
+                    <button class="avatar-upload-btn" id="avatarUploadBtn">上传头像</button>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                </div>
+                <div class="settings-field">
+                    <label>昵称</label>
+                    <input type="text" id="nicknameInput" placeholder="输入新昵称" maxlength="20">
+                </div>
+                <button class="settings-save" id="settingsSaveBtn">保存设置</button>
             </div>
         </div>
 
@@ -800,6 +1173,23 @@
         <div class="typing-indicator" id="typingIndicator"></div>
         <div class="emoji-picker" id="emojiPicker"></div>
         <div class="mention-suggestions" id="mentionSuggestions"></div>
+        <div class="reaction-selector" id="reactionSelector">
+            <span class="reaction-selector-item" data-emoji="👍">👍</span>
+            <span class="reaction-selector-item" data-emoji="❤️">❤️</span>
+            <span class="reaction-selector-item" data-emoji="😂">😂</span>
+            <span class="reaction-selector-item" data-emoji="😮">😮</span>
+            <span class="reaction-selector-item" data-emoji="😢">😢</span>
+            <span class="reaction-selector-item" data-emoji="🔥">🔥</span>
+        </div>
+        <div class="file-preview" id="filePreview">
+            <div class="file-preview-header">
+                <div class="file-preview-name" id="filePreviewName"></div>
+                <button class="file-preview-close" id="filePreviewClose">×</button>
+            </div>
+            <div class="file-preview-progress">
+                <div class="file-preview-progress-bar" id="filePreviewProgressBar"></div>
+            </div>
+        </div>
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
         
         <div class="reply-box" id="replyBox">
@@ -813,6 +1203,8 @@
         <div class="input-area">
             <button class="emoji-btn" id="emojiBtn">😀</button>
             <button class="image-btn" id="imageBtn">🖼️</button>
+            <button class="file-btn" id="fileBtn">📎</button>
+            <input type="file" id="fileInput" style="display: none;">
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
         </div>

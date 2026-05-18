@@ -41,6 +41,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const replyBoxText = document.getElementById('replyBoxText');
     const replyBoxClose = document.getElementById('replyBoxClose');
     const mentionSuggestions = document.getElementById('mentionSuggestions');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsClose = document.getElementById('settingsClose');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const avatarUploadBtn = document.getElementById('avatarUploadBtn');
+    const avatarInput = document.getElementById('avatarInput');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+    const reactionSelector = document.getElementById('reactionSelector');
+    const fileBtn = document.getElementById('fileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const filePreviewName = document.getElementById('filePreviewName');
+    const filePreviewClose = document.getElementById('filePreviewClose');
+    const filePreviewProgressBar = document.getElementById('filePreviewProgressBar');
+
+    let newAvatarUrl = '';
+    let activeReactionMessageId = null;
+    let pendingFile = null;
 
     let rooms = {};
     let onlineUsers = [];
@@ -74,6 +93,155 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     themeBtn.addEventListener('click', toggleTheme);
+
+    function toggleSettings() {
+        settingsPanel.classList.toggle('active');
+        if (settingsPanel.classList.contains('active')) {
+            updateAvatarPreview();
+            nicknameInput.value = currentUsername;
+        }
+    }
+
+    settingsBtn.addEventListener('click', toggleSettings);
+
+    settingsClose.addEventListener('click', () => {
+        settingsPanel.classList.remove('active');
+    });
+
+    function updateAvatarPreview() {
+        if (newAvatarUrl) {
+            avatarPreview.innerHTML = '<img src="' + newAvatarUrl + '" alt="头像">';
+        } else {
+            avatarPreview.textContent = (currentUsername.charAt(0) || '?').toUpperCase();
+            avatarPreview.style.backgroundColor = currentAvatar || generateAvatarColor(currentUsername);
+        }
+    }
+
+    avatarUploadBtn.addEventListener('click', () => {
+        avatarInput.click();
+    });
+
+    avatarInput.addEventListener('change', async function() {
+        const file = avatarInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.url) {
+                newAvatarUrl = data.url;
+                updateAvatarPreview();
+            }
+        } catch (error) {
+            console.error('头像上传失败:', error);
+            alert('头像上传失败');
+        }
+
+        avatarInput.value = '';
+    });
+
+    settingsSaveBtn.addEventListener('click', () => {
+        const newNickname = nicknameInput.value.trim();
+        
+        if (newNickname && newNickname !== currentUsername) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'updateProfile',
+                    newUsername: newNickname,
+                    newAvatar: newAvatarUrl
+                }));
+            }
+            
+            const oldUsername = currentUsername;
+            currentUsername = newNickname;
+            
+            allMessages.forEach(msg => {
+                if (msg.username === oldUsername) {
+                    msg.username = newNickname;
+                }
+            });
+            
+            if (newAvatarUrl) {
+                currentAvatar = newAvatarUrl;
+            }
+            
+            refreshMessages();
+            updateAvatarPreview();
+            
+            alert('设置已保存！');
+            settingsPanel.classList.remove('active');
+        } else if (!newNickname) {
+            alert('请输入昵称');
+        } else {
+            if (newAvatarUrl) {
+                currentAvatar = newAvatarUrl;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'updateProfile',
+                        newUsername: currentUsername,
+                        newAvatar: newAvatarUrl
+                    }));
+                }
+                updateAvatarPreview();
+                alert('头像已更新！');
+                settingsPanel.classList.remove('active');
+            } else {
+                alert('没有修改任何设置');
+            }
+        }
+        
+        newAvatarUrl = '';
+    });
+
+    function refreshMessages() {
+        messagesArea.innerHTML = '';
+        allMessages.forEach(msg => {
+            addMessage(msg);
+        });
+        scrollToBottom();
+    }
+
+    function showReactionSelector(messageId, targetElement) {
+        activeReactionMessageId = messageId;
+        const rect = targetElement.getBoundingClientRect();
+        const messagesRect = messagesArea.getBoundingClientRect();
+        
+        reactionSelector.style.left = (rect.left - messagesRect.left) + 'px';
+        reactionSelector.style.top = 'auto';
+        reactionSelector.style.bottom = '80px';
+        reactionSelector.classList.add('active');
+    }
+
+    document.querySelectorAll('.reaction-selector-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const emoji = item.dataset.emoji;
+            if (activeReactionMessageId && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'addReaction',
+                    messageId: activeReactionMessageId,
+                    emoji: emoji,
+                    username: currentUsername
+                }));
+                
+                reactionSelector.classList.remove('active');
+                activeReactionMessageId = null;
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!reactionSelector.contains(e.target) && !e.target.classList.contains('react')) {
+            reactionSelector.classList.remove('active');
+            activeReactionMessageId = null;
+        }
+    });
 
     function toggleSearch() {
         searchPanel.classList.toggle('active');
@@ -412,7 +580,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 addMessage(data);
                 scrollToBottom();
                 break;
+            case 'fileMessage':
+                allMessages.push(data);
+                addMessage(data);
+                scrollToBottom();
+                break;
             case 'privateMessage':
+                allMessages.push(data);
+                addMessage(data);
+                scrollToBottom();
+                break;
+            case 'privateFileMessage':
                 allMessages.push(data);
                 addMessage(data);
                 scrollToBottom();
@@ -460,6 +638,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateRoomList(Object.keys(rooms));
                 scrollToBottom();
                 break;
+            case 'reactionAdded':
+                updateMessageReactions(data.messageId, data.reactions);
+                break;
+        }
+    }
+
+    function updateMessageReactions(messageId, reactions) {
+        const messageEl = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
+        if (!messageEl) return;
+
+        let reactionsDiv = messageEl.querySelector('.message-reactions');
+        if (!reactionsDiv) {
+            reactionsDiv = document.createElement('div');
+            reactionsDiv.className = 'message-reactions';
+            messageEl.appendChild(reactionsDiv);
+        }
+
+        reactionsDiv.innerHTML = '';
+
+        const reactionGroups = {};
+        Object.keys(reactions).forEach(username => {
+            const emoji = reactions[username];
+            if (!reactionGroups[emoji]) {
+                reactionGroups[emoji] = [];
+            }
+            reactionGroups[emoji].push(username);
+        });
+
+        Object.keys(reactionGroups).forEach(emoji => {
+            const users = reactionGroups[emoji];
+            const reaction = document.createElement('div');
+            reaction.className = 'message-reaction';
+            reaction.innerHTML = '<span class="reaction-emoji">' + emoji + '</span><span class="reaction-count">' + users.length + '</span>';
+            reaction.title = users.join(', ');
+
+            reaction.onclick = (e) => {
+                e.stopPropagation();
+            };
+
+            reactionsDiv.appendChild(reaction);
+        });
+
+        const msgIndex = allMessages.findIndex(m => m.id === messageId);
+        if (msgIndex !== -1) {
+            allMessages[msgIndex].reactions = reactions;
         }
     }
 
@@ -493,6 +716,34 @@ document.addEventListener('DOMContentLoaded', function() {
             img.alt = '发送的图片';
             img.onclick = () => window.open(data.imageUrl, '_blank');
             bubble.appendChild(img);
+        } else if ((data.type === 'fileMessage' || data.type === 'privateFileMessage') && data.fileUrl) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'message-file';
+            fileDiv.onclick = () => window.open(data.fileUrl, '_blank');
+
+            const fileIcon = document.createElement('span');
+            fileIcon.className = 'message-file-icon';
+            fileIcon.textContent = '📄';
+
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'message-file-info';
+
+            const fileName = document.createElement('div');
+            fileName.className = 'message-file-name';
+            fileName.textContent = data.fileName;
+
+            const fileSize = document.createElement('div');
+            fileSize.className = 'message-file-size';
+            fileSize.textContent = formatFileSize(data.fileSize);
+
+            fileInfo.appendChild(fileName);
+            fileInfo.appendChild(fileSize);
+
+            fileDiv.appendChild(fileIcon);
+            fileDiv.appendChild(fileInfo);
+
+            bubble.innerHTML = content;
+            bubble.appendChild(fileDiv);
         } else {
             bubble.innerHTML = content;
         }
@@ -549,12 +800,24 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             actions.appendChild(replyBtn);
 
+            const reactBtn = document.createElement('button');
+            reactBtn.className = 'message-action-btn react';
+            reactBtn.textContent = '反应';
+            reactBtn.onclick = (e) => {
+                showReactionSelector(data.id, e.target);
+            };
+            actions.appendChild(reactBtn);
+
             info.appendChild(actions);
         }
 
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(info);
         messagesArea.appendChild(messageDiv);
+
+        if (data.reactions && Object.keys(data.reactions).length > 0) {
+            updateMessageReactions(data.id, data.reactions);
+        }
 
         if (data.username !== currentUsername && !data.isPrivate) {
             ws.send(JSON.stringify({
@@ -759,6 +1022,106 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function scrollToBottom() {
         messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    fileBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        pendingFile = file;
+        filePreviewName.textContent = file.name;
+        filePreview.classList.add('active');
+        filePreviewProgressBar.style.width = '0%';
+
+        uploadAndSendFile(file);
+    });
+
+    filePreviewClose.addEventListener('click', () => {
+        filePreview.classList.remove('active');
+        pendingFile = null;
+        fileInput.value = '';
+    });
+
+    async function uploadAndSendFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    filePreviewProgressBar.style.width = percent + '%';
+                }
+            });
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    if (data.url) {
+                        sendFileMessage(data.url, file.name, file.size);
+                    }
+                    filePreview.classList.remove('active');
+                    pendingFile = null;
+                    fileInput.value = '';
+                }
+            };
+
+            xhr.onerror = () => {
+                console.error('文件上传失败');
+                alert('文件上传失败');
+                filePreview.classList.remove('active');
+                pendingFile = null;
+                fileInput.value = '';
+            };
+
+            xhr.open('POST', '/api/upload');
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error('文件上传失败:', error);
+            alert('文件上传失败');
+            filePreview.classList.remove('active');
+            pendingFile = null;
+            fileInput.value = '';
+        }
+    }
+
+    function sendFileMessage(fileUrl, fileName, fileSize) {
+        const now = new Date();
+        const timestamp = formatTime(now);
+
+        const messageData = {
+            type: 'fileMessage',
+            fileUrl: fileUrl,
+            fileName: fileName,
+            fileSize: fileSize,
+            timestamp: timestamp
+        };
+
+        if (replyingTo) {
+            messageData.replyTo = replyingTo;
+            clearReply();
+        }
+
+        if (isPrivateMode && privateTarget) {
+            messageData.type = 'privateFileMessage';
+            messageData.toUser = privateTarget;
+            messageData.content = '[文件] ' + fileName;
+        }
+
+        ws.send(JSON.stringify(messageData));
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
     initEmojiPicker();

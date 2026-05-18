@@ -190,7 +190,8 @@ wss.on('connection', (ws) => {
                     timestamp: timestamp,
                     room: currentRoom,
                     isPrivate: false,
-                    reads: {}
+                    reads: {},
+                    reactions: {}
                 };
                 
                 roomMsgs.push(messageData);
@@ -199,6 +200,51 @@ wss.on('connection', (ws) => {
                 }
                 
                 broadcastToRoom(currentRoom, messageData);
+                
+            } else if (data.type === 'fileMessage') {
+                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const roomMsgs = getRoomMessages(currentRoom);
+                const messageData = {
+                    type: 'fileMessage',
+                    id: Date.now().toString(),
+                    username: username,
+                    avatar: avatar,
+                    fileUrl: data.fileUrl,
+                    fileName: data.fileName,
+                    fileSize: data.fileSize,
+                    content: data.content,
+                    timestamp: timestamp,
+                    room: currentRoom,
+                    isPrivate: false,
+                    reads: {},
+                    reactions: {}
+                };
+                
+                roomMsgs.push(messageData);
+                if (roomMsgs.length > MAX_MESSAGES) {
+                    roomMsgs.shift();
+                }
+                
+                broadcastToRoom(currentRoom, messageData);
+                
+            } else if (data.type === 'privateFileMessage') {
+                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const messageData = {
+                    type: 'privateFileMessage',
+                    id: Date.now().toString(),
+                    username: username,
+                    avatar: avatar,
+                    fileUrl: data.fileUrl,
+                    fileName: data.fileName,
+                    fileSize: data.fileSize,
+                    content: data.content,
+                    timestamp: timestamp,
+                    toUser: data.toUser,
+                    isPrivate: true
+                };
+                
+                broadcastToUser(data.toUser, messageData);
+                ws.send(JSON.stringify(messageData));
                 
             } else if (data.type === 'privateMessage') {
                 const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -303,6 +349,76 @@ wss.on('connection', (ws) => {
                     type: 'stopTyping',
                     username: username
                 });
+            } else if (data.type === 'updateProfile') {
+                const newUsername = data.newUsername;
+                const newAvatar = data.newAvatar;
+                
+                const oldUsername = username;
+                
+                if (newUsername) {
+                    username = newUsername;
+                }
+                if (newAvatar) {
+                    avatar = newAvatar;
+                }
+                
+                const userData = users.get(ws);
+                if (userData) {
+                    userData.username = username;
+                    userData.avatar = avatar;
+                }
+                
+                if (rooms[currentRoom]) {
+                    const userIndex = rooms[currentRoom].indexOf(oldUsername);
+                    if (userIndex !== -1) {
+                        rooms[currentRoom][userIndex] = username;
+                    }
+                }
+                
+                const roomMsgs = getRoomMessages(currentRoom);
+                roomMsgs.forEach(msg => {
+                    if (msg.username === oldUsername) {
+                        msg.username = username;
+                        msg.avatar = avatar;
+                    }
+                });
+                
+                ws.send(JSON.stringify({
+                    type: 'profileUpdated',
+                    username: username,
+                    avatar: avatar
+                }));
+                
+                broadcastToRoom(currentRoom, {
+                    type: 'system',
+                    message: oldUsername + ' 修改了昵称为 ' + username,
+                    users: getRoomUsers(currentRoom)
+                });
+            } else if (data.type === 'addReaction') {
+                const messageId = data.messageId;
+                const emoji = data.emoji;
+                const reactingUsername = data.username;
+                
+                const roomMsgs = getRoomMessages(currentRoom);
+                const message = roomMsgs.find(m => m.id === messageId);
+                
+                if (message) {
+                    if (!message.reactions) {
+                        message.reactions = {};
+                    }
+                    
+                    if (message.reactions[reactingUsername] === emoji) {
+                        delete message.reactions[reactingUsername];
+                    } else {
+                        message.reactions[reactingUsername] = emoji;
+                    }
+                    
+                    broadcastToRoom(currentRoom, {
+                        type: 'reactionAdded',
+                        messageId: messageId,
+                        reactions: message.reactions
+                    });
+                }
             }
         } catch (e) {
             console.error('解析消息失败:', e);
