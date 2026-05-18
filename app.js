@@ -129,8 +129,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateAvatarPreview() {
-        if (newAvatarUrl) {
-            avatarPreview.innerHTML = '<img src="' + newAvatarUrl + '" alt="头像">';
+        if (currentAvatar && !currentAvatar.startsWith('#')) {
+            avatarPreview.innerHTML = '<img src="' + currentAvatar + '" alt="头像">';
         } else {
             avatarPreview.textContent = (currentUsername.charAt(0) || '?').toUpperCase();
             avatarPreview.style.backgroundColor = currentAvatar || generateAvatarColor(currentUsername);
@@ -853,6 +853,18 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other');
         messageDiv.dataset.messageId = data.id;
 
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        if (data.avatar && !data.avatar.startsWith('#')) {
+            const img = document.createElement('img');
+            img.src = data.avatar;
+            img.alt = data.username;
+            avatarDiv.appendChild(img);
+        } else {
+            avatarDiv.textContent = (data.username.charAt(0) || '?').toUpperCase();
+            avatarDiv.style.backgroundColor = data.avatar || generateAvatarColor(data.username);
+        }
+
         if (data.replyTo) {
             const replyDiv = document.createElement('div');
             replyDiv.className = 'message-reply';
@@ -1044,6 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.classList.add('pinned');
         }
 
+        messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(info);
         messagesArea.appendChild(messageDiv);
