@@ -56,10 +56,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const filePreviewName = document.getElementById('filePreviewName');
     const filePreviewClose = document.getElementById('filePreviewClose');
     const filePreviewProgressBar = document.getElementById('filePreviewProgressBar');
+    const pinnedMessagesBar = document.getElementById('pinnedMessagesBar');
+    const pinnedMessagesList = document.getElementById('pinnedMessagesList');
 
     let newAvatarUrl = '';
     let activeReactionMessageId = null;
     let pendingFile = null;
+    let pinnedMessages = {};
 
     let rooms = {};
     let onlineUsers = [];
@@ -641,6 +644,78 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'reactionAdded':
                 updateMessageReactions(data.messageId, data.reactions);
                 break;
+            case 'pinMessage':
+                handlePinMessage(data);
+                break;
+            case 'unpinMessage':
+                handleUnpinMessage(data);
+                break;
+            case 'pinnedMessages':
+                handlePinnedMessages(data);
+                break;
+        }
+    }
+
+    function handlePinMessage(data) {
+        const messageId = data.messageId;
+        pinnedMessages[messageId] = {
+            content: data.content,
+            username: data.username
+        };
+
+        const msgIndex = allMessages.findIndex(m => m.id === messageId);
+        if (msgIndex !== -1) {
+            allMessages[msgIndex].pinned = true;
+        }
+
+        const msgElement = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
+        if (msgElement) {
+            msgElement.classList.add('pinned');
+            const pinBtn = msgElement.querySelector('.message-action-btn.pin');
+            if (pinBtn) {
+                pinBtn.textContent = '取消置顶';
+            }
+        }
+
+        updatePinnedMessagesBar();
+    }
+
+    function handleUnpinMessage(data) {
+        const messageId = data.messageId;
+        delete pinnedMessages[messageId];
+
+        const msgIndex = allMessages.findIndex(m => m.id === messageId);
+        if (msgIndex !== -1) {
+            allMessages[msgIndex].pinned = false;
+        }
+
+        const msgElement = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
+        if (msgElement) {
+            msgElement.classList.remove('pinned');
+            const pinBtn = msgElement.querySelector('.message-action-btn.pin');
+            if (pinBtn) {
+                pinBtn.textContent = '置顶';
+            }
+        }
+
+        updatePinnedMessagesBar();
+    }
+
+    function handlePinnedMessages(data) {
+        if (data.pinnedMessages) {
+            pinnedMessages = data.pinnedMessages;
+            updatePinnedMessagesBar();
+
+            Object.keys(pinnedMessages).forEach(id => {
+                const msgElement = messagesArea.querySelector('[data-message-id="' + id + '"]');
+                if (msgElement) {
+                    msgElement.classList.add('pinned');
+                    const pinBtn = msgElement.querySelector('.message-action-btn.pin');
+                    if (pinBtn) {
+                        pinBtn.textContent = '取消置顶';
+                    }
+                }
+            });
         }
     }
 
@@ -777,13 +852,48 @@ document.addEventListener('DOMContentLoaded', function() {
             recallBtn.onclick = () => recallMessage(data.id);
             actions.appendChild(recallBtn);
 
+            const reactBtn = document.createElement('button');
+            reactBtn.className = 'message-action-btn react';
+            reactBtn.textContent = '反应';
+            reactBtn.onclick = (e) => {
+                showReactionSelector(data.id, e.target);
+            };
+            actions.appendChild(reactBtn);
+
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'message-action-btn translate';
+            translateBtn.textContent = '翻译';
+            translateBtn.onclick = () => {
+                translateMessage(data.id, data.content);
+            };
+            actions.appendChild(translateBtn);
+
+            if (!data.isPrivate) {
+                const pinBtn = document.createElement('button');
+                pinBtn.className = 'message-action-btn pin';
+                pinBtn.textContent = data.pinned ? '取消置顶' : '置顶';
+                pinBtn.onclick = () => {
+                    togglePinMessage(data.id, data.content, data.username);
+                };
+                actions.appendChild(pinBtn);
+            }
+
             info.appendChild(actions);
 
             if (!data.isPrivate) {
                 const readStatus = document.createElement('span');
                 readStatus.className = 'read-status';
                 readStatus.id = 'read-' + data.id;
-                readStatus.textContent = '未读';
+
+                if (data.reads && Object.keys(data.reads).length > 0) {
+                    const readCount = Object.keys(data.reads).length;
+                    readStatus.textContent = '已读 ' + readCount + ' 人';
+                    readStatus.classList.add('read');
+                    readStatus.onclick = () => showReadList(data.id, data.reads);
+                } else {
+                    readStatus.textContent = '未读';
+                }
+
                 info.appendChild(readStatus);
             }
         } else {
@@ -808,7 +918,29 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             actions.appendChild(reactBtn);
 
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'message-action-btn translate';
+            translateBtn.textContent = '翻译';
+            translateBtn.onclick = () => {
+                translateMessage(data.id, data.content);
+            };
+            actions.appendChild(translateBtn);
+
+            if (!data.isPrivate) {
+                const pinBtn = document.createElement('button');
+                pinBtn.className = 'message-action-btn pin';
+                pinBtn.textContent = data.pinned ? '取消置顶' : '置顶';
+                pinBtn.onclick = () => {
+                    togglePinMessage(data.id, data.content, data.username);
+                };
+                actions.appendChild(pinBtn);
+            }
+
             info.appendChild(actions);
+        }
+
+        if (data.pinned) {
+            messageDiv.classList.add('pinned');
         }
 
         messageDiv.appendChild(bubble);
@@ -851,9 +983,58 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateMessageReadStatus(messageId, reader) {
         const readStatus = document.getElementById('read-' + messageId);
         if (readStatus) {
-            readStatus.textContent = '已读';
-            readStatus.classList.add('read');
+            const msgIndex = allMessages.findIndex(m => m.id === messageId);
+            if (msgIndex !== -1) {
+                allMessages[msgIndex].reads = allMessages[msgIndex].reads || {};
+                allMessages[msgIndex].reads[reader] = true;
+                const readCount = Object.keys(allMessages[msgIndex].reads).length;
+                readStatus.textContent = '已读 ' + readCount + ' 人';
+                readStatus.classList.add('read');
+                readStatus.onclick = () => showReadList(messageId, allMessages[msgIndex].reads);
+            }
         }
+    }
+
+    function showReadList(messageId, reads) {
+        const readStatus = document.getElementById('read-' + messageId);
+        if (!readStatus) return;
+
+        const existingList = document.querySelector('.read-users-list');
+        if (existingList) {
+            existingList.remove();
+            return;
+        }
+
+        const readers = Object.keys(reads);
+        if (readers.length === 0) return;
+
+        const listDiv = document.createElement('div');
+        listDiv.className = 'read-users-list';
+        listDiv.style.cssText = 'position: absolute; right: 10px; top: -' + (30 + readers.length * 25) + 'px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; box-shadow: 0 2px 8px var(--shadow-color); z-index: 100; min-width: 150px;';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = 'font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;';
+        titleDiv.textContent = '已读用户 (' + readers.length + ')';
+        listDiv.appendChild(titleDiv);
+
+        readers.forEach(reader => {
+            const userDiv = document.createElement('div');
+            userDiv.style.cssText = 'font-size: 13px; color: var(--text-color); padding: 4px 0; display: flex; align-items: center; gap: 6px;';
+            userDiv.innerHTML = '<span style="color: #4CAF50;">✓</span> ' + reader;
+            listDiv.appendChild(userDiv);
+        });
+
+        readStatus.style.position = 'relative';
+        readStatus.appendChild(listDiv);
+
+        setTimeout(() => {
+            document.addEventListener('click', function closeList(e) {
+                if (!listDiv.contains(e.target) && e.target !== readStatus) {
+                    listDiv.remove();
+                    document.removeEventListener('click', closeList);
+                }
+            });
+        }, 100);
     }
 
     function addSystemMessage(text) {
@@ -897,6 +1078,58 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
             roomList.appendChild(roomItem);
+        });
+    }
+
+    function togglePinMessage(messageId, content, username) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            if (pinnedMessages[messageId]) {
+                ws.send(JSON.stringify({
+                    type: 'unpinMessage',
+                    messageId: messageId
+                }));
+            } else {
+                ws.send(JSON.stringify({
+                    type: 'pinMessage',
+                    messageId: messageId,
+                    content: content,
+                    username: username
+                }));
+            }
+        }
+    }
+
+    function updatePinnedMessagesBar() {
+        const pinnedIds = Object.keys(pinnedMessages);
+
+        if (pinnedIds.length === 0) {
+            pinnedMessagesBar.classList.remove('active');
+            return;
+        }
+
+        pinnedMessagesBar.classList.add('active');
+        pinnedMessagesList.innerHTML = '';
+
+        pinnedIds.forEach(id => {
+            const msg = pinnedMessages[id];
+            if (!msg) return;
+
+            const item = document.createElement('div');
+            item.className = 'pinned-message-item';
+            item.innerHTML = '<span>📌</span><span class="pinned-message-preview">' + msg.username + ': ' + msg.content + '</span>';
+
+            item.onclick = () => {
+                const msgElement = messagesArea.querySelector('[data-message-id="' + id + '"]');
+                if (msgElement) {
+                    msgElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    msgElement.style.background = 'rgba(231, 76, 60, 0.3)';
+                    setTimeout(() => {
+                        msgElement.style.background = '';
+                    }, 2000);
+                }
+            };
+
+            pinnedMessagesList.appendChild(item);
         });
     }
 
@@ -1018,6 +1251,100 @@ document.addEventListener('DOMContentLoaded', function() {
             '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B500', '#00CED1'
         ];
         return colors[(username.charCodeAt(0) || 0) % colors.length];
+    }
+
+    function detectLanguage(text) {
+        const chineseRegex = /[\u4e00-\u9fa5]/;
+        const koreanRegex = /[\uAC00-\uD7AF]/;
+        const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF]/;
+        const arabicRegex = /[\u0600-\u06FF]/;
+        const russianRegex = /[\u0400-\u04FF]/;
+
+        if (chineseRegex.test(text)) return 'zh';
+        if (koreanRegex.test(text)) return 'ko';
+        if (japaneseRegex.test(text)) return 'ja';
+        if (arabicRegex.test(text)) return 'ar';
+        if (russianRegex.test(text)) return 'ru';
+        return 'en';
+    }
+
+    function simpleTranslate(text, fromLang) {
+        const translations = {
+            'zh': {
+                '你好': 'Hello',
+                '谢谢': 'Thank you',
+                '早上好': 'Good morning',
+                '晚上好': 'Good evening',
+                '再见': 'Goodbye',
+                '对不起': 'I\'m sorry',
+                '我爱你': 'I love you',
+                '很高兴见到你': 'Nice to meet you',
+                '请问': 'May I ask',
+                '多少钱': 'How much'
+            },
+            'en': {
+                'hello': '你好',
+                'thank you': '谢谢',
+                'good morning': '早上好',
+                'good evening': '晚上好',
+                'goodbye': '再见',
+                'i\'m sorry': '对不起',
+                'i love you': '我爱你',
+                'nice to meet you': '很高兴见到你'
+            }
+        };
+
+        const lowerText = text.toLowerCase().trim();
+
+        if (fromLang === 'zh' && translations['zh'][lowerText]) {
+            return translations['zh'][lowerText];
+        }
+
+        if (fromLang === 'en' && translations['en'][lowerText]) {
+            return translations['en'][lowerText];
+        }
+
+        return null;
+    }
+
+    function translateMessage(messageId, content) {
+        if (!content) return;
+
+        const messageEl = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
+        if (!messageEl) return;
+
+        let existingTranslation = messageEl.querySelector('.message-translation');
+        if (existingTranslation) {
+            existingTranslation.remove();
+            return;
+        }
+
+        const fromLang = detectLanguage(content);
+        let translatedText = '';
+
+        const simpleTrans = simpleTranslate(content, fromLang);
+        if (simpleTrans) {
+            translatedText = simpleTrans;
+        } else {
+            const targetLang = fromLang === 'zh' ? 'English' : '中文';
+            translatedText = `[模拟翻译 - ${targetLang}]\n${content}`;
+        }
+
+        const translationDiv = document.createElement('div');
+        translationDiv.className = 'message-translation';
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'message-translation-label';
+        labelDiv.textContent = fromLang === 'zh' ? '英文翻译' : '中文翻译';
+
+        const textDiv = document.createElement('div');
+        textDiv.textContent = translatedText;
+
+        translationDiv.appendChild(labelDiv);
+        translationDiv.appendChild(textDiv);
+
+        messageEl.appendChild(translationDiv);
+        messageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function scrollToBottom() {

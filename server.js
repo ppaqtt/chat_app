@@ -100,6 +100,7 @@ const wss = new WebSocket.Server({ server });
 let users = new Map();
 let rooms = { '大厅': [] };
 let messages = {};
+let pinnedMessages = {};
 const MAX_MESSAGES = 200;
 
 function getRoomMessages(room) {
@@ -153,7 +154,8 @@ wss.on('connection', (ws) => {
                     avatar: avatar,
                     room: currentRoom,
                     rooms: Object.keys(rooms),
-                    messages: roomMessages
+                    messages: roomMessages,
+                    pinnedMessages: pinnedMessages
                 }));
                 
             } else if (data.type === 'message') {
@@ -398,27 +400,49 @@ wss.on('connection', (ws) => {
                 const messageId = data.messageId;
                 const emoji = data.emoji;
                 const reactingUsername = data.username;
-                
+
                 const roomMsgs = getRoomMessages(currentRoom);
                 const message = roomMsgs.find(m => m.id === messageId);
-                
+
                 if (message) {
                     if (!message.reactions) {
                         message.reactions = {};
                     }
-                    
+
                     if (message.reactions[reactingUsername] === emoji) {
                         delete message.reactions[reactingUsername];
                     } else {
                         message.reactions[reactingUsername] = emoji;
                     }
-                    
+
                     broadcastToRoom(currentRoom, {
                         type: 'reactionAdded',
                         messageId: messageId,
                         reactions: message.reactions
                     });
                 }
+            } else if (data.type === 'pinMessage') {
+                const messageId = data.messageId;
+                pinnedMessages[messageId] = {
+                    content: data.content,
+                    username: data.username
+                };
+
+                broadcastToRoom(currentRoom, {
+                    type: 'pinMessage',
+                    messageId: messageId,
+                    content: data.content,
+                    username: data.username
+                });
+
+            } else if (data.type === 'unpinMessage') {
+                const messageId = data.messageId;
+                delete pinnedMessages[messageId];
+
+                broadcastToRoom(currentRoom, {
+                    type: 'unpinMessage',
+                    messageId: messageId
+                });
             }
         } catch (e) {
             console.error('解析消息失败:', e);

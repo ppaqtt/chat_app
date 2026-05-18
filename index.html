@@ -247,6 +247,75 @@
             color: #ff9f43;
         }
 
+        .message-action-btn.translate {
+            color: #3498db;
+        }
+
+        .message-action-btn.pin {
+            color: #e74c3c;
+        }
+
+        .message-translation {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-left: 3px solid #3498db;
+        }
+
+        .message-translation-label {
+            font-weight: 600;
+            color: #3498db;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .pinned-messages-bar {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 8px 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .pinned-messages-bar.active {
+            display: flex;
+        }
+
+        .pinned-message-item {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pinned-message-item:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .pinned-message-preview {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message.pinned {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 3px solid #e74c3c;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
         .message-reactions {
             display: flex;
             flex-wrap: wrap;
@@ -356,6 +425,17 @@
 
         .read-status.read {
             color: #4CAF50;
+        }
+
+        .read-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .read-count:hover {
+            color: var(--primary-color);
+            cursor: pointer;
         }
 
         .reply-box {
@@ -1102,6 +1182,237 @@
         .settings-save:hover {
             transform: translateY(-2px);
         }
+
+        .call-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 280px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .call-panel.active {
+            display: block;
+        }
+
+        .call-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .call-header h3 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .call-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .call-users {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .call-user {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+
+        .call-user:last-child {
+            border-bottom: none;
+        }
+
+        .call-user:hover {
+            background: var(--hover-bg);
+        }
+
+        .call-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-color);
+        }
+
+        .call-user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .call-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .call-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .call-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .call-btn.voice {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .call-btn.video {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .incoming-call-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .incoming-call-modal.active {
+            display: flex;
+        }
+
+        .incoming-call-content {
+            background: var(--bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .incoming-call-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            margin: 0 auto 20px;
+        }
+
+        .incoming-call-text {
+            color: var(--text-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .incoming-call-type {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .incoming-call-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .call-action-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .call-action-btn.accept {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .call-action-btn.reject {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .call-action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .active-call-bar {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            align-items: center;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .active-call-bar.active {
+            display: flex;
+        }
+
+        .active-call-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .active-call-status {
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .active-call-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .end-call-btn {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .end-call-btn:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -1120,6 +1431,7 @@
                 <button class="theme-btn" id="themeBtn">🌙</button>
                 <button class="search-btn" id="searchBtn">🔍</button>
                 <button class="settings-btn" id="settingsBtn">⚙️</button>
+                <button class="call-btn" id="callBtn">📞</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
@@ -1169,6 +1481,12 @@
                 <button id="createRoomBtn">创建</button>
             </div>
         </div>
+
+        <div class="pinned-messages-bar" id="pinnedMessagesBar">
+            <span style="font-weight: 600;">📌 置顶消息：</span>
+            <div id="pinnedMessagesList"></div>
+        </div>
+
         <div class="messages-area" id="messagesArea"></div>
         <div class="typing-indicator" id="typingIndicator"></div>
         <div class="emoji-picker" id="emojiPicker"></div>
