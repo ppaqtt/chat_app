@@ -906,12 +906,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const locationDiv = document.createElement('div');
             locationDiv.className = 'message-location';
             locationDiv.onclick = () => {
-                window.open('https://maps.google.com/?q=' + data.latitude + ',' + data.longitude, '_blank');
+                window.open('https://uri.amap.com/marker?position=' + data.longitude + ',' + data.latitude + '&name=位置&src=chat_app&coordinate=wgs84&callnative=1', '_blank');
             };
 
             const mapDiv = document.createElement('div');
             mapDiv.className = 'message-location-map';
-            mapDiv.innerHTML = '<img src="https://maps.googleapis.com/maps/api/staticmap?center=' + data.latitude + ',' + data.longitude + '&zoom=15&size=300x150&maptype=roadmap&markers=color:red%7C' + data.latitude + ',' + data.longitude + '" alt="位置地图" onerror="this.parentElement.innerHTML=\'📍\'">';
+            mapDiv.innerHTML = '<img src="https://restapi.amap.com/v3/staticmap?location=' + data.longitude + ',' + data.latitude + '&zoom=15&size=300*150&markers=mid,0xFF5252,A:' + data.longitude + ',' + data.latitude + '&key=7a2903c2f0d36a042e36b5e9863f0856" alt="位置地图" onerror="this.parentElement.innerHTML=\'📍\'">';
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'message-location-info';
