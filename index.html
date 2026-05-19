@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -80,7 +79,7 @@
             align-items: center;
         }
 
-        .theme-btn {
+        .theme-btn, .settings-btn, .search-btn, .call-btn, .starred-btn, .quick-reply-btn, .export-btn, .bg-btn, .stats-btn, .reminder-btn, .announcement-btn, .vote-btn, .tag-filter-btn, .filter-btn, .devices-btn, .encryption-btn, .ai-btn, .style-btn, .user-colors-btn {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
@@ -91,22 +90,10 @@
             transition: all 0.3s;
         }
 
-        .theme-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .settings-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .settings-btn:hover {
+        .theme-btn:hover, .settings-btn:hover, .search-btn:hover, .call-btn:hover, 
+        .starred-btn:hover, .quick-reply-btn:hover, .export-btn:hover, .bg-btn:hover,
+        .stats-btn:hover, .reminder-btn:hover, .announcement-btn:hover, .vote-btn:hover, 
+        .tag-filter-btn:hover, .filter-btn:hover, .devices-btn:hover, .encryption-btn:hover, .ai-btn:hover, .style-btn:hover, .user-colors-btn:hover {
             background: rgba(255,255,255,0.3);
         }
 
@@ -149,6 +136,10 @@
             align-items: flex-start;
         }
 
+        .message.system {
+            align-items: center;
+        }
+
         .message-avatar {
             width: 40px;
             height: 40px;
@@ -168,16 +159,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .message-content-wrapper {
-            display: flex;
-            flex-direction: column;
-            max-width: 70%;
-        }
-
-        .message.system {
-            align-items: center;
         }
 
         .message-reply {
@@ -243,8 +224,7 @@
             display: none;
         }
 
-        .message.own:hover .message-actions,
-        .message.other:hover .message-actions {
+        .message.own:hover .message-actions, .message.other:hover .message-actions {
             display: flex;
         }
 
@@ -264,25 +244,14 @@
             color: var(--text-color);
         }
 
-        .message-action-btn.recall {
-            color: #ff6b6b;
-        }
-
-        .message-action-btn.reply {
-            color: var(--primary-color);
-        }
-
-        .message-action-btn.react {
-            color: #ff9f43;
-        }
-
-        .message-action-btn.translate {
-            color: #3498db;
-        }
-
-        .message-action-btn.pin {
-            color: #e74c3c;
-        }
+        .message-action-btn.recall { color: #ff6b6b; }
+        .message-action-btn.reply { color: var(--primary-color); }
+        .message-action-btn.react { color: #ff9f43; }
+        .message-action-btn.translate { color: #3498db; }
+        .message-action-btn.pin { color: #e74c3c; }
+        .message-action-btn.edit { color: #9c27b0; }
+        .message-action-btn.forward { color: #00bcd4; }
+        .message-action-btn.star { color: #ffc107; }
 
         .message-translation {
             margin-top: 8px;
@@ -343,6 +312,11 @@
             border-left: 3px solid #e74c3c;
             padding: 8px;
             border-radius: 8px;
+        }
+
+        .message.starred {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
         }
 
         .message-reactions {
@@ -439,6 +413,14 @@
             color: var(--text-secondary);
         }
 
+        .message.edited .message-bubble::after {
+            content: '（已编辑）';
+            display: inline;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-left: 6px;
+        }
+
         .message-bubble img {
             max-width: 200px;
             max-height: 200px;
@@ -509,6 +491,52 @@
 
         .reply-box-close:hover {
             color: var(--text-color);
+        }
+
+        .edit-box {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            display: none;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .edit-box.active {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .edit-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .edit-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .edit-box button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .edit-box .save-edit-btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .edit-box .cancel-edit-btn {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
         }
 
         .input-area {
@@ -633,7 +661,7 @@
             background: rgba(102, 126, 234, 0.1);
         }
 
-        .file-btn {
+        .file-btn, .location-btn, .at-all-btn {
             background: none;
             border: 2px solid var(--border-color);
             padding: 10px 14px;
@@ -645,7 +673,7 @@
             color: var(--text-color);
         }
 
-        .file-btn:hover {
+        .file-btn:hover, .location-btn:hover, .at-all-btn:hover {
             border-color: var(--primary-color);
             background: rgba(102, 126, 234, 0.1);
         }
@@ -1034,6 +1062,7 @@
             border-bottom: 1px solid var(--border-color);
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .search-header input {
@@ -1044,6 +1073,30 @@
             font-size: 14px;
             background: var(--bg-secondary);
             color: var(--text-color);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 0 16px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-filter {
+            padding: 4px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .search-filter.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
         .search-results {
@@ -1077,11 +1130,17 @@
             color: var(--text-color);
         }
 
+        .search-result-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
         .settings-panel {
             position: absolute;
             top: 60px;
             right: 20px;
-            width: 320px;
+            width: 360px;
             background: var(--bg-color);
             border-radius: 12px;
             box-shadow: 0 4px 20px var(--shadow-color);
@@ -1505,6 +1564,3088 @@
         .message-location-info span:first-child {
             color: var(--primary-color);
         }
+
+        /* 快捷回复面板 */
+        .quick-reply-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 60px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            padding: 12px;
+            display: none;
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .quick-reply-panel.active {
+            display: block;
+        }
+
+        .quick-reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .quick-reply-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .quick-reply-add {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .quick-reply-item {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            transition: background 0.2s;
+        }
+
+        .quick-reply-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .quick-reply-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quick-reply-item .delete-quick-reply {
+            float: right;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .quick-reply-item.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* 转发面板 */
+        .forward-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 20px;
+            display: none;
+            width: 350px;
+            max-height: 400px;
+            z-index: 200;
+        }
+
+        .forward-panel.active {
+            display: block;
+        }
+
+        .forward-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .forward-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .forward-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .forward-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .forward-target {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: var(--text-color);
+        }
+
+        .forward-target:hover {
+            background: var(--hover-bg);
+        }
+
+        .forward-target-label {
+            font-size: 12px;
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        /* 收藏消息面板 */
+        .starred-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 350px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .starred-panel.active {
+            display: block;
+        }
+
+        .starred-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .starred-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .starred-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .starred-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .starred-item:last-child {
+            border-bottom: none;
+        }
+
+        .starred-author {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .starred-content {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .starred-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .unstar-btn {
+            background: none;
+            border: none;
+            color: #ffc107;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 黑名单面板 */
+        .blocked-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 300px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .blocked-panel.active {
+            display: block;
+        }
+
+        .blocked-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .blocked-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .blocked-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .blocked-item {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .blocked-item:last-child {
+            border-bottom: none;
+        }
+
+        .unblock-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: #ff6b6b;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 背景设置面板 */
+        .bg-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .bg-panel.active {
+            display: block;
+        }
+
+        .bg-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bg-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .bg-options {
+            padding: 16px;
+        }
+
+        .bg-option {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin: 0 8px 8px 0;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .bg-option:hover, .bg-option.active {
+            border-color: var(--primary-color);
+        }
+
+        .bg-upload {
+            padding: 0 16px 16px;
+        }
+
+        .bg-upload {
+            padding: 0 16px 16px;
+        }
+
+        .bg-upload input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        /* 视频通话窗口样式 */
+        .video-call-window {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-call-header {
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .video-call-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .video-call-timer {
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        .video-call-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .remote-video-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .remote-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remote-video-placeholder {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .avatar-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 72px;
+            color: white;
+        }
+
+        .local-video-container {
+            position: absolute;
+            bottom: 120px;
+            right: 20px;
+            width: 180px;
+            height: 240px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid white;
+        }
+
+        .local-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .video-call-controls {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .volume-indicator-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .volume-indicator-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .volume-indicator {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.1s ease;
+            border-radius: 4px;
+        }
+
+        .video-call-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .video-call-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .video-call-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .video-call-btn.mute, .video-call-btn.camera {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-call-btn.mute:hover, .video-call-btn.camera:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .video-call-btn.end {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        .video-call-btn.end:hover {
+            background: linear-gradient(135deg, #e53935, #c62828);
+        }
+
+        .video-call-btn.disabled {
+            background: rgba(255, 0, 0, 0.3);
+        }
+
+        /* 语音通话窗口样式 */
+        .voice-call-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 32px;
+            min-width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .voice-call-header {
+            margin-bottom: 20px;
+        }
+
+        .voice-call-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .voice-call-avatar {
+            margin-bottom: 16px;
+        }
+
+        .avatar-voice {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            color: white;
+        }
+
+        .voice-call-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .voice-call-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .voice-call-timer {
+            font-size: 32px;
+            font-weight: 300;
+            color: var(--text-color);
+            margin-bottom: 24px;
+        }
+
+        .voice-call-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .voice-call-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-color);
+        }
+
+        .voice-call-btn:hover {
+            transform: scale(1.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .voice-call-btn.mute:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .voice-call-btn.end {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .voice-call-btn.end:hover {
+            background: linear-gradient(135deg, #e53935, #c62828);
+        }
+
+        .voice-call-btn.disabled {
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        /* 音量指示器样式 - 浅色模式 */
+        .voice-call-window .volume-indicator-container {
+            color: var(--text-color);
+        }
+
+        .voice-call-window .volume-indicator-bar {
+            background: var(--bg-secondary);
+        }
+
+        .voice-call-window .volume-indicator {
+            background: linear-gradient(90deg, var(--primary-color), #8BC34A);
+        }
+
+        /* 消息日期分隔样式 */
+        .date-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 12px;
+        }
+
+        .date-divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .date-divider-text {
+            background: var(--bg-color);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .date-divider-text:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* 统计面板样式 */
+        .stats-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .stats-panel.active {
+            display: block;
+        }
+
+        .stats-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .stats-content {
+            padding: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stats-item {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stats-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stats-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .stats-online-time {
+            margin-top: 12px;
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stats-online-time .value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        /* 提醒面板样式 */
+        .reminder-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 340px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .reminder-panel.active {
+            display: block;
+        }
+
+        .reminder-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reminder-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .reminder-add {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .reminder-input-group {
+            margin-bottom: 8px;
+        }
+
+        .reminder-input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .reminder-input-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .reminder-add-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .reminder-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .reminder-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reminder-item:last-child {
+            border-bottom: none;
+        }
+
+        .reminder-info {
+            flex: 1;
+        }
+
+        .reminder-time {
+            font-size: 14px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .reminder-content {
+            font-size: 13px;
+            color: var(--text-color);
+            margin-top: 4px;
+        }
+
+        .reminder-delete {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+        }
+
+        /* 声音设置样式 */
+        .sound-settings {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sound-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sound-toggle label {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .sound-type-select {
+            margin-top: 12px;
+        }
+
+        .sound-type-select label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .sound-type-select select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        /* 快捷键提示样式 */
+        .shortcuts-hint {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 16px 20px;
+            display: none;
+            z-index: 200;
+            min-width: 400px;
+        }
+
+        .shortcuts-hint.active {
+            display: block;
+        }
+
+        .shortcuts-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .shortcuts-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-color);
+        }
+
+        .shortcut-key {
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* ========== 群公告功能样式 ========== */
+        .announcement-banner {
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            padding: 12px 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .announcement-banner.active {
+            display: flex;
+        }
+
+        .announcement-banner .announcement-icon {
+            font-size: 20px;
+        }
+
+        .announcement-banner .announcement-content {
+            flex: 1;
+        }
+
+        .announcement-banner .announcement-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .announcement-banner .announcement-edit,
+        .announcement-banner .announcement-delete,
+        .announcement-banner .announcement-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .announcement-banner .announcement-edit:hover,
+        .announcement-banner .announcement-delete:hover,
+        .announcement-banner .announcement-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .announcement-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 400px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .announcement-panel.active {
+            display: block;
+        }
+
+        .announcement-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .announcement-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .announcement-create {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .announcement-create textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .announcement-create textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .announcement-create-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .announcement-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .announcement-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .announcement-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .announcement-item-author {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+
+        .announcement-item-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .announcement-item-content {
+            font-size: 14px;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .announcement-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .announcement-item-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .announcement-item-btn:hover {
+            background: var(--hover-bg);
+            color: var(--text-color);
+        }
+
+        .announcement-item-btn.delete {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .announcement-item-btn.delete:hover {
+            background: rgba(255,107,107,0.1);
+        }
+
+        /* ========== 投票功能样式 ========== */
+        .vote-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 420px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .vote-panel.active {
+            display: block;
+        }
+
+        .vote-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vote-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .vote-create {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .vote-create-title {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .vote-create-title:focus {
+            border-color: var(--primary-color);
+        }
+
+        .vote-options {
+            margin-bottom: 10px;
+        }
+
+        .vote-option-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .vote-option-item input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .vote-option-item .remove-option {
+            background: #ff6b6b;
+            border: none;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .vote-create .add-option-btn {
+            background: var(--bg-secondary);
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .vote-create .add-option-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .vote-settings {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .vote-settings label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .vote-settings input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .vote-settings input[type="datetime-local"] {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .vote-create-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .vote-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .vote-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .vote-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .vote-item-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .vote-item-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .vote-item-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .vote-item-status.ended {
+            background: #9e9e9e;
+        }
+
+        .vote-options-list {
+            margin-bottom: 12px;
+        }
+
+        .vote-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .vote-option:hover {
+            background: var(--hover-bg);
+        }
+
+        .vote-option.selected {
+            background: rgba(102,126,234,0.1);
+            border: 2px solid var(--primary-color);
+        }
+
+        .vote-option input[type="radio"],
+        .vote-option input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .vote-option-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .vote-option-bar {
+            width: 100px;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .vote-option-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: width 0.3s;
+        }
+
+        .vote-option-percent {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .vote-option-voters {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .vote-action {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .vote-voters-list {
+            margin-top: 12px;
+            padding: 8px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== 用户资料卡样式 ========== */
+        .user-profile-card {
+            position: absolute;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 20px;
+            display: none;
+            z-index: 1000;
+            min-width: 280px;
+        }
+
+        .user-profile-card.active {
+            display: block;
+        }
+
+        .profile-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .profile-card-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            font-weight: 600;
+            overflow: hidden;
+        }
+
+        .profile-card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-card-info {
+            flex: 1;
+        }
+
+        .profile-card-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .profile-card-status {
+            font-size: 12px;
+            color: #4CAF50;
+            margin-top: 4px;
+        }
+
+        .profile-card-status.offline {
+            color: var(--text-secondary);
+        }
+
+        .profile-card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .profile-stat-item {
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .profile-stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .profile-card-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        .profile-card-detail:last-of-type {
+            border-bottom: none;
+        }
+
+        .profile-card-detail-label {
+            color: var(--text-secondary);
+        }
+
+        .profile-card-detail-value {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .profile-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .profile-card-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-card-btn.private-chat {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .profile-card-btn.block {
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .profile-card-btn.block.blocked {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .profile-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .profile-card-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* ========== 消息标签样式 ========== */
+        .message-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .message-tag.important {
+            background: rgba(244,67,54,0.15);
+            color: #f44336;
+        }
+
+        .message-tag.todo {
+            background: rgba(255,152,0,0.15);
+            color: #ff9800;
+        }
+
+        .message-tag.question {
+            background: rgba(33,150,243,0.15);
+            color: #2196f3;
+        }
+
+        .message-tag.idea {
+            background: rgba(76,175,80,0.15);
+            color: #4caf50;
+        }
+
+        .message-tag.custom {
+            background: rgba(156,39,176,0.15);
+            color: #9c27b0;
+        }
+
+        .message-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .tag-selector {
+            position: absolute;
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 12px;
+            display: none;
+            z-index: 200;
+            min-width: 200px;
+        }
+
+        .tag-selector.active {
+            display: block;
+        }
+
+        .tag-selector-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .tag-selector-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .tag-option {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .tag-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .tag-selector-custom {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tag-selector-custom input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .tag-selector-custom button {
+            padding: 6px 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .tag-filter-panel {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 16px;
+            display: none;
+            z-index: 100;
+            min-width: 300px;
+        }
+
+        .tag-filter-panel.active {
+            display: block;
+        }
+
+        .tag-filter-header {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .tag-filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-filter-option {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+
+        .tag-filter-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .tag-filter-option.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .tag-filter-option.all {
+            background: var(--bg-secondary);
+        }
+
+        .message-action-btn.tag {
+            color: #9c27b0;
+        }
+
+        .message.with-tag {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 12px;
+        }
+
+        /* ========== 消息防骚扰功能样式 ========== */
+        .filter-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 380px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .filter-panel.active {
+            display: block;
+        }
+
+        .filter-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .filter-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .filter-tab:hover {
+            background: var(--hover-bg);
+        }
+
+        .filter-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .filter-content {
+            padding: 16px;
+        }
+
+        .filter-section {
+            margin-bottom: 16px;
+        }
+
+        .filter-section-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .filter-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .filter-keyword {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .filter-keyword .delete-keyword {
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filter-add-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-add-group input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .filter-add-group button {
+            padding: 8px 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .sensitive-words-list {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 举报面板样式 */
+        .report-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 24px;
+            display: none;
+            width: 400px;
+            z-index: 200;
+        }
+
+        .report-panel.active {
+            display: block;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .report-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .report-message-preview {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .report-message-author {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .report-message-content {
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .report-reasons {
+            margin-bottom: 16px;
+        }
+
+        .report-reason {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .report-reason:hover {
+            background: var(--hover-bg);
+        }
+
+        .report-reason input[type="radio"] {
+            cursor: pointer;
+        }
+
+        .report-reason-label {
+            flex: 1;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .report-description {
+            margin-bottom: 16px;
+        }
+
+        .report-description textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .report-submit {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 举报历史面板 */
+        .report-history-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 400px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .report-history-panel.active {
+            display: block;
+        }
+
+        .report-history-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-history-list {
+            padding: 12px 16px;
+        }
+
+        .report-history-item {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .report-history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .report-history-content {
+            font-size: 13px;
+            color: var(--text-color);
+            margin-bottom: 6px;
+        }
+
+        .report-history-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .report-history-status {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .report-history-status.pending {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+
+        .report-history-status.resolved {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .report-history-status.rejected {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        /* ========== 多设备同步功能样式 ========== */
+        .devices-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 420px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .devices-panel.active {
+            display: block;
+        }
+
+        .devices-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .devices-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .devices-current {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .devices-current-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .devices-current-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .device-icon {
+            font-size: 32px;
+        }
+
+        .device-details {
+            flex: 1;
+        }
+
+        .device-name {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .device-last-active {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .devices-list {
+            padding: 16px;
+        }
+
+        .devices-list-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .device-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .device-item.current {
+            border: 2px solid var(--primary-color);
+        }
+
+        .device-item-info {
+            flex: 1;
+        }
+
+        .device-item-name {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-item-name .current-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .device-item-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .device-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .device-kick-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .device-sync-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* ========== 私聊加密功能样式 ========== */
+        .encryption-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 12px;
+            font-size: 11px;
+            color: #4caf50;
+        }
+
+        .encryption-indicator.locked {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .encryption-indicator.unlocked {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+
+        .encryption-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 60px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 16px;
+            display: none;
+            width: 320px;
+            z-index: 100;
+        }
+
+        .encryption-panel.active {
+            display: block;
+        }
+
+        .encryption-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .encryption-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .encryption-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .encryption-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .encryption-toggle label {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .encryption-key-section {
+            margin-bottom: 12px;
+        }
+
+        .encryption-key-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .encryption-key-display {
+            display: flex;
+            gap: 8px;
+        }
+
+        .encryption-key-display input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .encryption-key-display button {
+            padding: 8px 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .encryption-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 8px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        .message.encrypted .message-bubble {
+            border: 1px dashed #4caf50;
+        }
+
+        .message.decryption-failed .message-bubble {
+            background: rgba(244, 67, 54, 0.1) !important;
+            border: 1px solid #f44336;
+        }
+
+        .decryption-failed-icon {
+            color: #f44336;
+            margin-right: 4px;
+        }
+
+        /* ========== AI助手功能样式 ========== */
+        .ai-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        .message.ai .message-bubble {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .ai-settings-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 360px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+        }
+
+        .ai-settings-panel.active {
+            display: block;
+        }
+
+        .ai-settings-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-settings-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .ai-settings-content {
+            padding: 16px;
+        }
+
+        .ai-role-selector {
+            margin-bottom: 16px;
+        }
+
+        .ai-role-selector label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .ai-role-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .ai-context-info {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ai-context-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .ai-context-value {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .ai-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ai-toggle label {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .ai-reset-context-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .ai-reset-context-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .ai-thinking {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .ai-thinking-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .ai-thinking-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            animation: ai-thinking 1.4s infinite;
+        }
+
+        .ai-thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .ai-thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes ai-thinking {
+            0%, 80%, 100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .message-action-btn.report {
+            color: #f44336;
+        }
+
+        .message-action-btn.encryption {
+            color: #4caf50;
+        }
+
+        .message-action-btn.ai {
+            color: #667eea;
+        }
+
+        /* 新设备登录通知 */
+        .new-device-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 16px;
+            display: none;
+            z-index: 300;
+            max-width: 350px;
+        }
+
+        .new-device-notification.active {
+            display: block;
+        }
+
+        .new-device-notification-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .new-device-notification-icon {
+            font-size: 24px;
+        }
+
+        .new-device-notification-title {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+
+        .new-device-notification-content {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .new-device-notification-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .new-device-notification-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .new-device-notification-btn.trust {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .new-device-notification-btn.ignore {
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        /* 动画效果样式 */
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.8); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes emojiFly {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .message.animate-slide-in-left { animation: slideInLeft 0.3s ease-out; }
+        .message.animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
+        .message.animate-fade-out { animation: fadeOut 0.3s ease-out forwards; }
+        .message.animate-pop-in { animation: popIn 0.3s ease-out; }
+
+        .sent-indicator { display: inline-block; margin-left: 8px; font-size: 12px; }
+        .sent-indicator.success { color: #10b981; }
+        .sent-indicator.animate-checkmark { animation: checkmark 0.3s ease-out; }
+
+        .reaction-animating { position: relative; }
+        .flying-emoji {
+            position: absolute;
+            animation: emojiFly 0.8s ease-out forwards;
+            pointer-events: none;
+            font-size: 24px;
+        }
+
+        /* 气泡样式主题 */
+        .bubble-theme-minimal .message-bubble { border-radius: 4px !important; padding: 8px 12px; }
+        .bubble-theme-gradient .message-bubble { background-image: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%); }
+        .bubble-theme-shadow .message-bubble { box-shadow: 0 4px 12px var(--shadow-color); }
+
+        .bubble-theme-cartoon .message-bubble {
+            border-radius: 20px !important;
+            border: 2px solid var(--primary-color);
+            position: relative;
+        }
+
+        .bubble-theme-cartoon .message-bubble::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+        }
+
+        .bubble-theme-cartoon.message.own .message-bubble::after {
+            right: -16px;
+            top: 50%;
+            border-left-color: var(--primary-color);
+            border-right: none;
+            transform: translateY(-50%);
+        }
+
+        .bubble-theme-cartoon.message.other .message-bubble::after {
+            left: -16px;
+            top: 50%;
+            border-right-color: var(--primary-color);
+            border-left: none;
+            transform: translateY(-50%);
+        }
+
+        .bubble-theme-modern .message-bubble { border-radius: 20px 4px 20px 20px; padding: 12px 16px; }
+        .bubble-theme-modern.message.own .message-bubble { border-radius: 4px 20px 20px 20px; }
+
+        /* 智能推荐样式 */
+        .smart-recommendations {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 -4px 20px var(--shadow-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+
+        .smart-recommendations.active { display: flex; }
+        .recommendation-title { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+
+        .recommendation-item {
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .recommendation-item:hover { background: var(--hover-bg); border-color: var(--primary-color); }
+        .recommendation-item.similar { border-left: 3px solid var(--primary-color); }
+        .recommendation-item.frequent { background: var(--primary-gradient); color: white; }
+
+        /* 预览面板样式 */
+        .preview-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            max-width: 90vw;
+            max-height: 90vh;
+            z-index: 1000;
+        }
+
+        .preview-panel.active { display: flex; }
+
+        .preview-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-title { font-size: 16px; font-weight: 600; }
+
+        .preview-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .preview-close:hover { background: var(--hover-bg); }
+
+        .preview-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .preview-image { max-width: 100%; max-height: 70vh; object-fit: contain; }
+        .preview-file-info { display: flex; flex-direction: column; gap: 10px; }
+        .preview-file-name { font-size: 16px; font-weight: 600; }
+        .preview-file-meta { font-size: 13px; color: var(--text-secondary); }
+        .preview-link-card { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
+        .preview-link-title { font-size: 16px; font-weight: 600; }
+        .preview-link-desc { font-size: 13px; color: var(--text-secondary); }
+        .preview-link-image { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; }
+
+        .preview-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .preview-nav:hover { background: rgba(0,0,0,0.7); }
+        .preview-nav.prev { left: 10px; }
+        .preview-nav.next { right: 10px; }
+
+        /* 用户颜色样式 */
+        .user-color-1 { color: #ef4444; }
+        .user-color-2 { color: #f97316; }
+        .user-color-3 { color: #eab308; }
+        .user-color-4 { color: #22c55e; }
+        .user-color-5 { color: #06b6d4; }
+        .user-color-6 { color: #3b82f6; }
+        .user-color-7 { color: #8b5cf6; }
+        .user-color-8 { color: #ec4899; }
+        .user-color-9 { color: #f43f5e; }
+        .user-color-10 { color: #14b8a6; }
+
+        .vip-badge::before { content: '👑'; }
+        .admin-badge::before { content: '🛡️'; }
+
+        /* 备份面板样式 */
+        .backup-panel {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            display: none;
+            flex-direction: column;
+            max-height: 500px;
+            z-index: 100;
+        }
+
+        .backup-panel.active { display: flex; }
+
+        .backup-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .backup-header h3 { font-size: 16px; color: var(--text-color); }
+        .backup-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+        .backup-content { padding: 15px; overflow-y: auto; flex: 1; }
+        .backup-section { margin-bottom: 20px; }
+        .backup-section-title { font-size: 14px; font-weight: 600; color: var(--text-color); margin-bottom: 10px; }
+        .backup-options { display: flex; flex-direction: column; gap: 8px; }
+
+        .backup-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .backup-option:hover { background: var(--hover-bg); }
+        .backup-option input[type="checkbox"] { width: 18px; height: 18px; }
+        .backup-option-label { flex: 1; font-size: 13px; }
+
+        .backup-time-range { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+
+        .time-range-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .time-range-btn.active { background: var(--primary-gradient); color: white; border-color: transparent; }
+
+        .backup-format-select, .backup-room-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .backup-export-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .backup-auto-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* 样式设置面板 */
+        .style-settings-panel {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            display: none;
+            flex-direction: column;
+            max-height: 500px;
+            z-index: 100;
+        }
+
+        .style-settings-panel.active { display: flex; }
+
+        .style-settings-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .style-settings-header h3 { font-size: 16px; color: var(--text-color); }
+        .style-settings-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+        .style-settings-content { padding: 15px; overflow-y: auto; flex: 1; }
+        .style-setting-group { margin-bottom: 20px; }
+        .style-setting-label { font-size: 14px; font-weight: 600; color: var(--text-color); margin-bottom: 10px; display: block; }
+        .bubble-theme-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+        .bubble-theme-option {
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .bubble-theme-option:hover { border-color: var(--primary-color); }
+        .bubble-theme-option.active { border-color: var(--primary-color); background: var(--primary-gradient); color: white; }
+
+        .color-picker-wrapper { display: flex; gap: 8px; align-items: center; }
+        .color-picker-wrapper input[type="color"] { width: 50px; height: 40px; border: none; border-radius: 8px; cursor: pointer; }
+        .color-picker-wrapper input[type="text"] { flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; }
+
+        .range-slider-wrapper { display: flex; align-items: center; gap: 10px; }
+        .range-slider-wrapper input[type="range"] { flex: 1; height: 6px; border-radius: 3px; background: var(--border-color); outline: none; }
+
+        .range-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .range-slider-value { min-width: 40px; text-align: right; font-size: 13px; color: var(--text-secondary); }
+
+        .animation-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .animation-toggle-label { font-size: 13px; }
+
+        /* 用户颜色面板 */
+        .user-colors-panel {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            display: none;
+            flex-direction: column;
+            max-height: 500px;
+            z-index: 100;
+        }
+
+        .user-colors-panel.active { display: flex; }
+
+        .user-colors-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-colors-header h3 { font-size: 16px; color: var(--text-color); }
+        .user-colors-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+        .user-colors-content { padding: 15px; overflow-y: auto; flex: 1; }
+
+        .color-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+
+        .color-preset {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-preset:hover { transform: scale(1.1); }
+        .color-preset.active { border-color: var(--text-color); }
+
+        .custom-color-picker { margin-bottom: 15px; }
+        .custom-color-picker label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+        .custom-color-picker input[type="color"] { width: 100%; height: 50px; border: none; border-radius: 8px; cursor: pointer; }
+
+        .online-status-colors { display: flex; gap: 10px; margin-bottom: 15px; }
+
+        .online-status-color {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .online-status-color.online { background: #dcfce7; color: #16a34a; }
+        .online-status-color.offline { background: #f3f4f6; color: #6b7280; }
+
     </style>
 </head>
 <body>
@@ -1522,8 +4663,23 @@
             <div class="header-controls">
                 <button class="theme-btn" id="themeBtn">🌙</button>
                 <button class="search-btn" id="searchBtn">🔍</button>
+                <button class="tag-filter-btn" id="tagFilterBtn">🏷️</button>
+                <button class="announcement-btn" id="announcementBtn">📢</button>
+                <button class="vote-btn" id="voteBtn">🗳️</button>
+                <button class="stats-btn" id="statsBtn">📊</button>
+                <button class="reminder-btn" id="reminderBtn">⏰</button>
+                <button class="filter-btn" id="filterBtn">🛡️</button>
+                <button class="devices-btn" id="devicesBtn">📱</button>
+                <button class="encryption-btn" id="encryptionBtn">🔐</button>
+                <button class="ai-btn" id="aiBtn">🤖</button>
+                <button class="style-btn" id="styleBtn">🎨</button>
+                <button class="user-colors-btn" id="userColorsBtn">🎨</button>
                 <button class="settings-btn" id="settingsBtn">⚙️</button>
                 <button class="call-btn" id="callBtn">📞</button>
+                <button class="starred-btn" id="starredBtn">⭐</button>
+                <button class="quick-reply-btn" id="quickReplyBtn">💬</button>
+                <button class="export-btn" id="exportBtn">📤</button>
+                <button class="bg-btn" id="bgBtn">🎨</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
@@ -1550,6 +4706,24 @@
                     <label>昵称</label>
                     <input type="text" id="nicknameInput" placeholder="输入新昵称" maxlength="20">
                 </div>
+                <div class="sound-settings">
+                    <div class="sound-toggle">
+                        <label>🔔 消息提示音</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sound-type-select">
+                        <label>声音类型</label>
+                        <select id="soundTypeSelect">
+                            <option value="chime">清脆铃声</option>
+                            <option value="ding">提示音</option>
+                            <option value="pop">气泡音</option>
+                            <option value="bell">门铃声</option>
+                        </select>
+                    </div>
+                </div>
                 <button class="settings-save" id="settingsSaveBtn">保存设置</button>
             </div>
         </div>
@@ -1557,6 +4731,11 @@
         <div class="search-panel" id="searchPanel">
             <div class="search-header">
                 <input type="text" id="searchInput" placeholder="搜索聊天记录...">
+            </div>
+            <div class="search-filters">
+                <span class="search-filter active" data-filter="all">全部</span>
+                <span class="search-filter" data-filter="user">按用户</span>
+                <span class="search-filter" data-filter="starred">仅收藏</span>
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -1601,6 +4780,52 @@
             </div>
         </div>
 
+        <!-- 快捷回复面板 -->
+        <div class="quick-reply-panel" id="quickReplyPanel">
+            <div class="quick-reply-header">
+                <span class="quick-reply-title">💬 快捷回复</span>
+                <button class="quick-reply-add" id="addQuickReplyBtn">+ 添加</button>
+            </div>
+            <div id="quickReplyList"></div>
+        </div>
+
+        <!-- 转发面板 -->
+        <div class="forward-panel" id="forwardPanel">
+            <div class="forward-header">
+                <span class="forward-title">📤 转发消息</span>
+                <button class="forward-close" id="forwardClose">×</button>
+            </div>
+            <div class="forward-list" id="forwardList"></div>
+        </div>
+
+        <!-- 收藏消息面板 -->
+        <div class="starred-panel" id="starredPanel">
+            <div class="starred-header">
+                <span>⭐ 收藏的消息</span>
+                <button class="starred-close" id="starredClose">×</button>
+            </div>
+            <div id="starredList"></div>
+        </div>
+
+        <!-- 背景设置面板 -->
+        <div class="bg-panel" id="bgPanel">
+            <div class="bg-header">
+                <span>🎨 聊天背景</span>
+                <button class="bg-close" id="bgClose">×</button>
+            </div>
+            <div class="bg-options" id="bgOptions">
+                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-bg="default"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-bg="pink"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-bg="blue"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-bg="green"></div>
+                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="orange"></div>
+                <div class="bg-option" style="background: #f5f5f5;" data-bg="light"></div>
+            </div>
+            <div class="bg-upload">
+                <input type="file" id="bgUploadInput" accept="image/*" placeholder="上传自定义背景">
+            </div>
+        </div>
+
         <!-- 通话状态栏 -->
         <div class="active-call-bar" id="activeCallBar">
             <div class="active-call-info">
@@ -1610,6 +4835,13 @@
             <div class="active-call-controls">
                 <button class="end-call-btn" id="endCallBtn">挂断</button>
             </div>
+        </div>
+
+        <!-- 编辑框 -->
+        <div class="edit-box" id="editBox">
+            <input type="text" id="editInput" placeholder="编辑消息..." maxlength="500">
+            <button class="cancel-edit-btn" id="cancelEditBtn">取消</button>
+            <button class="save-edit-btn" id="saveEditBtn">保存</button>
         </div>
 
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
@@ -1622,11 +4854,203 @@
             <button class="reply-box-close" id="replyBoxClose">×</button>
         </div>
 
+        <!-- 智能推荐面板 -->
+        <div class="smart-recommendations" id="smartRecommendations">
+            <div class="recommendation-title">💡 智能推荐</div>
+            <div id="recommendationsList"></div>
+        </div>
+
+        <!-- 预览面板 -->
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-header">
+                <div class="preview-title" id="previewTitle">预览</div>
+                <button class="preview-close" id="previewClose">×</button>
+            </div>
+            <div class="preview-content" id="previewContent"></div>
+        </div>
+
+        <!-- 样式设置面板 -->
+        <div class="style-settings-panel" id="styleSettingsPanel">
+            <div class="style-settings-header">
+                <h3>🎨 样式设置</h3>
+                <button class="style-settings-close" id="styleSettingsClose">×</button>
+            </div>
+            <div class="style-settings-content">
+                <div class="style-setting-group">
+                    <label class="style-setting-label">气泡样式</label>
+                    <div class="bubble-theme-options">
+                        <div class="bubble-theme-option" data-theme="default">默认</div>
+                        <div class="bubble-theme-option" data-theme="minimal">简约</div>
+                        <div class="bubble-theme-option" data-theme="gradient">渐变</div>
+                        <div class="bubble-theme-option" data-theme="shadow">阴影</div>
+                        <div class="bubble-theme-option" data-theme="cartoon">卡通</div>
+                        <div class="bubble-theme-option" data-theme="modern">现代</div>
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">自定义颜色</label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="bubbleColorPicker" value="#667eea">
+                        <input type="text" id="bubbleColorText" placeholder="#667eea">
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">圆角大小</label>
+                    <div class="range-slider-wrapper">
+                        <input type="range" id="bubbleRadiusSlider" min="0" max="30" value="16">
+                        <span class="range-slider-value" id="bubbleRadiusValue">16px</span>
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">阴影效果</label>
+                    <div class="animation-toggle">
+                        <span class="animation-toggle-label">启用阴影</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="bubbleShadowToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">动画效果</label>
+                    <div class="animation-toggle">
+                        <span class="animation-toggle-label">启用动画</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="animationToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="animation-toggle">
+                        <span class="animation-toggle-label">滑入动画</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="slideAnimToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="animation-toggle">
+                        <span class="animation-toggle-label">表情动画</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emojiAnimToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户颜色面板 -->
+        <div class="user-colors-panel" id="userColorsPanel">
+            <div class="user-colors-header">
+                <h3>🎨 用户颜色</h3>
+                <button class="user-colors-close" id="userColorsClose">×</button>
+            </div>
+            <div class="user-colors-content">
+                <div class="style-setting-group">
+                    <label class="style-setting-label">预设颜色</label>
+                    <div class="color-presets">
+                        <div class="color-preset active" style="background: #ef4444;" data-color="#ef4444"></div>
+                        <div class="color-preset" style="background: #f97316;" data-color="#f97316"></div>
+                        <div class="color-preset" style="background: #eab308;" data-color="#eab308"></div>
+                        <div class="color-preset" style="background: #22c55e;" data-color="#22c55e"></div>
+                        <div class="color-preset" style="background: #06b6d4;" data-color="#06b6d4"></div>
+                        <div class="color-preset" style="background: #3b82f6;" data-color="#3b82f6"></div>
+                        <div class="color-preset" style="background: #8b5cf6;" data-color="#8b5cf6"></div>
+                        <div class="color-preset" style="background: #ec4899;" data-color="#ec4899"></div>
+                        <div class="color-preset" style="background: #f43f5e;" data-color="#f43f5e"></div>
+                        <div class="color-preset" style="background: #14b8a6;" data-color="#14b8a6"></div>
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">自定义颜色</label>
+                    <div class="custom-color-picker">
+                        <input type="color" id="userCustomColorPicker" value="#667eea">
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">VIP/管理员标识</label>
+                    <div class="animation-toggle">
+                        <span class="animation-toggle-label">显示特殊标识</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="specialBadgeToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="style-setting-group">
+                    <label class="style-setting-label">在线状态颜色</label>
+                    <div class="online-status-colors">
+                        <div class="online-status-color online">🟢 在线</div>
+                        <div class="online-status-color offline">⚪ 离线</div>
+                    </div>
+                </div>
+                <button class="backup-export-btn" id="resetUserColorsBtn">重置颜色</button>
+            </div>
+        </div>
+
+        <!-- 备份面板 -->
+        <div class="backup-panel" id="backupPanel">
+            <div class="backup-header">
+                <h3>💾 聊天记录备份</h3>
+                <button class="backup-close" id="backupClose">×</button>
+            </div>
+            <div class="backup-content">
+                <div class="backup-section">
+                    <div class="backup-section-title">导出格式</div>
+                    <select class="backup-format-select" id="backupFormat">
+                        <option value="html">HTML 格式（可打印/分享）</option>
+                        <option value="json">JSON 格式（数据备份）</option>
+                        <option value="txt">文本格式（纯文本）</option>
+                    </select>
+                </div>
+                <div class="backup-section">
+                    <div class="backup-section-title">时间范围</div>
+                    <div class="backup-time-range">
+                        <button class="time-range-btn active" data-range="all">全部</button>
+                        <button class="time-range-btn" data-range="today">今天</button>
+                        <button class="time-range-btn" data-range="week">本周</button>
+                        <button class="time-range-btn" data-range="month">本月</button>
+                    </div>
+                </div>
+                <div class="backup-section">
+                    <div class="backup-section-title">选择房间</div>
+                    <select class="backup-room-select" id="backupRoom">
+                        <option value="all">所有房间</option>
+                    </select>
+                </div>
+                <div class="backup-section">
+                    <div class="backup-section-title">导出选项</div>
+                    <div class="backup-options">
+                        <label class="backup-option">
+                            <input type="checkbox" id="backupIncludeImages" checked>
+                            <span class="backup-option-label">包含图片</span>
+                        </label>
+                        <label class="backup-option">
+                            <input type="checkbox" id="backupIncludeFiles" checked>
+                            <span class="backup-option-label">包含文件</span>
+                        </label>
+                    </div>
+                </div>
+                <button class="backup-export-btn" id="exportChatBtn">导出聊天记录</button>
+                <div class="backup-section" style="margin-top: 20px;">
+                    <div class="backup-section-title">自动备份</div>
+                    <div class="backup-auto-toggle">
+                        <span>定期自动备份</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoBackupToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <button class="backup-export-btn" id="importChatBtn" style="background: #22c55e;">导入聊天记录</button>
+                </div>
+            </div>
+        </div>
+
         <div class="input-area">
             <button class="emoji-btn" id="emojiBtn">😀</button>
             <button class="image-btn" id="imageBtn">🖼️</button>
             <button class="file-btn" id="fileBtn">📎</button>
             <button class="location-btn" id="locationBtn">📍</button>
+            <button class="at-all-btn" id="atAllBtn">@</button>
             <input type="file" id="fileInput" style="display: none;">
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
@@ -1642,6 +5066,15 @@
         <div class="call-users" id="callUsers"></div>
     </div>
 
+    <!-- 黑名单面板 -->
+    <div class="blocked-panel" id="blockedPanel">
+        <div class="blocked-header">
+            <span>🚫 黑名单</span>
+            <button class="blocked-close" id="blockedClose">×</button>
+        </div>
+        <div class="blocked-list" id="blockedList"></div>
+    </div>
+
     <!-- 来电弹窗 -->
     <div class="incoming-call-modal" id="incomingCallModal">
         <div class="incoming-call-content">
@@ -1655,6 +5088,376 @@
         </div>
     </div>
 
+    <!-- 统计面板 -->
+    <div class="stats-panel" id="statsPanel">
+        <div class="stats-header">
+            <span>📊 聊天统计</span>
+            <button class="stats-close" id="statsClose">×</button>
+        </div>
+        <div class="stats-content">
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <div class="stats-value" id="totalMessagesCount">0</div>
+                    <div class="stats-label">总消息数</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value" id="todayMessagesCount">0</div>
+                    <div class="stats-label">今日消息</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value" id="avgMsgLength">0</div>
+                    <div class="stats-label">平均长度</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value" id="yourMessagesCount">0</div>
+                    <div class="stats-label">我的消息</div>
+                </div>
+            </div>
+            <div class="stats-online-time">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; color: var(--text-secondary);">🕐 在线时长</span>
+                    <span class="value" id="onlineTimeValue">00:00:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提醒面板 -->
+    <div class="reminder-panel" id="reminderPanel">
+        <div class="reminder-header">
+            <span>⏰ 定时提醒</span>
+            <button class="reminder-close" id="reminderClose">×</button>
+        </div>
+        <div class="reminder-add">
+            <div class="reminder-input-group">
+                <input type="time" id="reminderTimeInput" placeholder="选择时间">
+            </div>
+            <div class="reminder-input-group">
+                <input type="text" id="reminderContentInput" placeholder="提醒内容" maxlength="100">
+            </div>
+            <button class="reminder-add-btn" id="addReminderBtn">添加提醒</button>
+        </div>
+        <div class="reminder-list" id="reminderList"></div>
+    </div>
+
+    <!-- 快捷键提示 -->
+    <div class="shortcuts-hint" id="shortcutsHint">
+        <div class="shortcuts-title">⌨️ 快捷键</div>
+        <div class="shortcuts-list">
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl+Enter</span>
+                <span>发送消息</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Esc</span>
+                <span>关闭弹窗</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">↑ / ↓</span>
+                <span>切换快捷回复</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">/</span>
+                <span>快速搜索</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl+S</span>
+                <span>打开设置</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl+H</span>
+                <span>显示快捷键</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 群公告横幅 -->
+    <div class="announcement-banner" id="announcementBanner">
+        <span class="announcement-icon">📢</span>
+        <div class="announcement-content">
+            <strong id="announcementAuthor"></strong>: <span id="announcementText"></span>
+        </div>
+        <div class="announcement-actions" id="announcementActions">
+            <button class="announcement-close" id="announcementCloseBanner">×</button>
+        </div>
+    </div>
+
+    <!-- 群公告面板 -->
+    <div class="announcement-panel" id="announcementPanel">
+        <div class="announcement-header">
+            <span>📢 群公告</span>
+            <button class="announcement-close" id="announcementClose">×</button>
+        </div>
+        <div class="announcement-create">
+            <textarea id="announcementInput" placeholder="输入公告内容..." maxlength="500"></textarea>
+            <button class="announcement-create-btn" id="announcementCreateBtn">发布公告</button>
+        </div>
+        <div class="announcement-list" id="announcementList"></div>
+    </div>
+
+    <!-- 投票面板 -->
+    <div class="vote-panel" id="votePanel">
+        <div class="vote-header">
+            <span>🗳️ 投票</span>
+            <button class="vote-close" id="voteClose">×</button>
+        </div>
+        <div class="vote-create">
+            <input type="text" class="vote-create-title" id="voteTitleInput" placeholder="投票标题" maxlength="100">
+            <div class="vote-options" id="voteOptions">
+                <div class="vote-option-item">
+                    <input type="text" placeholder="选项 1" maxlength="50">
+                    <button class="remove-option" style="visibility: hidden;">×</button>
+                </div>
+                <div class="vote-option-item">
+                    <input type="text" placeholder="选项 2" maxlength="50">
+                    <button class="remove-option" style="visibility: hidden;">×</button>
+                </div>
+            </div>
+            <button class="add-option-btn" id="addVoteOptionBtn">+ 添加选项</button>
+            <div class="vote-settings">
+                <label>
+                    <input type="checkbox" id="voteMultiSelect"> 多选
+                </label>
+                <input type="datetime-local" id="voteDeadlineInput">
+            </div>
+            <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
+        </div>
+        <div class="vote-list" id="voteList"></div>
+    </div>
+
+    <!-- 用户资料卡 -->
+    <div class="user-profile-card" id="userProfileCard">
+        <button class="profile-card-close" id="profileCardClose">×</button>
+        <div class="profile-card-header">
+            <div class="profile-card-avatar" id="profileCardAvatar">?</div>
+            <div class="profile-card-info">
+                <div class="profile-card-name" id="profileCardName">用户名</div>
+                <div class="profile-card-status" id="profileCardStatus">在线</div>
+            </div>
+        </div>
+        <div class="profile-card-stats">
+            <div class="profile-stat-item">
+                <div class="profile-stat-value" id="profileMsgCount">0</div>
+                <div class="profile-stat-label">消息数</div>
+            </div>
+            <div class="profile-stat-item">
+                <div class="profile-stat-value" id="profileJoinTime">-</div>
+                <div class="profile-stat-label">加入时间</div>
+            </div>
+        </div>
+        <div class="profile-card-detail">
+            <span class="profile-card-detail-label">最后在线</span>
+            <span class="profile-card-detail-value" id="profileLastOnline">-</span>
+        </div>
+        <div class="profile-card-actions">
+            <button class="profile-card-btn private-chat" id="profilePrivateChatBtn">💬 私聊</button>
+            <button class="profile-card-btn block" id="profileBlockBtn">🚫 拉黑</button>
+        </div>
+    </div>
+
+    <!-- 标签选择器 -->
+    <div class="tag-selector" id="tagSelector">
+        <div class="tag-selector-title">选择标签</div>
+        <div class="tag-selector-options" id="tagSelectorOptions">
+            <span class="tag-option important" data-tag="重要" data-color="important">重要</span>
+            <span class="tag-option todo" data-tag="待办" data-color="todo">待办</span>
+            <span class="tag-option question" data-tag="问题" data-color="question">问题</span>
+            <span class="tag-option idea" data-tag="想法" data-color="idea">想法</span>
+        </div>
+        <div class="tag-selector-custom">
+            <input type="text" id="tagCustomInput" placeholder="自定义标签" maxlength="20">
+            <button id="tagCustomAddBtn">添加</button>
+        </div>
+    </div>
+
+    <!-- 标签筛选面板 -->
+    <div class="tag-filter-panel" id="tagFilterPanel">
+        <div class="tag-filter-header">🏷️ 筛选标签</div>
+        <div class="tag-filter-options" id="tagFilterOptions">
+            <span class="tag-filter-option all active" data-filter="all">全部</span>
+            <span class="tag-filter-option" data-filter="important" style="border-color: #f44336; color: #f44336;">重要</span>
+            <span class="tag-filter-option" data-filter="todo" style="border-color: #ff9800; color: #ff9800;">待办</span>
+            <span class="tag-filter-option" data-filter="question" style="border-color: #2196f3; color: #2196f3;">问题</span>
+            <span class="tag-filter-option" data-filter="idea" style="border-color: #4caf50; color: #4caf50;">想法</span>
+            <span class="tag-filter-option" data-filter="custom" style="border-color: #9c27b0; color: #9c27b0;">自定义</span>
+        </div>
+    </div>
+
+    <!-- 消息防骚扰面板 -->
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-header">
+            <span>🛡️ 防骚扰设置</span>
+            <button class="filter-close" id="filterClose">×</button>
+        </div>
+        <div class="filter-tabs">
+            <span class="filter-tab active" data-tab="keywords">关键词过滤</span>
+            <span class="filter-tab" data-tab="sensitive">敏感词库</span>
+            <span class="filter-tab" data-tab="reports">举报记录</span>
+        </div>
+        <div class="filter-content" id="filterKeywordsContent">
+            <div class="filter-section">
+                <div class="filter-section-title">自定义过滤关键词</div>
+                <div class="filter-keywords" id="filterKeywordsList"></div>
+                <div class="filter-add-group">
+                    <input type="text" id="filterKeywordInput" placeholder="输入关键词" maxlength="50">
+                    <button id="addFilterKeywordBtn">添加</button>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-toggle">
+                    <label>🔔 显示过滤提示</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showFilterNotice" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="filter-content" id="filterSensitiveContent" style="display: none;">
+            <div class="filter-section">
+                <div class="filter-section-title">常见敏感词库（点击启用）</div>
+                <div class="sensitive-words-list" id="sensitiveWordsList"></div>
+            </div>
+        </div>
+        <div class="filter-content" id="filterReportsContent" style="display: none;">
+            <div class="report-history-list" id="reportHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- 举报面板 -->
+    <div class="report-panel" id="reportPanel">
+        <div class="report-header">
+            <span class="report-title">🚨 举报消息</span>
+            <button class="report-close" id="reportClose">×</button>
+        </div>
+        <div class="report-message-preview" id="reportMessagePreview">
+            <div class="report-message-author" id="reportAuthor"></div>
+            <div class="report-message-content" id="reportContent"></div>
+        </div>
+        <div class="report-reasons">
+            <div class="filter-section-title">举报原因</div>
+            <div class="report-reason">
+                <input type="radio" name="reportReason" value="spam" id="reasonSpam" checked>
+                <label class="report-reason-label" for="reasonSpam">🚫 垃圾广告</label>
+            </div>
+            <div class="report-reason">
+                <input type="radio" name="reportReason" value="attack" id="reasonAttack">
+                <label class="report-reason-label" for="reasonAttack">👊 人身攻击</label>
+            </div>
+            <div class="report-reason">
+                <input type="radio" name="reportReason" value="illegal" id="reasonIllegal">
+                <label class="report-reason-label" for="reasonIllegal">⚠️ 违法内容</label>
+            </div>
+            <div class="report-reason">
+                <input type="radio" name="reportReason" value="other" id="reasonOther">
+                <label class="report-reason-label" for="reasonOther">❓ 其他</label>
+            </div>
+        </div>
+        <div class="report-description">
+            <div class="filter-section-title">补充说明（可选）</div>
+            <textarea id="reportDescription" placeholder="请详细描述问题..." maxlength="200"></textarea>
+        </div>
+        <button class="report-submit" id="reportSubmitBtn">提交举报</button>
+    </div>
+
+    <!-- 多设备管理面板 -->
+    <div class="devices-panel" id="devicesPanel">
+        <div class="devices-header">
+            <span>📱 设备管理</span>
+            <button class="devices-close" id="devicesClose">×</button>
+        </div>
+        <div class="devices-current">
+            <div class="devices-current-label">当前设备</div>
+            <div class="devices-current-info">
+                <span class="device-icon" id="currentDeviceIcon">💻</span>
+                <div class="device-details">
+                    <div class="device-name" id="currentDeviceName">本设备</div>
+                    <div class="device-last-active">在线</div>
+                </div>
+            </div>
+        </div>
+        <div class="devices-list">
+            <div class="devices-list-title">其他登录设备</div>
+            <div id="devicesList"></div>
+        </div>
+        <div style="padding: 0 16px 16px;">
+            <button class="device-sync-btn" id="syncAllBtn" style="width: 100%;">🔄 同步所有设备</button>
+        </div>
+    </div>
+
+    <!-- 私聊加密面板 -->
+    <div class="encryption-panel" id="encryptionPanel">
+        <div class="encryption-header">
+            <span class="encryption-title">🔐 加密设置</span>
+            <button class="encryption-close" id="encryptionClose">×</button>
+        </div>
+        <div class="encryption-toggle">
+            <label>🔒 启用加密</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="encryptionToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="encryption-key-section">
+            <div class="encryption-key-label">加密密钥</div>
+            <div class="encryption-key-display">
+                <input type="text" id="encryptionKeyInput" placeholder="输入或生成密钥" maxlength="32">
+                <button id="generateKeyBtn">生成</button>
+            </div>
+        </div>
+        <div class="encryption-info">
+            💡 密钥将用于加密私聊消息，请妥善保管
+        </div>
+    </div>
+
+    <!-- AI助手设置面板 -->
+    <div class="ai-settings-panel" id="aiSettingsPanel">
+        <div class="ai-settings-header">
+            <span>🤖 AI助手设置</span>
+            <button class="ai-settings-close" id="aiSettingsClose">×</button>
+        </div>
+        <div class="ai-settings-content">
+            <div class="ai-toggle">
+                <label>✨ 启用AI助手</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="aiEnabledToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="ai-role-selector">
+                <label>AI角色</label>
+                <select id="aiRoleSelect">
+                    <option value="assistant">💬 智能助手</option>
+                    <option value="translator">🌐 翻译官</option>
+                    <option value="summarizer">📝 内容总结</option>
+                    <option value="coder">💻 代码助手</option>
+                    <option value="helper">🔍 问答助手</option>
+                </select>
+            </div>
+            <div class="ai-context-info">
+                <div class="ai-context-label">对话上下文</div>
+                <div class="ai-context-value" id="aiContextCount">0 条消息</div>
+            </div>
+            <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
+        </div>
+    </div>
+
+    <!-- 新设备登录通知 -->
+    <div class="new-device-notification" id="newDeviceNotification">
+        <div class="new-device-notification-header">
+            <span class="new-device-notification-icon">📱</span>
+            <span class="new-device-notification-title">新设备登录提醒</span>
+        </div>
+        <div class="new-device-notification-content" id="newDeviceContent">
+            检测到新设备登录
+        </div>
+        <div class="new-device-notification-actions">
+            <button class="new-device-notification-btn trust" id="trustDeviceBtn">信任此设备</button>
+            <button class="new-device-notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
