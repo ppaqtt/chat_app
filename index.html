@@ -4679,7 +4679,7 @@
                 <button class="starred-btn" id="starredBtn">⭐</button>
                 <button class="quick-reply-btn" id="quickReplyBtn">💬</button>
                 <button class="export-btn" id="exportBtn">📤</button>
-                <button class="bg-btn" id="bgBtn">🎨</button>
+                <button class="bg-btn" id="backgroundBtn">🎨</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
@@ -4788,9 +4788,11 @@
         <div class="quick-reply-panel" id="quickReplyPanel">
             <div class="quick-reply-header">
                 <span class="quick-reply-title">💬 快捷回复</span>
-                <button class="quick-reply-add" id="addQuickReplyBtn">+ 添加</button>
+                <button class="quick-reply-add" id="quickReplyAdd">+ 添加</button>
             </div>
+            <input type="text" id="quickReplyInput" placeholder="输入快捷回复内容..." class="quick-reply-input">
             <div id="quickReplyList"></div>
+            <button class="quick-reply-close" id="quickReplyClose">关闭</button>
         </div>
 
         <!-- 转发面板 -->
