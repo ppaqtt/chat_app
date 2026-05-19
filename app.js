@@ -1023,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function originalAddMessage(data) {
+    function addMessage(data) {
         if (isPrivateMode && privateTarget) {
             if (data.type !== 'privateMessage' || (data.toUser !== privateTarget && data.username !== privateTarget)) {
                 return;
@@ -2978,19 +2978,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.hidden) {
             sendNotification('来电', data.from + ' 发起了通话');
         }
-    }
-
-    const realAddMessage = originalAddMessage;
-    function addMessage(data) {
-        if (blockedUsers.includes(data.username)) {
-            return;
-        }
-        
-        if (data.username !== currentUsername && document.hidden) {
-            sendNotification(data.username, data.content || '[新消息]');
-        }
-        
-        realAddMessage(data);
     }
 
     initEmojiPicker();
@@ -5335,8 +5322,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let animationsEnabled = true;
     let slideAnimEnabled = true;
     let emojiAnimEnabled = true;
-
-    const messagesArea = document.getElementById('messagesArea');
 
     function initBubbleStyles() {
         loadBubbleSettings();
