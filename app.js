@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let mentionFilter = '';
 
     const loginScreen = document.getElementById('loginScreen');
+    const moreBtn = document.getElementById('moreBtn');
+    const moreDropdown = document.getElementById('moreDropdown');
     const usernameInput = document.getElementById('usernameInput');
     const loginBtn = document.getElementById('loginBtn');
     const messagesArea = document.getElementById('messagesArea');
@@ -237,6 +239,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     themeBtn.addEventListener('click', toggleTheme);
+
+    // 更多菜单处理
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreDropdown.classList.toggle('active');
+    });
+
+    // 点击其他地方关闭更多菜单
+    document.addEventListener('click', (e) => {
+        if (!moreDropdown.contains(e.target) && e.target !== moreBtn) {
+            moreDropdown.classList.remove('active');
+        }
+    });
+
+    // 下拉菜单项点击处理
+    moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const btnId = item.dataset.btn;
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.click();
+            }
+            moreDropdown.classList.remove('active');
+        });
+    });
 
     function toggleSettings() {
         settingsPanel.classList.toggle('active');
