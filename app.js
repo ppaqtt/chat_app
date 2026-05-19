@@ -6050,10 +6050,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在页面加载完成后初始化新功能
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initNewFeatures);
-    } else {
-        initNewFeatures();
-    }
+    initNewFeatures();
 
 });
