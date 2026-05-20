@@ -5576,27 +5576,396 @@
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
         </div>
-    </div>
 
-    <!-- 通话面板 -->
-    <div class="call-panel" id="callPanel">
-        <div class="call-header">
-            <h3>📞 通话</h3>
-            <button class="call-close" id="callClose">×</button>
+        <!-- 通话面板 -->
+        <div class="call-panel" id="callPanel">
+            <div class="call-header">
+                <h3>📞 通话</h3>
+                <button class="call-close" id="callClose">×</button>
+            </div>
+            <div class="call-users" id="callUsers"></div>
         </div>
-        <div class="call-users" id="callUsers"></div>
-    </div>
 
-    <!-- 黑名单面板 -->
-    <div class="blocked-panel" id="blockedPanel">
-        <div class="blocked-header">
-            <span>🚫 黑名单</span>
-            <button class="blocked-close" id="blockedClose">×</button>
+        <!-- 黑名单面板 -->
+        <div class="blocked-panel" id="blockedPanel">
+            <div class="blocked-header">
+                <span>🚫 黑名单</span>
+                <button class="blocked-close" id="blockedClose">×</button>
+            </div>
+            <div class="blocked-list" id="blockedList"></div>
         </div>
-        <div class="blocked-list" id="blockedList"></div>
+
+        <!-- 统计面板 -->
+        <div class="stats-panel" id="statsPanel">
+            <div class="stats-header">
+                <span>📊 聊天统计</span>
+                <button class="stats-close" id="statsClose">×</button>
+            </div>
+            <div class="stats-content">
+                <div class="stats-grid">
+                    <div class="stats-item">
+                        <div class="stats-value" id="totalMessagesCount">0</div>
+                        <div class="stats-label">总消息数</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="todayMessagesCount">0</div>
+                        <div class="stats-label">今日消息</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="avgMsgLength">0</div>
+                        <div class="stats-label">平均长度</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="yourMessagesCount">0</div>
+                        <div class="stats-label">我的消息</div>
+                    </div>
+                </div>
+                <div class="stats-online-time">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">🕐 在线时长</span>
+                        <span class="value" id="onlineTimeValue">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提醒面板 -->
+        <div class="reminder-panel" id="reminderPanel">
+            <div class="reminder-header">
+                <span>⏰ 定时提醒</span>
+                <button class="reminder-close" id="reminderClose">×</button>
+            </div>
+            <div class="reminder-add">
+                <div class="reminder-input-group">
+                    <input type="time" id="reminderTimeInput" placeholder="选择时间">
+                </div>
+                <div class="reminder-input-group">
+                    <input type="text" id="reminderContentInput" placeholder="提醒内容" maxlength="100">
+                </div>
+                <button class="reminder-add-btn" id="addReminderBtn">添加提醒</button>
+            </div>
+            <div class="reminder-list" id="reminderList"></div>
+        </div>
+
+        <!-- 快捷键提示 -->
+        <div class="shortcuts-hint" id="shortcutsHint">
+            <div class="shortcuts-title">⌨️ 快捷键</div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+Enter</span>
+                    <span>发送消息</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Esc</span>
+                    <span>关闭弹窗</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">↑ / ↓</span>
+                    <span>切换快捷回复</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">/</span>
+                    <span>快速搜索</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+S</span>
+                    <span>打开设置</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+H</span>
+                    <span>显示快捷键</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 群公告横幅 -->
+        <div class="announcement-banner" id="announcementBanner">
+            <span class="announcement-icon">📢</span>
+            <div class="announcement-content">
+                <strong id="announcementAuthor"></strong>: <span id="announcementText"></span>
+            </div>
+            <div class="announcement-actions" id="announcementActions">
+                <button class="announcement-close" id="announcementCloseBanner">×</button>
+            </div>
+        </div>
+
+        <!-- 群公告面板 -->
+        <div class="announcement-panel" id="announcementPanel">
+            <div class="announcement-header">
+                <span>📢 群公告</span>
+                <button class="announcement-close" id="announcementClose">×</button>
+            </div>
+            <div class="announcement-create">
+                <textarea id="announcementInput" placeholder="输入公告内容..." maxlength="500"></textarea>
+                <button class="announcement-create-btn" id="announcementCreateBtn">发布公告</button>
+            </div>
+            <div class="announcement-list" id="announcementList"></div>
+        </div>
+
+        <!-- 投票面板 -->
+        <div class="vote-panel" id="votePanel">
+            <div class="vote-header">
+                <span>🗳️ 投票</span>
+                <button class="vote-close" id="voteClose">×</button>
+            </div>
+            <div class="vote-create">
+                <input type="text" class="vote-create-title" id="voteTitleInput" placeholder="投票标题" maxlength="100">
+                <div class="vote-options" id="voteOptions">
+                    <div class="vote-option-item">
+                        <input type="text" placeholder="选项 1" maxlength="50">
+                        <button class="remove-option" style="visibility: hidden;">×</button>
+                    </div>
+                    <div class="vote-option-item">
+                        <input type="text" placeholder="选项 2" maxlength="50">
+                        <button class="remove-option" style="visibility: hidden;">×</button>
+                    </div>
+                </div>
+                <button class="add-option-btn" id="addVoteOptionBtn">+ 添加选项</button>
+                <div class="vote-settings">
+                    <label>
+                        <input type="checkbox" id="voteMultiSelect"> 多选
+                    </label>
+                    <input type="datetime-local" id="voteDeadlineInput">
+                </div>
+                <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
+            </div>
+            <div class="vote-list" id="voteList"></div>
+        </div>
+
+        <!-- 用户资料卡 -->
+        <div class="user-profile-card" id="userProfileCard">
+            <button class="profile-card-close" id="profileCardClose">×</button>
+            <div class="profile-card-header">
+                <div class="profile-card-avatar" id="profileCardAvatar">?</div>
+                <div class="profile-card-info">
+                    <div class="profile-card-name" id="profileCardName">用户名</div>
+                    <div class="profile-card-status" id="profileCardStatus">在线</div>
+                </div>
+            </div>
+            <div class="profile-card-stats">
+                <div class="profile-stat-item">
+                    <div class="profile-stat-value" id="profileMsgCount">0</div>
+                    <div class="profile-stat-label">消息数</div>
+                </div>
+                <div class="profile-stat-item">
+                    <div class="profile-stat-value" id="profileJoinTime">-</div>
+                    <div class="profile-stat-label">加入时间</div>
+                </div>
+            </div>
+            <div class="profile-card-detail">
+                <span class="profile-card-detail-label">最后在线</span>
+                <span class="profile-card-detail-value" id="profileLastOnline">-</span>
+            </div>
+            <div class="profile-card-actions">
+                <button class="profile-card-btn private-chat" id="profilePrivateChatBtn">💬 私聊</button>
+                <button class="profile-card-btn block" id="profileBlockBtn">🚫 拉黑</button>
+            </div>
+        </div>
+
+        <!-- 标签选择器 -->
+        <div class="tag-selector" id="tagSelector">
+            <div class="tag-selector-title">选择标签</div>
+            <div class="tag-selector-options" id="tagSelectorOptions">
+                <span class="tag-option important" data-tag="重要" data-color="important">重要</span>
+                <span class="tag-option todo" data-tag="待办" data-color="todo">待办</span>
+                <span class="tag-option question" data-tag="问题" data-color="question">问题</span>
+                <span class="tag-option idea" data-tag="想法" data-color="idea">想法</span>
+            </div>
+            <div class="tag-selector-custom">
+                <input type="text" id="tagCustomInput" placeholder="自定义标签" maxlength="20">
+                <button id="tagCustomAddBtn">添加</button>
+            </div>
+        </div>
+
+        <!-- 标签筛选面板 -->
+        <div class="tag-filter-panel" id="tagFilterPanel">
+            <div class="tag-filter-header">🏷️ 筛选标签</div>
+            <div class="tag-filter-options" id="tagFilterOptions">
+                <span class="tag-filter-option all active" data-filter="all">全部</span>
+                <span class="tag-filter-option" data-filter="important" style="border-color: #f44336; color: #f44336;">重要</span>
+                <span class="tag-filter-option" data-filter="todo" style="border-color: #ff9800; color: #ff9800;">待办</span>
+                <span class="tag-filter-option" data-filter="question" style="border-color: #2196f3; color: #2196f3;">问题</span>
+                <span class="tag-filter-option" data-filter="idea" style="border-color: #4caf50; color: #4caf50;">想法</span>
+                <span class="tag-filter-option" data-filter="custom" style="border-color: #9c27b0; color: #9c27b0;">自定义</span>
+            </div>
+        </div>
+
+        <!-- 消息防骚扰面板 -->
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-header">
+                <span>🛡️ 防骚扰设置</span>
+                <button class="filter-close" id="filterClose">×</button>
+            </div>
+            <div class="filter-tabs">
+                <span class="filter-tab active" data-tab="keywords">关键词过滤</span>
+                <span class="filter-tab" data-tab="sensitive">敏感词库</span>
+                <span class="filter-tab" data-tab="reports">举报记录</span>
+            </div>
+            <div class="filter-content" id="filterKeywordsContent">
+                <div class="filter-section">
+                    <div class="filter-section-title">自定义过滤关键词</div>
+                    <div class="filter-keywords" id="filterKeywordsList"></div>
+                    <div class="filter-add-group">
+                        <input type="text" id="filterKeywordInput" placeholder="输入关键词" maxlength="50">
+                        <button id="addFilterKeywordBtn">添加</button>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <div class="filter-toggle">
+                        <label>🔔 显示过滤提示</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showFilterNotice" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-content" id="filterSensitiveContent" style="display: none;">
+                <div class="filter-section">
+                    <div class="filter-section-title">常见敏感词库（点击启用）</div>
+                    <div class="sensitive-words-list" id="sensitiveWordsList"></div>
+                </div>
+            </div>
+            <div class="filter-content" id="filterReportsContent" style="display: none;">
+                <div class="report-history-list" id="reportHistoryList"></div>
+            </div>
+        </div>
+
+        <!-- 举报面板 -->
+        <div class="report-panel" id="reportPanel">
+            <div class="report-header">
+                <span class="report-title">🚨 举报消息</span>
+                <button class="report-close" id="reportClose">×</button>
+            </div>
+            <div class="report-message-preview" id="reportMessagePreview">
+                <div class="report-message-author" id="reportAuthor"></div>
+                <div class="report-message-content" id="reportContent"></div>
+            </div>
+            <div class="report-reasons">
+                <div class="filter-section-title">举报原因</div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="spam" id="reasonSpam" checked>
+                    <label class="report-reason-label" for="reasonSpam">🚫 垃圾广告</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="attack" id="reasonAttack">
+                    <label class="report-reason-label" for="reasonAttack">👊 人身攻击</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="illegal" id="reasonIllegal">
+                    <label class="report-reason-label" for="reasonIllegal">⚠️ 违法内容</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="other" id="reasonOther">
+                    <label class="report-reason-label" for="reasonOther">❓ 其他</label>
+                </div>
+            </div>
+            <div class="report-description">
+                <div class="filter-section-title">补充说明（可选）</div>
+                <textarea id="reportDescription" placeholder="请详细描述问题..." maxlength="200"></textarea>
+            </div>
+            <button class="report-submit" id="reportSubmitBtn">提交举报</button>
+        </div>
+
+        <!-- 多设备管理面板 -->
+        <div class="devices-panel" id="devicesPanel">
+            <div class="devices-header">
+                <span>📱 设备管理</span>
+                <button class="devices-close" id="devicesClose">×</button>
+            </div>
+            <div class="devices-current">
+                <div class="devices-current-label">当前设备</div>
+                <div class="devices-current-info">
+                    <span class="device-icon" id="currentDeviceIcon">💻</span>
+                    <div class="device-details">
+                        <div class="device-name" id="currentDeviceName">本设备</div>
+                        <div class="device-last-active">在线</div>
+                    </div>
+                </div>
+            </div>
+            <div class="devices-list">
+                <div class="devices-list-title">其他登录设备</div>
+                <div id="devicesList"></div>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <button class="device-sync-btn" id="syncAllBtn" style="width: 100%;">🔄 同步所有设备</button>
+            </div>
+        </div>
+
+        <!-- 私聊加密面板 -->
+        <div class="encryption-panel" id="encryptionPanel">
+            <div class="encryption-header">
+                <span class="encryption-title">🔐 加密设置</span>
+                <button class="encryption-close" id="encryptionClose">×</button>
+            </div>
+            <div class="encryption-toggle">
+                <label>🔒 启用加密</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="encryptionToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="encryption-key-section">
+                <div class="encryption-key-label">加密密钥</div>
+                <div class="encryption-key-display">
+                    <input type="text" id="encryptionKeyInput" placeholder="输入或生成密钥" maxlength="32">
+                    <button id="generateKeyBtn">生成</button>
+                </div>
+            </div>
+            <div class="encryption-info">
+                💡 密钥将用于加密私聊消息，请妥善保管
+            </div>
+        </div>
+
+        <!-- AI助手设置面板 -->
+        <div class="ai-settings-panel" id="aiSettingsPanel">
+            <div class="ai-settings-header">
+                <span>🤖 AI助手设置</span>
+                <button class="ai-settings-close" id="aiSettingsClose">×</button>
+            </div>
+            <div class="ai-settings-content">
+                <div class="ai-toggle">
+                    <label>✨ 启用AI助手</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="aiEnabledToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="ai-role-selector">
+                    <label>AI角色</label>
+                    <select id="aiRoleSelect">
+                        <option value="assistant">💬 智能助手</option>
+                        <option value="translator">🌐 翻译官</option>
+                        <option value="summarizer">📝 内容总结</option>
+                        <option value="coder">💻 代码助手</option>
+                        <option value="helper">🔍 问答助手</option>
+                    </select>
+                </div>
+                <div class="ai-context-info">
+                    <div class="ai-context-label">对话上下文</div>
+                    <div class="ai-context-value" id="aiContextCount">0 条消息</div>
+                </div>
+                <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
+            </div>
+        </div>
+
+        <!-- 新设备登录通知 -->
+        <div class="new-device-notification" id="newDeviceNotification">
+            <div class="new-device-notification-header">
+                <span class="new-device-notification-icon">📱</span>
+                <span class="new-device-notification-title">新设备登录提醒</span>
+            </div>
+            <div class="new-device-notification-content" id="newDeviceContent">
+                检测到新设备登录
+            </div>
+            <div class="new-device-notification-actions">
+                <button class="new-device-notification-btn trust" id="trustDeviceBtn">信任此设备</button>
+                <button class="new-device-notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 来电弹窗 -->
+    <!-- 来电弹窗 - 保持在容器外部，因为它是全屏弹窗 -->
     <div class="incoming-call-modal" id="incomingCallModal">
         <div class="incoming-call-content">
             <div class="incoming-call-avatar" id="incomingCallAvatar">?</div>
@@ -5609,421 +5978,68 @@
         </div>
     </div>
 
-    <!-- 统计面板 -->
-    <div class="stats-panel" id="statsPanel">
-        <div class="stats-header">
-            <span>📊 聊天统计</span>
-            <button class="stats-close" id="statsClose">×</button>
+    <!-- 视频通话窗口 - 保持在容器外部，因为它是全屏覆盖 -->
+    <div class="video-call-window" id="videoCallWindow">
+        <div class="video-call-header">
+            <div class="video-call-title" id="videoCallTitle">视频通话</div>
+            <div class="video-call-timer" id="videoCallTimer">00:00:00</div>
         </div>
-        <div class="stats-content">
-            <div class="stats-grid">
-                <div class="stats-item">
-                    <div class="stats-value" id="totalMessagesCount">0</div>
-                    <div class="stats-label">总消息数</div>
+        <div class="video-call-container">
+            <div class="remote-video-container" id="remoteVideoContainer">
+                <div class="remote-video-placeholder" id="remoteVideoPlaceholder">
+                    <div class="avatar-large" id="remoteAvatar">?</div>
                 </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="todayMessagesCount">0</div>
-                    <div class="stats-label">今日消息</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="avgMsgLength">0</div>
-                    <div class="stats-label">平均长度</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="yourMessagesCount">0</div>
-                    <div class="stats-label">我的消息</div>
-                </div>
+                <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
             </div>
-            <div class="stats-online-time">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 13px; color: var(--text-secondary);">🕐 在线时长</span>
-                    <span class="value" id="onlineTimeValue">00:00:00</span>
+            <div class="local-video-container">
+                <video id="localVideo" autoplay playsinline muted></video>
+            </div>
+        </div>
+        <div class="video-call-controls">
+            <div class="volume-indicator-container">
+                <span>🔊</span>
+                <div class="volume-indicator-bar">
+                    <div class="volume-indicator" id="videoVolumeIndicator"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 提醒面板 -->
-    <div class="reminder-panel" id="reminderPanel">
-        <div class="reminder-header">
-            <span>⏰ 定时提醒</span>
-            <button class="reminder-close" id="reminderClose">×</button>
-        </div>
-        <div class="reminder-add">
-            <div class="reminder-input-group">
-                <input type="time" id="reminderTimeInput" placeholder="选择时间">
-            </div>
-            <div class="reminder-input-group">
-                <input type="text" id="reminderContentInput" placeholder="提醒内容" maxlength="100">
-            </div>
-            <button class="reminder-add-btn" id="addReminderBtn">添加提醒</button>
-        </div>
-        <div class="reminder-list" id="reminderList"></div>
-    </div>
-
-    <!-- 快捷键提示 -->
-    <div class="shortcuts-hint" id="shortcutsHint">
-        <div class="shortcuts-title">⌨️ 快捷键</div>
-        <div class="shortcuts-list">
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+Enter</span>
-                <span>发送消息</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Esc</span>
-                <span>关闭弹窗</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">↑ / ↓</span>
-                <span>切换快捷回复</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">/</span>
-                <span>快速搜索</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+S</span>
-                <span>打开设置</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+H</span>
-                <span>显示快捷键</span>
+            <div class="video-call-buttons">
+                <button class="video-call-btn mute" id="videoMuteBtn">🔇</button>
+                <button class="video-call-btn camera" id="videoCameraBtn">📹</button>
+                <button class="video-call-btn end" id="videoEndCallBtn">🔴</button>
             </div>
         </div>
     </div>
 
-    <!-- 群公告横幅 -->
-    <div class="announcement-banner" id="announcementBanner">
-        <span class="announcement-icon">📢</span>
-        <div class="announcement-content">
-            <strong id="announcementAuthor"></strong>: <span id="announcementText"></span>
+    <!-- 语音通话窗口 - 保持在容器外部，因为它是弹窗 -->
+    <div class="voice-call-window" id="voiceCallWindow">
+        <div class="voice-call-header">
+            <div class="voice-call-title">语音通话</div>
         </div>
-        <div class="announcement-actions" id="announcementActions">
-            <button class="announcement-close" id="announcementCloseBanner">×</button>
+        <div class="voice-call-avatar">
+            <div class="avatar-voice" id="voiceCallAvatar">?</div>
+        </div>
+        <div class="voice-call-name" id="voiceCallName">用户名</div>
+        <div class="voice-call-status" id="voiceCallStatus">通话中</div>
+        <div class="voice-call-timer" id="voiceCallTimer">00:00:00</div>
+        <div class="volume-indicator-container">
+            <span>🔊</span>
+            <div class="volume-indicator-bar">
+                <div class="volume-indicator" id="voiceVolumeIndicator"></div>
+            </div>
+        </div>
+        <div class="voice-call-buttons">
+            <button class="voice-call-btn mute" id="voiceMuteBtn">🔇</button>
+            <button class="voice-call-btn end" id="voiceEndCallBtn">🔴</button>
         </div>
     </div>
 
-    <!-- 群公告面板 -->
-    <div class="announcement-panel" id="announcementPanel">
-        <div class="announcement-header">
-            <span>📢 群公告</span>
-            <button class="announcement-close" id="announcementClose">×</button>
+    <!-- 预览面板 - 保持在容器外部，因为它是全屏预览 -->
+    <div class="preview-panel" id="previewPanel">
+        <div class="preview-header">
+            <div class="preview-title" id="previewTitle">预览</div>
+            <button class="preview-close" id="previewClose">×</button>
         </div>
-        <div class="announcement-create">
-            <textarea id="announcementInput" placeholder="输入公告内容..." maxlength="500"></textarea>
-            <button class="announcement-create-btn" id="announcementCreateBtn">发布公告</button>
-        </div>
-        <div class="announcement-list" id="announcementList"></div>
-    </div>
-
-    <!-- 投票面板 -->
-    <div class="vote-panel" id="votePanel">
-        <div class="vote-header">
-            <span>🗳️ 投票</span>
-            <button class="vote-close" id="voteClose">×</button>
-        </div>
-        <div class="vote-create">
-            <input type="text" class="vote-create-title" id="voteTitleInput" placeholder="投票标题" maxlength="100">
-            <div class="vote-options" id="voteOptions">
-                <div class="vote-option-item">
-                    <input type="text" placeholder="选项 1" maxlength="50">
-                    <button class="remove-option" style="visibility: hidden;">×</button>
-                </div>
-                <div class="vote-option-item">
-                    <input type="text" placeholder="选项 2" maxlength="50">
-                    <button class="remove-option" style="visibility: hidden;">×</button>
-                </div>
-            </div>
-            <button class="add-option-btn" id="addVoteOptionBtn">+ 添加选项</button>
-            <div class="vote-settings">
-                <label>
-                    <input type="checkbox" id="voteMultiSelect"> 多选
-                </label>
-                <input type="datetime-local" id="voteDeadlineInput">
-            </div>
-            <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
-        </div>
-        <div class="vote-list" id="voteList"></div>
-    </div>
-
-    <!-- 背景设置面板 -->
-    <div class="background-panel" id="backgroundPanel">
-        <div class="panel-header">
-            <span>🎨 聊天背景</span>
-            <button class="panel-close" id="backgroundClose">×</button>
-        </div>
-        <div class="background-options" id="backgroundOptions"></div>
-        <div class="background-upload">
-            <input type="file" id="bgUploadInput" accept="image/*">
-            <button class="upload-btn" id="bgUploadBtn">上传自定义背景</button>
-        </div>
-    </div>
-
-    <!-- 通知设置面板 -->
-    <div class="notification-panel" id="notificationPanel">
-        <div class="panel-header">
-            <span>🔔 声音设置</span>
-            <button class="panel-close" id="notificationClose">×</button>
-        </div>
-        <div class="notification-settings">
-            <label class="setting-item">
-                <span>开启声音提醒</span>
-                <input type="checkbox" id="soundToggle" checked>
-            </label>
-            <div class="setting-item">
-                <span>声音类型</span>
-                <select id="soundTypeSelect">
-                    <option value="chime">清脆铃声</option>
-                    <option value="ding">提示音</option>
-                    <option value="pop">气泡音</option>
-                    <option value="bell">门铃声</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- 设备管理面板 -->
-    <div class="device-panel" id="devicePanel">
-        <div class="panel-header">
-            <span>📱 设备管理</span>
-            <button class="panel-close" id="deviceClose">×</button>
-        </div>
-        <div class="device-list" id="deviceList"></div>
-        <div class="device-sync">
-            <button class="sync-all-btn" id="syncAllBtnHeader">同步所有设备</button>
-        </div>
-    </div>
-
-    <!-- 用户资料卡 -->
-    <div class="user-profile-card" id="userProfileCard">
-        <button class="profile-card-close" id="profileCardClose">×</button>
-        <div class="profile-card-header">
-            <div class="profile-card-avatar" id="profileCardAvatar">?</div>
-            <div class="profile-card-info">
-                <div class="profile-card-name" id="profileCardName">用户名</div>
-                <div class="profile-card-status" id="profileCardStatus">在线</div>
-            </div>
-        </div>
-        <div class="profile-card-stats">
-            <div class="profile-stat-item">
-                <div class="profile-stat-value" id="profileMsgCount">0</div>
-                <div class="profile-stat-label">消息数</div>
-            </div>
-            <div class="profile-stat-item">
-                <div class="profile-stat-value" id="profileJoinTime">-</div>
-                <div class="profile-stat-label">加入时间</div>
-            </div>
-        </div>
-        <div class="profile-card-detail">
-            <span class="profile-card-detail-label">最后在线</span>
-            <span class="profile-card-detail-value" id="profileLastOnline">-</span>
-        </div>
-        <div class="profile-card-actions">
-            <button class="profile-card-btn private-chat" id="profilePrivateChatBtn">💬 私聊</button>
-            <button class="profile-card-btn block" id="profileBlockBtn">🚫 拉黑</button>
-        </div>
-    </div>
-
-    <!-- 标签选择器 -->
-    <div class="tag-selector" id="tagSelector">
-        <div class="tag-selector-title">选择标签</div>
-        <div class="tag-selector-options" id="tagSelectorOptions">
-            <span class="tag-option important" data-tag="重要" data-color="important">重要</span>
-            <span class="tag-option todo" data-tag="待办" data-color="todo">待办</span>
-            <span class="tag-option question" data-tag="问题" data-color="question">问题</span>
-            <span class="tag-option idea" data-tag="想法" data-color="idea">想法</span>
-        </div>
-        <div class="tag-selector-custom">
-            <input type="text" id="tagCustomInput" placeholder="自定义标签" maxlength="20">
-            <button id="tagCustomAddBtn">添加</button>
-        </div>
-    </div>
-
-    <!-- 标签筛选面板 -->
-    <div class="tag-filter-panel" id="tagFilterPanel">
-        <div class="tag-filter-header">🏷️ 筛选标签</div>
-        <div class="tag-filter-options" id="tagFilterOptions">
-            <span class="tag-filter-option all active" data-filter="all">全部</span>
-            <span class="tag-filter-option" data-filter="important" style="border-color: #f44336; color: #f44336;">重要</span>
-            <span class="tag-filter-option" data-filter="todo" style="border-color: #ff9800; color: #ff9800;">待办</span>
-            <span class="tag-filter-option" data-filter="question" style="border-color: #2196f3; color: #2196f3;">问题</span>
-            <span class="tag-filter-option" data-filter="idea" style="border-color: #4caf50; color: #4caf50;">想法</span>
-            <span class="tag-filter-option" data-filter="custom" style="border-color: #9c27b0; color: #9c27b0;">自定义</span>
-        </div>
-    </div>
-
-    <!-- 消息防骚扰面板 -->
-    <div class="filter-panel" id="filterPanel">
-        <div class="filter-header">
-            <span>🛡️ 防骚扰设置</span>
-            <button class="filter-close" id="filterClose">×</button>
-        </div>
-        <div class="filter-tabs">
-            <span class="filter-tab active" data-tab="keywords">关键词过滤</span>
-            <span class="filter-tab" data-tab="sensitive">敏感词库</span>
-            <span class="filter-tab" data-tab="reports">举报记录</span>
-        </div>
-        <div class="filter-content" id="filterKeywordsContent">
-            <div class="filter-section">
-                <div class="filter-section-title">自定义过滤关键词</div>
-                <div class="filter-keywords" id="filterKeywordsList"></div>
-                <div class="filter-add-group">
-                    <input type="text" id="filterKeywordInput" placeholder="输入关键词" maxlength="50">
-                    <button id="addFilterKeywordBtn">添加</button>
-                </div>
-            </div>
-            <div class="filter-section">
-                <div class="filter-toggle">
-                    <label>🔔 显示过滤提示</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="showFilterNotice" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="filter-content" id="filterSensitiveContent" style="display: none;">
-            <div class="filter-section">
-                <div class="filter-section-title">常见敏感词库（点击启用）</div>
-                <div class="sensitive-words-list" id="sensitiveWordsList"></div>
-            </div>
-        </div>
-        <div class="filter-content" id="filterReportsContent" style="display: none;">
-            <div class="report-history-list" id="reportHistoryList"></div>
-        </div>
-    </div>
-
-    <!-- 举报面板 -->
-    <div class="report-panel" id="reportPanel">
-        <div class="report-header">
-            <span class="report-title">🚨 举报消息</span>
-            <button class="report-close" id="reportClose">×</button>
-        </div>
-        <div class="report-message-preview" id="reportMessagePreview">
-            <div class="report-message-author" id="reportAuthor"></div>
-            <div class="report-message-content" id="reportContent"></div>
-        </div>
-        <div class="report-reasons">
-            <div class="filter-section-title">举报原因</div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="spam" id="reasonSpam" checked>
-                <label class="report-reason-label" for="reasonSpam">🚫 垃圾广告</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="attack" id="reasonAttack">
-                <label class="report-reason-label" for="reasonAttack">👊 人身攻击</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="illegal" id="reasonIllegal">
-                <label class="report-reason-label" for="reasonIllegal">⚠️ 违法内容</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="other" id="reasonOther">
-                <label class="report-reason-label" for="reasonOther">❓ 其他</label>
-            </div>
-        </div>
-        <div class="report-description">
-            <div class="filter-section-title">补充说明（可选）</div>
-            <textarea id="reportDescription" placeholder="请详细描述问题..." maxlength="200"></textarea>
-        </div>
-        <button class="report-submit" id="reportSubmitBtn">提交举报</button>
-    </div>
-
-    <!-- 多设备管理面板 -->
-    <div class="devices-panel" id="devicesPanel">
-        <div class="devices-header">
-            <span>📱 设备管理</span>
-            <button class="devices-close" id="devicesClose">×</button>
-        </div>
-        <div class="devices-current">
-            <div class="devices-current-label">当前设备</div>
-            <div class="devices-current-info">
-                <span class="device-icon" id="currentDeviceIcon">💻</span>
-                <div class="device-details">
-                    <div class="device-name" id="currentDeviceName">本设备</div>
-                    <div class="device-last-active">在线</div>
-                </div>
-            </div>
-        </div>
-        <div class="devices-list">
-            <div class="devices-list-title">其他登录设备</div>
-            <div id="devicesList"></div>
-        </div>
-        <div style="padding: 0 16px 16px;">
-            <button class="device-sync-btn" id="syncAllBtn" style="width: 100%;">🔄 同步所有设备</button>
-        </div>
-    </div>
-
-    <!-- 私聊加密面板 -->
-    <div class="encryption-panel" id="encryptionPanel">
-        <div class="encryption-header">
-            <span class="encryption-title">🔐 加密设置</span>
-            <button class="encryption-close" id="encryptionClose">×</button>
-        </div>
-        <div class="encryption-toggle">
-            <label>🔒 启用加密</label>
-            <label class="toggle-switch">
-                <input type="checkbox" id="encryptionToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-        <div class="encryption-key-section">
-            <div class="encryption-key-label">加密密钥</div>
-            <div class="encryption-key-display">
-                <input type="text" id="encryptionKeyInput" placeholder="输入或生成密钥" maxlength="32">
-                <button id="generateKeyBtn">生成</button>
-            </div>
-        </div>
-        <div class="encryption-info">
-            💡 密钥将用于加密私聊消息，请妥善保管
-        </div>
-    </div>
-
-    <!-- AI助手设置面板 -->
-    <div class="ai-settings-panel" id="aiSettingsPanel">
-        <div class="ai-settings-header">
-            <span>🤖 AI助手设置</span>
-            <button class="ai-settings-close" id="aiSettingsClose">×</button>
-        </div>
-        <div class="ai-settings-content">
-            <div class="ai-toggle">
-                <label>✨ 启用AI助手</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="aiEnabledToggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="ai-role-selector">
-                <label>AI角色</label>
-                <select id="aiRoleSelect">
-                    <option value="assistant">💬 智能助手</option>
-                    <option value="translator">🌐 翻译官</option>
-                    <option value="summarizer">📝 内容总结</option>
-                    <option value="coder">💻 代码助手</option>
-                    <option value="helper">🔍 问答助手</option>
-                </select>
-            </div>
-            <div class="ai-context-info">
-                <div class="ai-context-label">对话上下文</div>
-                <div class="ai-context-value" id="aiContextCount">0 条消息</div>
-            </div>
-            <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
-        </div>
-    </div>
-
-    <!-- 新设备登录通知 -->
-    <div class="new-device-notification" id="newDeviceNotification">
-        <div class="new-device-notification-header">
-            <span class="new-device-notification-icon">📱</span>
-            <span class="new-device-notification-title">新设备登录提醒</span>
-        </div>
-        <div class="new-device-notification-content" id="newDeviceContent">
-            检测到新设备登录
-        </div>
-        <div class="new-device-notification-actions">
-            <button class="new-device-notification-btn trust" id="trustDeviceBtn">信任此设备</button>
-            <button class="new-device-notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
-        </div>
+        <div class="preview-content" id="previewContent"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
