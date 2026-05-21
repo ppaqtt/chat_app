@@ -3079,8 +3079,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             remoteStream.addTrack(event.track);
 
-            if (currentCall && currentCall.type === 'video' && remoteVideo) {
-                remoteVideo.srcObject = remoteStream;
+            if (currentCall && currentCall.type === 'video') {
+                if (remoteVideo) {
+                    remoteVideo.srcObject = remoteStream;
+                }
+                if (remoteAudio) {
+                    remoteAudio.srcObject = remoteStream;
+                    remoteAudio.play().catch(err => {
+                        console.error('播放远程音频失败:', err);
+                    });
+                }
             } else if (currentCall && currentCall.type === 'voice') {
                 if (remoteAudio) {
                     remoteAudio.srcObject = remoteStream;
