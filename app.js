@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const starredPanel = document.getElementById('starredPanel');
     const starredClose = document.getElementById('starredClose');
     const starredList = document.getElementById('starredList');
-    const backgroundBtn = document.getElementById('backgroundBtn');
+    const bgBtn = document.getElementById('bgBtn');
     const backgroundPanel = document.getElementById('backgroundPanel');
     const backgroundClose = document.getElementById('backgroundClose');
     const backgroundOptions = document.getElementById('backgroundOptions');
@@ -2570,10 +2570,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        backgroundBtn.addEventListener('click', () => {
-            renderBackgroundOptions();
-            backgroundPanel.classList.add('active');
-        });
+        if (bgBtn) {
+            bgBtn.addEventListener('click', () => {
+                renderBackgroundOptions();
+                backgroundPanel.classList.add('active');
+            });
+        }
 
         if (backgroundClose) {
             backgroundClose.addEventListener('click', () => {
