@@ -5635,6 +5635,12 @@
             <h3>📞 通话</h3>
             <button class="call-close" id="callClose">×</button>
         </div>
+        <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color);">
+            <button id="testMicrophoneBtn" style="width: 100%; padding: 10px; background: var(--primary-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                🎤 测试麦克风
+            </button>
+            <div id="microphoneTestStatus" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary); text-align: center;"></div>
+        </div>
         <div class="call-users" id="callUsers"></div>
         <audio id="remoteAudio" autoplay playsinline style="display: none;"></audio>
     </div>

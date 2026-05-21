@@ -1930,6 +1930,86 @@ document.addEventListener('DOMContentLoaded', function() {
         callPanel.classList.remove('active');
     });
 
+    // ========== 麦克风测试功能 ==========
+    let microphoneTestStream = null;
+    let microphoneTestInterval = null;
+
+    const testMicrophoneBtn = document.getElementById('testMicrophoneBtn');
+    const microphoneTestStatus = document.getElementById('microphoneTestStatus');
+
+    testMicrophoneBtn.addEventListener('click', async () => {
+        if (microphoneTestStream) {
+            microphoneTestStream.getTracks().forEach(track => track.stop());
+            microphoneTestStream = null;
+            if (microphoneTestInterval) {
+                clearInterval(microphoneTestInterval);
+                microphoneTestInterval = null;
+            }
+            testMicrophoneBtn.innerHTML = '🎤 测试麦克风';
+            microphoneTestStatus.textContent = '';
+            return;
+        }
+
+        testMicrophoneBtn.innerHTML = '🔄 测试中...';
+        microphoneTestStatus.textContent = '正在请求麦克风权限...';
+
+        try {
+            microphoneTestStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('✅ 麦克风测试：权限获取成功');
+
+            microphoneTestStatus.textContent = '✅ 麦克风正常！正在监听...';
+            microphoneTestStatus.style.color = '#4CAF50';
+            testMicrophoneBtn.innerHTML = '⏹ 停止测试';
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(microphoneTestStream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            microphoneTestInterval = setInterval(() => {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                const audioLevel = sum / dataArray.length / 255;
+
+                if (audioLevel > 0.05) {
+                    microphoneTestStatus.textContent = '🎙 麦克风正常！检测到声音输入';
+                    microphoneTestStatus.style.color = '#4CAF50';
+                } else {
+                    microphoneTestStatus.textContent = '🎤 麦克风正常，请对准麦克风说话';
+                    microphoneTestStatus.style.color = '#4CAF50';
+                }
+            }, 200);
+
+        } catch (error) {
+            console.error('❌ 麦克风测试失败:', error);
+            testMicrophoneBtn.innerHTML = '🎤 测试麦克风';
+            microphoneTestStatus.style.color = '#f44336';
+
+            let errorMessage = '';
+            switch (error.name) {
+                case 'NotAllowedError':
+                case 'PermissionDeniedError':
+                    errorMessage = '❌ 权限被拒绝，请点击地址栏左侧的麦克风图标选择"允许"';
+                    break;
+                case 'NotFoundError':
+                    errorMessage = '❌ 未找到麦克风设备，请检查是否连接了麦克风';
+                    break;
+                case 'NotReadableError':
+                    errorMessage = '❌ 麦克风被其他程序占用，请关闭其他使用麦克风的程序';
+                    break;
+                default:
+                    errorMessage = '❌ 麦克风测试失败: ' + error.message;
+            }
+            microphoneTestStatus.textContent = errorMessage;
+        }
+    });
+
     function renderCallUsers() {
         callUsers.innerHTML = '';
         onlineUsers.forEach(user => {
@@ -3021,27 +3101,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== WebRTC 通话功能 ==========
 
+    async function checkMediaPermissions() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            return { audio: false, video: false, error: '您的浏览器不支持麦克风功能' };
+        }
+
+        try {
+            const result = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            result.getTracks().forEach(track => track.stop());
+            return { audio: true, video: true, error: null };
+        } catch (error) {
+            console.error('权限检查失败:', error);
+            if (error.name === 'NotAllowedError') {
+                return { audio: false, video: false, error: '麦克风权限被拒绝，请在浏览器设置中允许访问麦克风' };
+            } else if (error.name === 'NotFoundError') {
+                return { audio: false, video: false, error: '未找到麦克风设备，请连接麦克风后重试' };
+            } else if (error.name === 'NotReadableError') {
+                return { audio: false, video: false, error: '麦克风被其他程序占用，请关闭其他使用麦克风的程序' };
+            } else {
+                return { audio: false, video: false, error: '无法访问麦克风: ' + error.message };
+            }
+        }
+    }
+
     async function getMediaStream(callType) {
         try {
             const constraints = callType === 'video'
                 ? { video: true, audio: true }
                 : { audio: true };
 
+            console.log('正在请求麦克风权限，类型:', callType);
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            console.log('✅ 麦克风权限获取成功');
+            console.log('获取到的媒体流，轨道数:', stream.getTracks().length);
+            stream.getTracks().forEach(track => {
+                console.log('轨道信息:', track.kind, '- enabled:', track.enabled, '- readyState:', track.readyState);
+            });
 
             if (callType === 'voice') {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(stream);
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                source.connect(analyser);
-                startAudioLevelMonitoring();
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    source.connect(analyser);
+                    startAudioLevelMonitoring();
+                    console.log('✅ 音频分析器初始化成功');
+                } catch (audioError) {
+                    console.error('❌ 音频分析器初始化失败:', audioError);
+                }
             }
 
             return stream;
         } catch (error) {
-            console.error('获取媒体流失败:', error);
-            alert('无法获取' + (callType === 'video' ? '摄像头' : '麦克风') + '权限，请检查设置');
+            console.error('❌ 获取媒体流失败:', error);
+            console.error('错误类型:', error.name);
+            console.error('错误消息:', error.message);
+            
+            let errorMessage = '';
+            switch (error.name) {
+                case 'NotAllowedError':
+                case 'PermissionDeniedError':
+                    errorMessage = '麦克风权限被拒绝！\n\n解决方法：\n1. 点击浏览器地址栏左侧的摄像头/麦克风图标\n2. 选择"允许"访问麦克风\n3. 刷新页面后重新尝试';
+                    break;
+                case 'NotFoundError':
+                case 'DevicesNotFoundError':
+                    errorMessage = '未找到麦克风设备！\n\n解决方法：\n1. 检查电脑是否连接了麦克风\n2. 在系统设置中确认麦克风已启用\n3. 如果使用耳机，确保耳机麦克风已连接';
+                    break;
+                case 'NotReadableError':
+                case 'TrackStartError':
+                    errorMessage = '麦克风被其他程序占用！\n\n解决方法：\n1. 关闭其他正在使用麦克风的程序（如微信、QQ、Skype等）\n2. 关闭浏览器的其他标签页\n3. 重新尝试通话';
+                    break;
+                case 'OverconstrainedError':
+                    errorMessage = '麦克风配置不兼容！\n\n解决方法：\n1. 尝试使用系统默认麦克风\n2. 更新您的浏览器到最新版本';
+                    break;
+                case 'PermissionDismissedError':
+                    errorMessage = '麦克风权限请求被取消！\n\n解决方法：\n1. 点击浏览器地址栏左侧的麦克风图标\n2. 选择"允许"访问麦克风';
+                    break;
+                default:
+                    errorMessage = '无法获取麦克风权限\n\n错误信息：' + error.message + '\n\n解决方法：\n1. 确保使用 HTTPS 或 localhost 访问\n2. 在浏览器设置中允许麦克风访问\n3. 尝试使用 Chrome 浏览器';
+            }
+            
+            alert(errorMessage);
             return null;
         }
     }
@@ -3155,8 +3297,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            console.log('=== 开始发起通话 ===');
+            console.log('目标用户:', targetUser);
+            console.log('通话类型:', callType);
+
             const stream = await getMediaStream(callType);
-            if (!stream) return;
+            if (!stream) {
+                console.error('获取媒体流失败，终止通话');
+                return;
+            }
 
             console.log('获取媒体流成功，轨道数:', stream.getTracks().length);
             stream.getTracks().forEach(track => {
