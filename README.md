@@ -1,6 +1,18 @@
-# 极简聊天室
+# 💬 极简聊天室
 
-一个基于 WebSocket 的实时聊天应用，支持多人在线聊天、表情包、输入状态提示、消息历史保存等功能。
+一个基于 WebSocket 的实时聊天应用，支持多人在线聊天、表情包、输入状态提示、消息历史保存等功能。**完全响应式设计，支持电脑和手机访问！**
+
+![版本](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-green.svg)
+![License](https://img.shields.io/badge/license-MIT-purple.svg)
+
+## ✨ 新增功能
+
+### 🚀 最新更新
+- 📱 **完整的移动端适配** - 完美支持手机和平板设备
+- 🌐 **内网穿透部署** - 轻松让外网用户访问本地服务
+- ⚡ **一键启动脚本** - Windows用户双击即可启动
+- 🔒 **安全WebSocket连接** - 支持HTTPS页面的WSS连接
 
 ## 🎯 功能特性
 
@@ -91,7 +103,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone <项目地址>
+   git clone https://github.com/ppaqtt/chat_app.git
    cd chat_app
    ```
 
@@ -102,7 +114,13 @@
 
 3. **启动服务器**
    ```bash
+   # 方式1：一键启动（推荐Windows用户）
+   双击 start.bat
+
+   # 方式2：命令行启动
    npm start
+   # 或
+   node server.js
    ```
 
 4. **访问应用**
@@ -115,6 +133,70 @@
 3. 打开多个浏览器窗口，用不同昵称登录
 4. 开始聊天！
 
+## 🌐 外网访问设置
+
+想让其他人从外网访问你的聊天应用？按照以下步骤操作：
+
+### 第1步：安装内网穿透工具
+
+**推荐使用 localtunnel（免费，无需注册）：**
+
+```bash
+npm install -g localtunnel
+```
+
+**备选方案 - Cloudflare Tunnel（更稳定）：**
+- 下载：https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+- 或使用 winget: `winget install Cloudflare.cloudflared`
+
+### 第2步：启动穿透服务
+
+**使用 localtunnel：**
+```bash
+lt --port 3000
+```
+成功后会显示：`your url is: https://xxxx-xx-xx.loca.lt`
+
+**使用 Cloudflare Tunnel：**
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+成功后会显示：`your tunnel URL is: https://xxxx.trycloudflare.com`
+
+### 第3步：分享链接
+
+将生成的公网URL分享给你的朋友，他们就可以访问你的聊天应用了！
+
+### ⚠️ 注意事项
+
+1. **保持服务运行** - 关闭终端会断开连接
+2. **每次重启需要重新运行穿透命令**
+3. **免费工具有限制** - 适合测试，不适合生产环境
+4. **HTTPS兼容性** - 部分穿透工具可能不支持HTTPS页面，建议测试后再分享
+
+## 📱 移动端适配
+
+### 支持的设备
+- ✅ 智能手机（Android、iOS）
+- ✅ 平板电脑（iPad、Android平板）
+- ✅ 横屏和竖屏模式
+- ✅ 各种屏幕尺寸
+
+### 移动端特性
+- 📱 全屏自适应布局
+- 👆 触摸友好的按钮尺寸（≥44px）
+- 🔄 侧边栏自动调整位置
+- 📐 消息气泡自适应屏幕宽度
+- 🎨 所有功能面板移动端优化
+- 🌐 表情选择器网格优化
+
+### 测试方法
+
+1. 在电脑上按 F12 打开开发者工具
+2. 点击左上角的手机图标 📱
+3. 选择不同设备或调整屏幕尺寸
+4. 测试各种功能在移动端的显示效果
+
 ## 📁 项目结构
 
 ```
@@ -122,6 +204,8 @@
 ├── server.js          # WebSocket 服务器端
 ├── app.js             # 前端 JavaScript（所有功能实现）
 ├── index.html         # 聊天界面（HTML + CSS）
+├── start.js           # Node.js 启动脚本
+├── start.bat          # Windows 一键启动脚本
 ├── package.json       # 项目配置文件
 ├── README.md          # 项目文档
 └── uploads/           # 文件上传目录
@@ -134,6 +218,7 @@
   - 顶部：标题 + 主题切换 + 搜索 + 个人设置 + 通话 + 在线用户 + 房间 + 各种功能按钮
   - 中部：公告横幅 + 置顶消息栏 + 消息区域（支持多种消息类型）
   - 底部：表情 + 图片 + 文件 + 位置 + @all + 输入框 + 发送按钮
+- **移动端**: 全屏自适应，功能按钮优化，触摸友好
 
 ## ⌨️ 快捷键
 
@@ -233,3 +318,21 @@ MIT License
 ## 📧 联系方式
 
 如有问题，请提交 Issue 或联系开发者。
+
+## 🗺️ 更新日志
+
+### v1.0.1 (2026-05-21)
+- ✨ 添加完整的移动端响应式适配
+- 🌐 添加内网穿透部署说明
+- ⚡ 添加Windows一键启动脚本
+- 🔒 修复HTTPS页面的WebSocket连接问题
+- 🎨 优化各种面板的移动端显示效果
+
+### v1.0.0 (初始版本)
+- 🎉 基础聊天功能
+- 😊 表情包支持
+- 🌙 黑暗模式
+- 📷 图片发送
+- 📞 视频/语音通话
+- 🤖 AI助手
+- ... (更多功能)
