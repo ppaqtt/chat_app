@@ -1,45 +1,27 @@
 @echo off
 chcp 65001 >nul 2>&1
-title 聊天应用启动器
+title Chat App Launcher
 
 echo.
 echo ================================================
-echo          聊天应用一键启动器
+echo          Chat Application Launcher
 echo ================================================
 echo.
 
-REM 检查Node.js是否安装
 node --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [错误] 未检测到Node.js，请先安装Node.js
-    echo 下载地址: https://nodejs.org/
+    echo [ERROR] Node.js not found!
+    echo Please install Node.js first
+    echo Download: https://nodejs.org/
     pause
     exit /b 1
 )
 
-echo [OK] Node.js 已安装
-
-REM 检查localtunnel是否安装
-where lt >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo 正在安装 localtunnel...
-    call npm install -g localtunnel
-    if %errorlevel% neq 0 (
-        echo [错误] localtunnel 安装失败
-        pause
-        exit /b 1
-    )
-    echo [OK] localtunnel 安装完成
-) else (
-    echo [OK] localtunnel 已安装
-)
-
+echo [OK] Node.js is installed
 echo.
-echo 正在启动服务...
+echo Starting chat server...
 echo.
 
-REM 启动Node.js脚本
 node start.js
 
 pause
