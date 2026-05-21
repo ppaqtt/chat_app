@@ -186,7 +186,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let videoEnabled = true;
     let iceServers = [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
     ];
 
     let rooms = {};
@@ -3214,28 +3217,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function createPeerConnection() {
+        console.log('=== 创建 PeerConnection ===');
+        console.log('ICE服务器配置:', iceServers);
+
         peerConnection = new RTCPeerConnection({ iceServers: iceServers });
 
         peerConnection.onicecandidate = (event) => {
-            if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
-                const target = currentCall.target || currentCall.from;
-                ws.send(JSON.stringify({
-                    type: 'webrtcIceCandidate',
-                    toUser: target,
-                    candidate: event.candidate
-                }));
+            if (event.candidate) {
+                console.log('生成ICE候选:', event.candidate.candidate.substring(0, 100));
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const target = currentCall.target || currentCall.from;
+                    ws.send(JSON.stringify({
+                        type: 'webrtcIceCandidate',
+                        toUser: target,
+                        candidate: event.candidate
+                    }));
+                    console.log('发送ICE候选给', target);
+                }
+            } else {
+                console.log('ICE候选收集完成（end of candidates）');
             }
         };
 
+        peerConnection.oniceconnectionstatechange = () => {
+            console.log('❄️ ICE连接状态变更:', peerConnection.iceConnectionState);
+            console.log('ICE连接状态详情:');
+            console.log('  - connectionState:', peerConnection.connectionState);
+            console.log('  - iceConnectionState:', peerConnection.iceConnectionState);
+            console.log('  - iceGatheringState:', peerConnection.iceGatheringState);
+
+            if (peerConnection.iceConnectionState === 'connected') {
+                console.log('✅ ICE连接建立成功！');
+            } else if (peerConnection.iceConnectionState === 'disconnected') {
+                console.log('⚠️ ICE连接断开');
+            } else if (peerConnection.iceConnectionState === 'failed') {
+                console.error('❌ ICE连接失败');
+                alert('通话连接失败，请检查网络设置');
+            } else if (peerConnection.iceConnectionState === 'closed') {
+                console.log('ICE连接已关闭');
+            }
+        };
+
+        peerConnection.onconnectionstatechange = () => {
+            console.log('🔗 PeerConnection状态:', peerConnection.connectionState);
+        };
+
         peerConnection.ontrack = (event) => {
-            console.log('收到远程轨道:', event.track.kind);
-            
+            console.log('📡 收到远程轨道:', event.track.kind);
+            console.log('轨道ID:', event.track.id);
+            console.log('轨道标签:', event.track.label);
+
             if (!remoteStream) {
+                console.log('创建新的远程流');
                 remoteStream = new MediaStream();
             }
-            
+
             remoteStream.addTrack(event.track);
-            console.log('添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
+            console.log('✅ 添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
 
             // 无论是视频还是语音通话，都播放音频
             if (remoteAudio) {
@@ -3243,7 +3281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 remoteAudio.srcObject = remoteStream;
                 remoteAudio.muted = false;
                 remoteAudio.volume = 1.0;
-                
+
                 // 立即尝试播放
                 remoteAudio.play()
                     .then(() => console.log('✅ 远程音频开始播放成功'))
@@ -3264,15 +3302,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 视频通话时设置视频
             if (currentCall && currentCall.type === 'video' && remoteVideo) {
+                console.log('设置远程视频流');
                 remoteVideo.srcObject = remoteStream;
-            }
-        };
-
-        peerConnection.oniceconnectionstatechange = () => {
-            console.log('ICE连接状态:', peerConnection.iceConnectionState);
-            if (peerConnection.iceConnectionState === 'disconnected' ||
-                peerConnection.iceConnectionState === 'failed') {
-                handleCallEnded({});
             }
         };
 
@@ -3353,13 +3384,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleWebRTCOffer(data) {
-        if (!currentCall || currentCall.status !== 'incoming') return;
+        console.log('收到 WebRTC Offer from', data.from);
+        console.log('当前通话状态:', currentCall ? currentCall.status : '无通话');
+
+        if (!currentCall || currentCall.status !== 'incoming') {
+            console.log('忽略 WebRTC Offer：没有来电或状态不是 incoming');
+            return;
+        }
 
         try {
+            console.log('正在设置远程描述...');
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            console.log('✅ 远程描述设置成功');
 
+            console.log('正在创建 Answer...');
             const answer = await peerConnection.createAnswer();
+            console.log('✅ Answer 创建成功');
+
+            console.log('正在设置本地描述...');
             await peerConnection.setLocalDescription(answer);
+            console.log('✅ 本地描述设置成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3367,28 +3411,47 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: data.from,
                     answer: answer
                 }));
+                console.log('发送 WebRTC Answer 给', data.from);
             }
         } catch (error) {
-            console.error('处理WebRTC Offer失败:', error);
+            console.error('处理 WebRTC Offer 失败:', error);
+            alert('处理通话请求失败');
         }
     }
 
     async function handleWebRTCAnswer(data) {
+        console.log('收到 WebRTC Answer from', data.from);
+
+        if (!peerConnection) {
+            console.error('PeerConnection 不存在，无法设置 Answer');
+            return;
+        }
+
         try {
+            console.log('正在设置远程 Answer...');
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-            console.log('WebRTC Answer已设置');
+            console.log('✅ WebRTC Answer 已设置，连接应该建立');
         } catch (error) {
-            console.error('处理WebRTC Answer失败:', error);
+            console.error('处理 WebRTC Answer 失败:', error);
         }
     }
 
     async function handleWebRTCIceCandidate(data) {
         try {
-            if (peerConnection && data.candidate) {
-                await peerConnection.addIceCandidate(new RTCCandidate(data.candidate));
+            if (!peerConnection) {
+                console.error('PeerConnection 不存在，无法添加 ICE 候选');
+                return;
+            }
+
+            if (data.candidate) {
+                console.log('添加 ICE 候选:', data.candidate.candidate.substring(0, 50) + '...');
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                console.log('✅ ICE 候选添加成功');
+            } else {
+                console.log('收到空的 ICE 候选');
             }
         } catch (error) {
-            console.error('添加ICE候选失败:', error);
+            console.error('添加 ICE 候选失败:', error);
         }
     }
 
