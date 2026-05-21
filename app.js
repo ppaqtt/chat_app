@@ -2037,8 +2037,21 @@ document.addEventListener('DOMContentLoaded', function() {
             callSeconds++;
             const min = Math.floor(callSeconds / 60);
             const sec = callSeconds % 60;
+            const timeText = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
             const target = currentCall ? (currentCall.target || currentCall.from) : '';
-            activeCallStatus.textContent = '与 ' + target + ' 通话中 ' + String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+            activeCallStatus.textContent = '与 ' + target + ' 通话中 ' + timeText;
+            
+            // 更新语音通话计时器
+            const voiceCallTimer = document.getElementById('voiceCallTimer');
+            if (voiceCallTimer) {
+                voiceCallTimer.textContent = timeText;
+            }
+            
+            // 更新视频通话计时器
+            const videoCallTimer = document.getElementById('videoCallTimer');
+            if (videoCallTimer) {
+                videoCallTimer.textContent = timeText;
+            }
         }, 1000);
     }
 
@@ -3073,7 +3086,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         peerConnection.ontrack = (event) => {
-            console.log('收到远程轨道:', event.track.kind, '轨道数:', remoteStream ? remoteStream.getTracks().length : 0);
+            console.log('收到远程轨道:', event.track.kind);
             
             if (!remoteStream) {
                 remoteStream = new MediaStream();
@@ -3082,31 +3095,27 @@ document.addEventListener('DOMContentLoaded', function() {
             remoteStream.addTrack(event.track);
             console.log('添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
 
-            // 无论是视频还是语音通话，都需要播放音频
-            if (!remoteAudio) {
-                remoteAudio = document.getElementById('remoteAudio');
-            }
-            
+            // 无论是视频还是语音通话，都播放音频
             if (remoteAudio) {
-                console.log('设置远程音频，remoteStream有', remoteStream.getTracks().length, '个轨道');
+                console.log('设置远程音频，音频元素:', remoteAudio);
                 remoteAudio.srcObject = remoteStream;
                 remoteAudio.muted = false;
+                remoteAudio.volume = 1.0;
                 
-                // 尝试播放
-                const playPromise = remoteAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ 远程音频开始播放成功');
-                    }).catch(error => {
+                // 立即尝试播放
+                remoteAudio.play()
+                    .then(() => console.log('✅ 远程音频开始播放成功'))
+                    .catch(error => {
                         console.error('❌ 播放远程音频失败:', error);
-                        // 尝试交互式播放
-                        remoteAudio.muted = true;
-                        setTimeout(() => {
-                            remoteAudio.muted = false;
-                            remoteAudio.play().catch(e => console.error('重试播放失败:', e));
-                        }, 100);
+                        // 尝试用户交互触发播放
+                        const tryAgain = () => {
+                            remoteAudio.play()
+                                .then(() => console.log('✅ 用户交互后播放成功'))
+                                .catch(e => console.error('❌ 用户交互后播放仍失败:', e));
+                            document.removeEventListener('click', tryAgain);
+                        };
+                        document.addEventListener('click', tryAgain, { once: true });
                     });
-                }
             } else {
                 console.error('❌ remoteAudio元素未找到');
             }
@@ -3169,9 +3178,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             showCallUI(callType);
-            
-            // 确保获取remoteAudio元素
-            remoteAudio = document.getElementById('remoteAudio');
 
             activeCallBar.classList.add('active');
             activeCallStatus.textContent = '正在呼叫 ' + targetUser + '...';
@@ -3297,9 +3303,6 @@ document.addEventListener('DOMContentLoaded', function() {
             incomingCallModal.classList.remove('active');
 
             showCallUI(currentCall.type);
-            
-            // 确保获取remoteAudio元素
-            remoteAudio = document.getElementById('remoteAudio');
 
             activeCallBar.classList.add('active');
             startCallTimer();
@@ -3381,7 +3384,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         localVideo = document.getElementById('localVideo');
         remoteVideo = document.getElementById('remoteVideo');
-        remoteAudio = document.getElementById('remoteAudio');
         audioToggleBtn = document.getElementById('audioToggleBtn');
         videoToggleBtn = document.getElementById('videoToggleBtn');
         volumeIndicator = document.getElementById('volumeIndicator');
@@ -3409,16 +3411,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const videoCallTimer = document.getElementById('videoCallTimer');
-        callSeconds = 0;  // 重置计时器
-        if (callTimer) clearInterval(callTimer);
-        callTimer = setInterval(() => {
-            callSeconds++;
-            const min = Math.floor(callSeconds / 60);
-            const sec = callSeconds % 60;
-            if (videoCallTimer) {
-                videoCallTimer.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-            }
-        }, 1000);
+        // 先设置初始状态，不立即开始计时
+        if (videoCallTimer) {
+            videoCallTimer.textContent = '00:00';
+        }
+        // 不在这里设置计时器，等到通话连接后由startCallTimer统一处理
     }
 
     function showVoiceCallUI() {
@@ -3459,7 +3456,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.body.appendChild(callVideoWindow);
 
-        remoteAudio = document.getElementById('remoteAudio');
         audioToggleBtn = document.getElementById('audioToggleBtn');
         volumeIndicator = document.getElementById('volumeIndicator');
         const voiceEndCallBtn = document.getElementById('voiceEndCallBtn');
@@ -3477,16 +3473,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const voiceCallTimer = document.getElementById('voiceCallTimer');
-        callSeconds = 0;  // 重置计时器
-        if (callTimer) clearInterval(callTimer);
-        callTimer = setInterval(() => {
-            callSeconds++;
-            const min = Math.floor(callSeconds / 60);
-            const sec = callSeconds % 60;
-            if (voiceCallTimer) {
-                voiceCallTimer.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-            }
-        }, 1000);
+        // 先设置初始状态，不立即开始计时
+        if (voiceCallTimer) {
+            voiceCallTimer.textContent = '00:00';
+        }
+        // 不在这里设置计时器，等到通话连接后由startCallTimer统一处理
     }
 
     function toggleAudio() {
