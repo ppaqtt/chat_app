@@ -3135,9 +3135,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         if (localStream) {
+            console.log('添加本地轨道到 PeerConnection，当前轨道数:', localStream.getTracks().length);
             localStream.getTracks().forEach(track => {
+                console.log('添加轨道:', track.kind, 'enabled:', track.enabled);
                 peerConnection.addTrack(track, localStream);
             });
+            console.log('添加完成，当前 PeerConnection 发送轨道数:', peerConnection.getSenders().length);
+        } else {
+            console.error('❌ localStream 为空，无法添加音频轨道');
         }
 
         return peerConnection;
@@ -3153,6 +3158,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const stream = await getMediaStream(callType);
             if (!stream) return;
 
+            console.log('获取媒体流成功，轨道数:', stream.getTracks().length);
+            stream.getTracks().forEach(track => {
+                console.log('本地轨道:', track.kind, 'enabled:', track.enabled);
+            });
+
             localStream = stream;
 
             currentCall = { target: targetUser, type: callType, status: 'calling' };
@@ -3162,6 +3172,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
+
+            console.log('创建并设置本地 SDP Offer 成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3175,6 +3187,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: targetUser,
                     offer: offer
                 }));
+
+                console.log('发送 WebRTC Offer 给', targetUser);
             }
 
             showCallUI(callType);
@@ -3287,9 +3301,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const stream = await getMediaStream(currentCall.type);
             if (!stream) return;
 
+            console.log('接听：获取媒体流成功，轨道数:', stream.getTracks().length);
+            stream.getTracks().forEach(track => {
+                console.log('接听：本地轨道:', track.kind, 'enabled:', track.enabled);
+            });
+
             localStream = stream;
 
             createPeerConnection();
+
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            console.log('接听：创建并设置本地 SDP Answer 成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3297,6 +3321,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: currentCall.from,
                     callId: currentCall.callId
                 }));
+
+                ws.send(JSON.stringify({
+                    type: 'webrtcAnswer',
+                    toUser: currentCall.from,
+                    answer: answer
+                }));
+
+                console.log('接听：发送 WebRTC Answer 给', currentCall.from);
             }
 
             currentCall.status = 'connected';
