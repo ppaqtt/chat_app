@@ -4,29 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>极简聊天室</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
+        /* 动态背景动画 */
+        @keyframes blobMove {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
         :root {
-            --primary-color: #667eea;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-color: white;
-            --bg-secondary: #f5f5f5;
-            --text-color: #333;
-            --text-secondary: #666;
-            --border-color: #eee;
-            --shadow-color: rgba(0,0,0,0.1);
-            --hover-bg: #f0f0f0;
+            --primary-color: #8b5cf6;
+            --secondary-color: #ec4899;
+            --accent-color: #06b6d4;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+            --bg-color: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #252542;
+            --text-color: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255,255,255,0.1);
+            --shadow-color: rgba(0,0,0,0.5);
+            --hover-bg: rgba(139, 92, 246, 0.15);
+            --glass-bg: rgba(26, 26, 46, 0.7);
+            --glass-border: rgba(255,255,255,0.08);
         }
 
         .dark-mode {
-            --primary-color: #667eea;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-color: #1a1a2e;
-            --bg-secondary: #16213e;
-            --text-color: #eee;
-            --text-secondary: #ccc;
-            --border-color: #2d2d44;
-            --shadow-color: rgba(0,0,0,0.3);
-            --hover-bg: #252540;
+            --primary-color: #8b5cf6;
+            --secondary-color: #ec4899;
+            --accent-color: #06b6d4;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+            --bg-color: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #252542;
+            --text-color: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255,255,255,0.1);
+            --shadow-color: rgba(0,0,0,0.5);
+            --hover-bg: rgba(139, 92, 246, 0.15);
+            --glass-bg: rgba(26, 26, 46, 0.7);
+            --glass-border: rgba(255,255,255,0.08);
         }
 
         * {
@@ -36,41 +64,184 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--primary-gradient);
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'SF Pro Text', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16162a 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background 0.3s;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, transparent 70%);
+            top: -200px;
+            left: -150px;
+            animation: blobMove 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.25) 0%, transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation: blobMove 18s ease-in-out infinite reverse;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .chat-container {
             width: 100%;
             max-width: 1400px;
-            height: 90vh;
-            background: var(--bg-color);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            height: 95vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
-            transition: background 0.3s;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 220px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(6, 182, 212, 0.1) 100%);
+            z-index: 0;
+            pointer-events: none;
         }
 
         .header {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(118, 75, 162, 0.3) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             color: white;
-            padding: 20px;
+            padding: 20px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 0 0 auto;
         }
 
         .header h1 {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .header-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1 1 auto;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .more-menu {
+            position: relative;
+        }
+
+        .more-btn {
+            font-size: 22px !important;
+            padding: 10px 14px !important;
+        }
+
+        .more-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 8px;
+            min-width: 180px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1000;
+        }
+
+        .more-dropdown.active {
+            display: block;
+            animation: dropdownFadeIn 0.2s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e0e7ff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(139, 92, 246, 0.2);
         }
 
         .header-controls {
@@ -79,27 +250,33 @@
             align-items: center;
         }
 
-        .theme-btn, .settings-btn, .search-btn, .call-btn, .starred-btn, .quick-reply-btn, .export-btn, .bg-btn, .stats-btn, .reminder-btn, .announcement-btn, .vote-btn, .tag-filter-btn, .filter-btn, .devices-btn, .encryption-btn, .ai-btn, .style-btn, .user-colors-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
+        .header-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
             color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 18px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
 
-        .theme-btn:hover, .settings-btn:hover, .search-btn:hover, .call-btn:hover, 
-        .starred-btn:hover, .quick-reply-btn:hover, .export-btn:hover, .bg-btn:hover,
-        .stats-btn:hover, .reminder-btn:hover, .announcement-btn:hover, .vote-btn:hover, 
-        .tag-filter-btn:hover, .filter-btn:hover, .devices-btn:hover, .encryption-btn:hover, .ai-btn:hover, .style-btn:hover, .user-colors-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .header-btn:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .header-btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .users-list {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
             color: white;
         }
@@ -107,28 +284,65 @@
         .users-list span {
             font-size: 14px;
             opacity: 0.9;
+            font-weight: 500;
         }
 
         .user-tag {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 10px;
-            border-radius: 12px;
+            background: rgba(255,255,255,0.12);
+            padding: 6px 14px;
+            border-radius: 16px;
             font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .messages-area {
             flex: 1;
-            padding: 20px;
+            padding: 32px 40px;
             overflow-y: auto;
-            background: var(--bg-secondary);
-            transition: background 0.3s;
+            background: transparent;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+
+        /* 滚动条美化 */
+        .messages-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4));
+            border-radius: 10px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6));
         }
 
         .message {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             display: flex;
             align-items: flex-start;
-            gap: 10px;
+            gap: 12px;
+            animation: messageSlideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.own {
@@ -138,21 +352,31 @@
 
         .message.system {
             align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .message-avatar {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: #667eea;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #06b6d4 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
-            font-size: 16px;
+            font-weight: 700;
+            font-size: 18px;
             flex-shrink: 0;
             overflow: hidden;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255,255,255,0.15);
+        }
+
+        .message-avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5), inset 0 2px 0 rgba(255,255,255,0.25);
         }
 
         .message-avatar img {
@@ -161,52 +385,102 @@
             object-fit: cover;
         }
 
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+        }
+
+        .message-own .message-content {
+            align-items: flex-end;
+        }
+
+        .message-other .message-content {
+            align-items: flex-start;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .message-username {
+            font-weight: 700;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+
         .message-reply {
-            background: var(--hover-bg);
-            padding: 8px 12px;
-            border-radius: 8px;
+            background: rgba(139, 92, 246, 0.15);
+            padding: 10px 14px;
+            border-radius: 12px;
             margin-bottom: 8px;
             font-size: 13px;
-            color: var(--text-secondary);
-            border-left: 3px solid var(--primary-color);
+            color: #94a3b8;
+            border-left: 4px solid #8b5cf6;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
         }
 
         .message-reply-author {
-            font-weight: 600;
-            color: var(--primary-color);
+            font-weight: 700;
+            color: #a78bfa;
             margin-bottom: 4px;
+            font-size: 12px;
         }
 
         .message-bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 16px;
+            max-width: 100%;
+            padding: 14px 18px;
+            border-radius: 20px;
             word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message-bubble:hover {
+            transform: translateY(-2px);
         }
 
         .message.own .message-bubble {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-radius: 20px 20px 6px 20px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
         .message.other .message-bubble {
-            background: var(--bg-color);
-            color: var(--text-color);
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 4px var(--shadow-color);
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            color: #f1f5f9;
+            border-radius: 20px 20px 20px 6px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
         .message.system .message-bubble {
-            background: rgba(0,0,0,0.1);
-            color: var(--text-secondary);
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
             font-size: 13px;
-            padding: 8px 16px;
+            padding: 10px 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
         .message-info {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: #64748b;
             margin-top: 4px;
             display: flex;
             gap: 8px;
@@ -214,10 +488,11 @@
         }
 
         .mention-highlight {
-            background: rgba(102, 126, 234, 0.3);
+            background: rgba(139, 92, 246, 0.3);
             padding: 2px 4px;
             border-radius: 4px;
-            font-weight: 600;
+            font-weight: 700;
+            color: #e0e7ff;
         }
 
         .message-actions {
@@ -229,51 +504,56 @@
         }
 
         .message-action-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
             cursor: pointer;
             font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 8px;
             transition: all 0.2s;
         }
 
         .message-action-btn:hover {
-            background: var(--hover-bg);
-            color: var(--text-color);
+            background: rgba(139, 92, 246, 0.2);
+            color: #e2e8f0;
+            border-color: rgba(139, 92, 246, 0.3);
         }
 
-        .message-action-btn.recall { color: #ff6b6b; }
-        .message-action-btn.reply { color: var(--primary-color); }
-        .message-action-btn.react { color: #ff9f43; }
-        .message-action-btn.translate { color: #3498db; }
-        .message-action-btn.pin { color: #e74c3c; }
-        .message-action-btn.edit { color: #9c27b0; }
-        .message-action-btn.forward { color: #00bcd4; }
-        .message-action-btn.star { color: #ffc107; }
+        .message-action-btn.recall { color: #f87171; }
+        .message-action-btn.reply { color: #a78bfa; }
+        .message-action-btn.react { color: #fb923c; }
+        .message-action-btn.translate { color: #60a5fa; }
+        .message-action-btn.pin { color: #f87171; }
+        .message-action-btn.edit { color: #c084fc; }
+        .message-action-btn.forward { color: #22d3ee; }
+        .message-action-btn.star { color: #fbbf24; }
 
         .message-translation {
             margin-top: 8px;
-            padding: 8px 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 12px;
             font-size: 13px;
-            color: var(--text-secondary);
-            border-left: 3px solid #3498db;
+            color: #94a3b8;
+            border-left: 3px solid #60a5fa;
         }
 
         .message-translation-label {
-            font-weight: 600;
-            color: #3498db;
+            font-weight: 700;
+            color: #93c5fd;
             margin-bottom: 4px;
             font-size: 12px;
         }
 
         .pinned-messages-bar {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.3) 0%, rgba(220, 38, 38, 0.3) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(248, 113, 113, 0.25);
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             display: none;
             align-items: center;
             gap: 12px;
@@ -287,18 +567,20 @@
         }
 
         .pinned-message-item {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 14px;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .pinned-message-item:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
         }
 
         .pinned-message-preview {
@@ -308,21 +590,21 @@
         }
 
         .message.pinned {
-            background: rgba(231, 76, 60, 0.1);
-            border-left: 3px solid #e74c3c;
-            padding: 8px;
-            border-radius: 8px;
+            background: rgba(248, 113, 113, 0.15);
+            border-left: 3px solid #f87171;
+            padding: 10px;
+            border-radius: 12px;
         }
 
         .message.starred {
-            background: rgba(255, 193, 7, 0.1);
-            border-left: 3px solid #ffc107;
+            background: rgba(251, 191, 36, 0.15);
+            border-left: 3px solid #fbbf24;
         }
 
         .message-reactions {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
             margin-top: 8px;
         }
 
@@ -330,18 +612,20 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2px 8px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 4px 10px;
             font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .message-reaction:hover {
-            background: var(--hover-bg);
-            border-color: var(--primary-color);
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
         }
 
         .reaction-emoji {
@@ -349,19 +633,20 @@
         }
 
         .reaction-count {
-            color: var(--text-color);
-            font-weight: 600;
+            color: #e2e8f0;
+            font-weight: 700;
         }
 
         .reaction-users {
             position: absolute;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 6px 10px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px 12px;
             font-size: 12px;
-            color: var(--text-secondary);
-            box-shadow: 0 2px 8px var(--shadow-color);
+            color: #94a3b8;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
             z-index: 10;
             display: none;
             max-width: 200px;
@@ -373,13 +658,15 @@
 
         .reaction-selector {
             position: absolute;
-            bottom: 80px;
-            background: var(--bg-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            padding: 8px;
+            bottom: 85px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            padding: 10px;
             display: none;
-            gap: 4px;
+            gap: 6px;
             z-index: 100;
         }
 
@@ -390,14 +677,14 @@
         .reaction-selector-item {
             font-size: 24px;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
+            padding: 6px;
+            border-radius: 10px;
             transition: all 0.2s;
         }
 
         .reaction-selector-item:hover {
-            background: var(--hover-bg);
-            transform: scale(1.2);
+            background: rgba(139, 92, 246, 0.2);
+            transform: scale(1.25);
         }
 
         .message.recalled .message-bubble {
@@ -410,49 +697,51 @@
             display: block;
             font-size: 12px;
             margin-top: 4px;
-            color: var(--text-secondary);
+            color: #64748b;
         }
 
         .message.edited .message-bubble::after {
             content: '（已编辑）';
             display: inline;
             font-size: 10px;
-            color: var(--text-secondary);
+            color: #64748b;
             margin-left: 6px;
         }
 
         .message-bubble img {
             max-width: 200px;
             max-height: 200px;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .read-status {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: #64748b;
             margin-left: 8px;
         }
 
         .read-status.read {
-            color: #4CAF50;
+            color: #4ade80;
         }
 
         .read-count {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: #64748b;
             margin-left: 8px;
         }
 
         .read-count:hover {
-            color: var(--primary-color);
+            color: #a78bfa;
             cursor: pointer;
         }
 
         .reply-box {
-            background: var(--bg-color);
-            border-top: 2px solid var(--primary-color);
-            padding: 12px 16px;
+            background: rgba(26, 26, 46, 0.85);
+            border-top: 2px solid #8b5cf6;
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
             display: none;
         }
 
@@ -468,36 +757,40 @@
 
         .reply-box-label {
             font-size: 12px;
-            color: var(--primary-color);
-            font-weight: 600;
+            color: #a78bfa;
+            font-weight: 700;
         }
 
         .reply-box-text {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: #94a3b8;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .reply-box-close {
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
-            color: var(--text-secondary);
+            color: #94a3b8;
             font-size: 20px;
             cursor: pointer;
-            padding: 4px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
         .reply-box-close:hover {
-            color: var(--text-color);
+            color: #e2e8f0;
+            background: rgba(255,255,255,0.15);
         }
 
         .edit-box {
-            background: var(--bg-secondary);
-            padding: 12px 16px;
+            background: rgba(37, 37, 66, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
             display: none;
-            border-bottom: 2px solid var(--primary-color);
+            border-bottom: 2px solid #8b5cf6;
         }
 
         .edit-box.active {
@@ -508,82 +801,132 @@
 
         .edit-box input {
             flex: 1;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 10px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
             font-size: 14px;
-            background: var(--bg-color);
-            color: var(--text-color);
+            background: rgba(15, 15, 26, 0.8);
+            color: #f1f5f9;
             outline: none;
+            transition: all 0.3s;
         }
 
         .edit-box input:focus {
-            border-color: var(--primary-color);
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(15, 15, 26, 0.9);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
         }
 
         .edit-box button {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
         }
 
         .edit-box .save-edit-btn {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
         }
 
+        .edit-box .save-edit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
         .edit-box .cancel-edit-btn {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
+            background: rgba(255,255,255,0.08);
+            color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .edit-box .cancel-edit-btn:hover {
+            background: rgba(255,255,255,0.12);
+            color: #e2e8f0;
         }
 
         .input-area {
-            padding: 16px;
-            background: var(--bg-color);
-            border-top: 1px solid var(--border-color);
+            padding: 28px 40px;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
-            gap: 12px;
+            gap: 16px;
             align-items: center;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+        }
+
+        .input-area .action-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e7ff;
+            padding: 14px;
+            border-radius: 16px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-area .action-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.25);
+        }
+
+        .input-area .action-btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .input-area input {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 24px;
-            font-size: 15px;
+            padding: 16px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            font-size: 16px;
             outline: none;
-            transition: border-color 0.3s, background 0.3s, color 0.3s;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+            backdrop-filter: blur(10px);
         }
 
         .input-area input:focus {
-            border-color: var(--primary-color);
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
         }
 
-        .input-area button {
-            background: var(--primary-gradient);
+        .input-area input::placeholder {
+            color: #64748b;
+        }
+
+        .input-area #sendBtn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 24px;
+            padding: 16px 32px;
+            border-radius: 32px;
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
-        .input-area button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        .input-area #sendBtn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.55), inset 0 1px 0 rgba(255,255,255,0.25);
         }
 
-        .input-area button:active {
-            transform: translateY(0);
+        .input-area #sendBtn:active {
+            transform: translateY(-2px) scale(1.02);
         }
 
         .login-screen {
@@ -592,103 +935,152 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16162a 100%);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
+        }
+
+        .login-screen::before {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+            animation: blobMove 15s ease-in-out infinite;
+        }
+
+        .login-screen::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.25) 0%, transparent 70%);
+            bottom: -100px;
+            right: -100px;
+            animation: blobMove 18s ease-in-out infinite reverse;
         }
 
         .login-box {
-            background: var(--bg-color);
-            padding: 40px;
-            border-radius: 16px;
+            background: rgba(26, 26, 46, 0.75);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            padding: 50px 45px;
+            border-radius: 32px;
             text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .login-box h2 {
-            margin-bottom: 20px;
-            color: var(--text-color);
+            margin-bottom: 28px;
+            color: #f1f5f9;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .login-box input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 15px;
-            margin-bottom: 20px;
+            padding: 16px 22px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            margin-bottom: 24px;
             outline: none;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+            color: #f1f5f9;
+            transition: all 0.3s;
         }
 
         .login-box input:focus {
-            border-color: var(--primary-color);
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+        }
+
+        .login-box input::placeholder {
+            color: #64748b;
         }
 
         .login-box button {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
             color: white;
             border: none;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 16px 45px;
+            border-radius: 20px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 35px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
         .login-box button:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 15px 45px rgba(139, 92, 246, 0.55), inset 0 1px 0 rgba(255,255,255,0.25);
         }
 
         .emoji-btn, .image-btn, .search-btn {
-            background: none;
-            border: 2px solid var(--border-color);
-            padding: 10px 14px;
-            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 12px 14px;
+            border-radius: 16px;
             font-size: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
-            color: var(--text-color);
+            color: #e0e7ff;
+            backdrop-filter: blur(10px);
         }
 
         .emoji-btn:hover, .image-btn:hover, .search-btn:hover {
-            border-color: var(--primary-color);
-            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px) scale(1.05);
         }
 
         .file-btn, .location-btn, .at-all-btn {
-            background: none;
-            border: 2px solid var(--border-color);
-            padding: 10px 14px;
-            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 12px 14px;
+            border-radius: 16px;
             font-size: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
-            color: var(--text-color);
+            color: #e0e7ff;
+            backdrop-filter: blur(10px);
         }
 
         .file-btn:hover, .location-btn:hover, .at-all-btn:hover {
-            border-color: var(--primary-color);
-            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px) scale(1.05);
         }
 
         .file-preview {
             position: absolute;
-            bottom: 80px;
+            bottom: 90px;
             left: 60px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 16px;
             display: none;
-            max-width: 300px;
-            box-shadow: 0 2px 8px var(--shadow-color);
+            max-width: 320px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
         .file-preview.active {
@@ -699,13 +1091,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
         .file-preview-name {
             font-size: 14px;
-            color: var(--text-color);
-            font-weight: 500;
+            color: #f1f5f9;
+            font-weight: 600;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -713,27 +1105,34 @@
         }
 
         .file-preview-close {
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
-            color: var(--text-secondary);
-            font-size: 18px;
+            color: #94a3b8;
+            font-size: 20px;
             cursor: pointer;
-            padding: 0;
+            padding: 4px 8px;
             margin-left: 8px;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .file-preview-close:hover {
+            background: rgba(255,255,255,0.15);
+            color: #e2e8f0;
         }
 
         .file-preview-progress {
             width: 100%;
-            height: 4px;
-            background: var(--bg-secondary);
-            border-radius: 2px;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
             overflow: hidden;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .file-preview-progress-bar {
             height: 100%;
-            background: var(--primary-gradient);
+            background: linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4);
             width: 0%;
             transition: width 0.3s;
         }
@@ -741,24 +1140,27 @@
         .message-file {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 8px;
+            gap: 10px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-top: 10px;
             cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-color);
+            transition: all 0.3s;
+            color: #f1f5f9;
         }
 
         .message-file:hover {
-            background: var(--hover-bg);
-            border-color: var(--primary-color);
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-2px);
         }
 
         .message-file-icon {
-            font-size: 24px;
+            font-size: 26px;
         }
 
         .message-file-info {
@@ -766,31 +1168,34 @@
         }
 
         .message-file-name {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 150px;
+            max-width: 180px;
         }
 
         .message-file-size {
-            font-size: 11px;
-            color: var(--text-secondary);
+            font-size: 12px;
+            color: #94a3b8;
         }
 
         .emoji-picker {
             position: absolute;
-            bottom: 80px;
+            bottom: 95px;
             left: 16px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            padding: 12px;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+            padding: 16px;
             display: none;
             flex-wrap: wrap;
-            max-width: 200px;
-            gap: 8px;
+            max-width: 240px;
+            gap: 10px;
         }
 
         .emoji-picker.active {
@@ -798,18 +1203,18 @@
         }
 
         .emoji-item {
-            font-size: 24px;
+            font-size: 26px;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            width: calc(25% - 8px);
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: calc(25% - 10px);
             text-align: center;
         }
 
         .emoji-item:hover {
-            background: var(--hover-bg);
-            transform: scale(1.2);
+            background: rgba(139, 92, 246, 0.2);
+            transform: scale(1.25) rotate(-5deg);
         }
 
         .typing-indicator {
@@ -864,14 +1269,17 @@
 
         .private-chat-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             right: 20px;
-            width: 250px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 280px;
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
             z-index: 50;
         }
@@ -881,36 +1289,38 @@
         }
 
         .private-chat-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-color);
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 700;
+            color: #f1f5f9;
         }
 
         .private-chat-user {
-            padding: 10px 16px;
+            padding: 14px 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: background 0.2s;
-            color: var(--text-color);
+            gap: 12px;
+            transition: all 0.3s;
+            color: #f1f5f9;
         }
 
         .private-chat-user:hover {
-            background: var(--hover-bg);
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             color: white;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
 
         .private-target-info {
@@ -919,8 +1329,8 @@
 
         .private-target-name {
             font-size: 14px;
-            color: var(--text-color);
-            font-weight: 500;
+            color: #f1f5f9;
+            font-weight: 600;
         }
 
         .private-target-status {
@@ -939,14 +1349,17 @@
 
         .room-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             left: 20px;
-            width: 250px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 280px;
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
-            max-height: 400px;
+            max-height: 450px;
             overflow-y: auto;
             z-index: 50;
         }
@@ -956,67 +1369,81 @@
         }
 
         .room-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-color);
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 700;
+            color: #f1f5f9;
         }
 
         .room-item {
-            padding: 10px 16px;
+            padding: 14px 20px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background 0.2s;
-            color: var(--text-color);
+            transition: all 0.3s;
+            color: #f1f5f9;
         }
 
         .room-item:hover {
-            background: var(--hover-bg);
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .room-item.active {
-            background: rgba(102, 126, 234, 0.1);
-            color: var(--primary-color);
-            font-weight: 600;
+            background: rgba(139, 92, 246, 0.25);
+            color: #e0e7ff;
+            font-weight: 700;
         }
 
         .room-create {
-            padding: 12px 16px;
-            border-top: 1px solid var(--border-color);
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .room-create input {
             flex: 1;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
             font-size: 14px;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+            color: #f1f5f9;
+            outline: none;
+        }
+
+        .room-create input:focus {
+            border-color: rgba(139, 92, 246, 0.5);
         }
 
         .room-create button {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 10px 16px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .room-create button:hover {
+            transform: translateY(-2px);
         }
 
         .mention-suggestions {
             position: absolute;
-            bottom: 80px;
+            bottom: 95px;
             left: 60px;
-            background: var(--bg-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            max-height: 200px;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+            max-height: 220px;
             overflow-y: auto;
             display: none;
             z-index: 100;
@@ -1027,28 +1454,31 @@
         }
 
         .mention-suggestion {
-            padding: 10px 16px;
+            padding: 12px 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: background 0.2s;
-            color: var(--text-color);
+            gap: 12px;
+            transition: all 0.3s;
+            color: #f1f5f9;
         }
 
         .mention-suggestion:hover {
-            background: var(--hover-bg);
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .search-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             left: 50%;
             transform: translateX(-50%);
-            width: 400px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 450px;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
             z-index: 100;
         }
@@ -1058,8 +1488,8 @@
         }
 
         .search-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
@@ -1067,52 +1497,63 @@
 
         .search-header input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
             font-size: 14px;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+            color: #f1f5f9;
+            outline: none;
+        }
+
+        .search-header input:focus {
+            border-color: rgba(139, 92, 246, 0.5);
         }
 
         .search-filters {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            padding: 0 16px 12px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0 18px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .search-filter {
-            padding: 4px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            padding: 6px 14px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
             font-size: 12px;
             cursor: pointer;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+
+        .search-filter:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: #e0e7ff;
         }
 
         .search-filter.active {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
-            border-color: var(--primary-color);
+            border-color: rgba(139, 92, 246, 0.5);
         }
 
         .search-results {
-            max-height: 400px;
+            max-height: 450px;
             overflow-y: auto;
         }
 
         .search-result-item {
-            padding: 12px 16px;
+            padding: 16px 18px;
             cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
         }
 
         .search-result-item:hover {
-            background: var(--hover-bg);
+            background: rgba(139, 92, 246, 0.1);
         }
 
         .search-result-item:last-child {
@@ -1120,30 +1561,33 @@
         }
 
         .search-result-author {
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 4px;
+            font-weight: 700;
+            color: #e0e7ff;
+            margin-bottom: 6px;
         }
 
         .search-result-content {
             font-size: 14px;
-            color: var(--text-color);
+            color: #f1f5f9;
         }
 
         .search-result-meta {
             font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 4px;
+            color: #64748b;
+            margin-top: 6px;
         }
 
         .settings-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             right: 20px;
-            width: 360px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 380px;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
             z-index: 100;
         }
@@ -1153,8 +1597,8 @@
         }
 
         .settings-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1162,49 +1606,54 @@
 
         .settings-header h3 {
             margin: 0;
-            color: var(--text-color);
+            color: #f1f5f9;
             font-size: 16px;
+            font-weight: 700;
         }
 
         .settings-close {
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
-            color: var(--text-secondary);
-            font-size: 24px;
+            color: #94a3b8;
+            font-size: 22px;
             cursor: pointer;
-            padding: 0;
+            padding: 4px 8px;
             line-height: 1;
+            border-radius: 10px;
+            transition: all 0.2s;
         }
 
         .settings-close:hover {
-            color: var(--text-color);
+            background: rgba(255,255,255,0.15);
+            color: #e2e8f0;
         }
 
         .settings-content {
-            padding: 20px;
+            padding: 24px;
         }
 
         .avatar-upload {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .avatar-preview {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 36px;
             color: white;
-            font-weight: 600;
-            margin-bottom: 12px;
+            font-weight: 700;
+            margin-bottom: 14px;
             overflow: hidden;
-            border: 3px solid var(--border-color);
+            border: 3px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
         }
 
         .avatar-preview img {
@@ -1214,71 +1663,80 @@
         }
 
         .avatar-upload-btn {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 12px;
             font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
 
         .avatar-upload-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
         }
 
         .settings-field {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .settings-field label {
             display: block;
-            margin-bottom: 8px;
-            color: var(--text-color);
-            font-weight: 500;
+            margin-bottom: 10px;
+            color: #f1f5f9;
+            font-weight: 600;
             font-size: 14px;
         }
 
         .settings-field input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
             font-size: 14px;
-            background: var(--bg-secondary);
-            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+            color: #f1f5f9;
             outline: none;
+            transition: all 0.3s;
         }
 
         .settings-field input:focus {
-            border-color: var(--primary-color);
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(255,255,255,0.08);
         }
 
         .settings-save {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
             width: 100%;
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
 
         .settings-save:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
         }
 
         .call-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             right: 20px;
-            width: 280px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 300px;
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
             z-index: 100;
         }
@@ -1288,8 +1746,8 @@
         }
 
         .call-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1297,30 +1755,39 @@
 
         .call-header h3 {
             margin: 0;
-            color: var(--text-color);
+            color: #f1f5f9;
             font-size: 16px;
+            font-weight: 700;
         }
 
         .call-close {
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
-            color: var(--text-secondary);
-            font-size: 24px;
+            color: #94a3b8;
+            font-size: 22px;
             cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .call-close:hover {
+            background: rgba(255,255,255,0.15);
+            color: #e2e8f0;
         }
 
         .call-users {
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
         }
 
         .call-user {
-            padding: 12px 16px;
+            padding: 16px 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
         }
 
         .call-user:last-child {
@@ -1328,47 +1795,57 @@
         }
 
         .call-user:hover {
-            background: var(--hover-bg);
+            background: rgba(139, 92, 246, 0.1);
         }
 
         .call-user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: var(--text-color);
+            gap: 12px;
+            color: #f1f5f9;
         }
 
         .call-user-name {
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .call-buttons {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .call-btn {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
 
         .call-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
         }
 
         .call-btn.voice {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+        }
+
+        .call-btn.voice:hover {
+            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.35);
         }
 
         .call-btn.video {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .call-btn.video:hover {
+            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.35);
         }
 
         .incoming-call-modal {
@@ -1377,7 +1854,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(15, 15, 26, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: none;
             justify-content: center;
             align-items: center;
@@ -1389,30 +1868,34 @@
         }
 
         .incoming-call-content {
-            background: var(--bg-color);
-            padding: 40px;
-            border-radius: 16px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            padding: 50px 60px;
+            border-radius: 28px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .incoming-call-avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 42px;
             color: white;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.35);
         }
 
         .incoming-call-text {
-            color: var(--text-color);
-            font-size: 18px;
-            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 20px;
+            font-weight: 700;
             margin-bottom: 8px;
         }
 
@@ -3024,6 +3507,424 @@
             color: var(--text-secondary);
         }
 
+        /* ========== 背景设置面板样式 ========== */
+        #bgPanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 360px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            max-height: 520px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes panelSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        #bgPanel.active {
+            display: block;
+        }
+
+        .panel-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.1) 0%, 
+                rgba(118, 75, 162, 0.08) 50%,
+                rgba(236, 72, 153, 0.05) 100%);
+        }
+
+        .panel-header span {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-close {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .panel-close:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .background-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            padding: 20px;
+        }
+
+        .bg-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-option::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.2) 0%, 
+                transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bg-option:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .bg-option:hover::before {
+            opacity: 1;
+        }
+
+        .bg-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 
+                        0 0 0 5px var(--primary-color),
+                        0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .bg-option.active::after {
+            content: '✓';
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--primary-gradient);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .background-upload {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.03));
+        }
+
+        .background-upload input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .upload-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* ========== 通知设置面板样式 ========== */
+        #notificationPanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 340px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #notificationPanel.active {
+            display: block;
+        }
+
+        .notification-settings {
+            padding: 20px 24px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .setting-item span {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item select {
+            padding: 10px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: rgba(15, 15, 26, 0.8);
+            color: var(--text-color);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+            min-width: 140px;
+        }
+
+        .setting-item select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .setting-item select:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .setting-item input[type="checkbox"] {
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            accent-color: #8b5cf6;
+            transition: all 0.2s;
+        }
+
+        .setting-item input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* ========== 设备管理面板样式 ========== */
+        #devicePanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 340px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            max-height: 480px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #devicePanel.active {
+            display: block;
+        }
+
+        .device-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .device-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .device-icon {
+            font-size: 26px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            color: var(--text-color);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .device-status {
+            color: var(--text-secondary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .device-status.online {
+            color: #4ade80;
+        }
+
+        .device-status.online::before {
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .device-sync {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.03));
+        }
+
+        .sync-all-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sync-all-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .sync-all-btn:active {
+            transform: translateY(-1px);
+        }
+
         /* ========== 用户资料卡样式 ========== */
         .user-profile-card {
             position: absolute;
@@ -3687,13 +4588,19 @@
             top: 60px;
             right: 20px;
             width: 420px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: none;
             z-index: 100;
-            max-height: 500px;
+            max-height: 520px;
             overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .devices-panel.active {
@@ -3701,42 +4608,88 @@
         }
 
         .devices-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-weight: 700;
             color: var(--text-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.1) 0%, 
+                rgba(118, 75, 162, 0.08) 50%,
+                rgba(236, 72, 153, 0.05) 100%);
+        }
+
+        .devices-header span {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .devices-close {
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-secondary);
             font-size: 24px;
             cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .devices-close:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .devices-current {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .devices-current-label {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .devices-current-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .devices-current-info:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .device-icon {
             font-size: 32px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .device-details {
@@ -3744,35 +4697,58 @@
         }
 
         .device-name {
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-color);
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .device-last-active {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
+            font-size: 13px;
+            color: #4ade80;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-last-active::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+            animation: pulseDot 2s infinite;
         }
 
         .devices-list {
-            padding: 16px;
+            padding: 20px 24px;
         }
 
         .devices-list-title {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-secondary);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            font-weight: 600;
         }
 
         .device-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 8px;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .device-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .device-item:last-child {
@@ -3816,23 +4792,47 @@
         }
 
         .device-kick-btn {
-            background: #ff6b6b;
+            background: linear-gradient(135deg, #f44336, #d32f2f);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+
+        .device-kick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
         }
 
         .device-sync-btn {
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .device-sync-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45);
+        }
+
+        .device-sync-btn:active {
+            transform: translateY(-1px);
         }
 
         /* ========== 私聊加密功能样式 ========== */
@@ -4589,12 +5589,15 @@
         /* 用户颜色面板 */
         .user-colors-panel {
             position: absolute;
-            top: 60px;
+            top: 75px;
             right: 10px;
             width: 350px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px var(--shadow-color);
+            background: rgba(26, 26, 46, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
             display: none;
             flex-direction: column;
             max-height: 500px;
@@ -4604,18 +5607,28 @@
         .user-colors-panel.active { display: flex; }
 
         .user-colors-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .user-colors-header h3 { font-size: 16px; color: var(--text-color); }
-        .user-colors-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
-        .user-colors-content { padding: 15px; overflow-y: auto; flex: 1; }
+        .user-colors-header h3 { font-size: 16px; color: #f1f5f9; font-weight: 700; }
+        .user-colors-close { 
+            background: rgba(255,255,255,0.1); 
+            border: none; 
+            font-size: 22px; 
+            cursor: pointer; 
+            color: #94a3b8; 
+            padding: 4px 8px;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .user-colors-close:hover { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+        .user-colors-content { padding: 18px; overflow-y: auto; flex: 1; }
 
-        .color-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+        .color-presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
 
         .color-preset {
             width: 100%;
@@ -4624,27 +5637,29 @@
             border: 3px solid transparent;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .color-preset:hover { transform: scale(1.1); }
-        .color-preset.active { border-color: var(--text-color); }
+        .color-preset:hover { transform: scale(1.15); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .color-preset.active { border-color: #fff; }
 
-        .custom-color-picker { margin-bottom: 15px; }
-        .custom-color-picker label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-        .custom-color-picker input[type="color"] { width: 100%; height: 50px; border: none; border-radius: 8px; cursor: pointer; }
+        .custom-color-picker { margin-bottom: 18px; }
+        .custom-color-picker label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 10px; font-weight: 600; }
+        .custom-color-picker input[type="color"] { width: 100%; height: 55px; border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; }
 
-        .online-status-colors { display: flex; gap: 10px; margin-bottom: 15px; }
+        .online-status-colors { display: flex; gap: 12px; margin-bottom: 18px; }
 
         .online-status-color {
             flex: 1;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 14px 10px;
+            border-radius: 14px;
             text-align: center;
             font-size: 12px;
+            font-weight: 600;
         }
 
-        .online-status-color.online { background: #dcfce7; color: #16a34a; }
-        .online-status-color.offline { background: #f3f4f6; color: #6b7280; }
+        .online-status-color.online { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+        .online-status-color.offline { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
 
     </style>
 </head>
@@ -4659,34 +5674,51 @@
 
     <div class="chat-container">
         <div class="header">
-            <h1>极简聊天室</h1>
-            <div class="header-controls">
-                <button class="theme-btn" id="themeBtn">🌙</button>
-                <button class="search-btn" id="searchBtn">🔍</button>
-                <button class="tag-filter-btn" id="tagFilterBtn">🏷️</button>
-                <button class="announcement-btn" id="announcementBtn">📢</button>
-                <button class="vote-btn" id="voteBtn">🗳️</button>
-                <button class="stats-btn" id="statsBtn">📊</button>
-                <button class="reminder-btn" id="reminderBtn">⏰</button>
-                <button class="filter-btn" id="filterBtn">🛡️</button>
-                <button class="devices-btn" id="devicesBtn">📱</button>
-                <button class="encryption-btn" id="encryptionBtn">🔐</button>
-                <button class="ai-btn" id="aiBtn">🤖</button>
-                <button class="style-btn" id="styleBtn">🎨</button>
-                <button class="user-colors-btn" id="userColorsBtn">🎨</button>
-                <button class="settings-btn" id="settingsBtn">⚙️</button>
-                <button class="call-btn" id="callBtn">📞</button>
-                <button class="starred-btn" id="starredBtn">⭐</button>
-                <button class="quick-reply-btn" id="quickReplyBtn">💬</button>
-                <button class="export-btn" id="exportBtn">📤</button>
-                <button class="bg-btn" id="bgBtn">🎨</button>
+            <div class="header-left">
+                <h1>极简聊天室</h1>
+                <button class="header-btn room-btn" id="roomBtn">🏠 房间</button>
                 <div class="chat-mode-toggle">
                     <button class="chat-mode-btn active" id="groupChatBtn">群聊</button>
                     <button class="chat-mode-btn" id="privateChatBtn">私聊</button>
                 </div>
-                <button class="room-btn" id="roomBtn">🏠 房间</button>
+            </div>
+            
+            <div class="header-center">
                 <div class="users-list" id="usersList">
                     <span>在线：0 人</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="btn-group">
+                    <button class="header-btn" id="themeBtn" title="主题">🌙</button>
+                    <button class="header-btn" id="searchBtn" title="搜索">🔍</button>
+                    <button class="header-btn" id="tagFilterBtn" title="标签">🏷️</button>
+                </div>
+                <div class="btn-group">
+                    <button class="header-btn" id="announcementBtn" title="公告">📢</button>
+                    <button class="header-btn" id="voteBtn" title="投票">🗳️</button>
+                    <button class="header-btn" id="callBtn" title="通话">📞</button>
+                </div>
+                <div class="btn-group">
+                    <button class="header-btn" id="starredBtn" title="收藏">⭐</button>
+                    <button class="header-btn" id="quickReplyBtn" title="快捷回复">💬</button>
+                    <button class="header-btn" id="settingsBtn" title="设置">⚙️</button>
+                </div>
+                <div class="more-menu">
+                    <button class="header-btn more-btn" id="moreBtn">⋮</button>
+                    <div class="more-dropdown" id="moreDropdown">
+                        <div class="dropdown-item" data-btn="statsBtn">📊 统计</div>
+                        <div class="dropdown-item" data-btn="reminderBtn">⏰ 提醒</div>
+                        <div class="dropdown-item" data-btn="filterBtn">🛡️ 过滤</div>
+                        <div class="dropdown-item" data-btn="devicesBtn">📱 设备</div>
+                        <div class="dropdown-item" data-btn="encryptionBtn">🔐 加密</div>
+                        <div class="dropdown-item" data-btn="aiBtn">🤖 AI</div>
+                        <div class="dropdown-item" data-btn="styleBtn">🎨 样式</div>
+                        <div class="dropdown-item" data-btn="userColorsBtn">🌈 用户颜色</div>
+                        <div class="dropdown-item" data-btn="exportBtn">📤 导出</div>
+                        <div class="dropdown-item" data-btn="backgroundBtn">🎨 背景</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4788,9 +5820,11 @@
         <div class="quick-reply-panel" id="quickReplyPanel">
             <div class="quick-reply-header">
                 <span class="quick-reply-title">💬 快捷回复</span>
-                <button class="quick-reply-add" id="addQuickReplyBtn">+ 添加</button>
+                <button class="quick-reply-add" id="quickReplyAdd">+ 添加</button>
             </div>
+            <input type="text" id="quickReplyInput" placeholder="输入快捷回复内容..." class="quick-reply-input">
             <div id="quickReplyList"></div>
+            <button class="quick-reply-close" id="quickReplyClose">关闭</button>
         </div>
 
         <!-- 转发面板 -->
@@ -4812,23 +5846,7 @@
         </div>
 
         <!-- 背景设置面板 -->
-        <div class="bg-panel" id="bgPanel">
-            <div class="bg-header">
-                <span>🎨 聊天背景</span>
-                <button class="bg-close" id="bgClose">×</button>
-            </div>
-            <div class="bg-options" id="bgOptions">
-                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-bg="default"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-bg="pink"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-bg="blue"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-bg="green"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="orange"></div>
-                <div class="bg-option" style="background: #f5f5f5;" data-bg="light"></div>
-            </div>
-            <div class="bg-upload">
-                <input type="file" id="bgUploadInput" accept="image/*" placeholder="上传自定义背景">
-            </div>
-        </div>
+
 
         <!-- 通话状态栏 -->
         <div class="active-call-bar" id="activeCallBar">
@@ -5049,85 +6067,421 @@
             </div>
         </div>
 
-        <div class="input-area">
-            <button class="emoji-btn" id="emojiBtn">😀</button>
-            <button class="image-btn" id="imageBtn">🖼️</button>
-            <button class="file-btn" id="fileBtn">📎</button>
-            <button class="location-btn" id="locationBtn">📍</button>
-            <button class="at-all-btn" id="atAllBtn">@</button>
-            <input type="file" id="fileInput" style="display: none;">
-            <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
-            <button id="sendBtn">发送</button>
-        </div>
-
         <!-- 背景设置面板 -->
-        <div class="background-panel" id="backgroundPanel">
+        <div class="background-panel" id="bgPanel">
             <div class="panel-header">
                 <span>🎨 聊天背景</span>
-                <button class="panel-close" id="backgroundClose">×</button>
+                <button class="panel-close" id="bgClose">×</button>
             </div>
-            <div class="background-options" id="backgroundOptions"></div>
+            <div class="background-options" id="bgOptions"></div>
             <div class="background-upload">
                 <input type="file" id="bgUploadInput" accept="image/*">
                 <button class="upload-btn" id="bgUploadBtn">上传自定义背景</button>
             </div>
         </div>
 
-        <!-- 通知设置面板 -->
-        <div class="notification-panel" id="notificationPanel">
-            <div class="panel-header">
-                <span>🔔 声音设置</span>
-                <button class="panel-close" id="notificationClose">×</button>
+
+
+        <div class="input-area">
+            <button class="action-btn" id="emojiBtn">😀</button>
+            <button class="action-btn" id="imageBtn">🖼️</button>
+            <button class="action-btn" id="fileBtn">📎</button>
+            <button class="action-btn" id="locationBtn">📍</button>
+            <button class="action-btn" id="atAllBtn">@</button>
+            <input type="file" id="fileInput" style="display: none;">
+            <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
+            <button id="sendBtn">发送</button>
+        </div>
+
+        <!-- 通话面板 -->
+        <div class="call-panel" id="callPanel">
+            <div class="call-header">
+                <h3>📞 通话</h3>
+                <button class="call-close" id="callClose">×</button>
             </div>
-            <div class="notification-settings">
-                <label class="setting-item">
-                    <span>开启声音提醒</span>
-                    <input type="checkbox" id="soundToggle" checked>
-                </label>
-                <div class="setting-item">
-                    <span>声音类型</span>
-                    <select id="soundTypeSelect">
-                        <option value="chime">清脆铃声</option>
-                        <option value="ding">提示音</option>
-                        <option value="pop">气泡音</option>
-                        <option value="bell">门铃声</option>
-                    </select>
+            <div class="call-users" id="callUsers"></div>
+        </div>
+
+        <!-- 黑名单面板 -->
+        <div class="blocked-panel" id="blockedPanel">
+            <div class="blocked-header">
+                <span>🚫 黑名单</span>
+                <button class="blocked-close" id="blockedClose">×</button>
+            </div>
+            <div class="blocked-list" id="blockedList"></div>
+        </div>
+
+        <!-- 统计面板 -->
+        <div class="stats-panel" id="statsPanel">
+            <div class="stats-header">
+                <span>📊 聊天统计</span>
+                <button class="stats-close" id="statsClose">×</button>
+            </div>
+            <div class="stats-content">
+                <div class="stats-grid">
+                    <div class="stats-item">
+                        <div class="stats-value" id="totalMessagesCount">0</div>
+                        <div class="stats-label">总消息数</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="todayMessagesCount">0</div>
+                        <div class="stats-label">今日消息</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="avgMsgLength">0</div>
+                        <div class="stats-label">平均长度</div>
+                    </div>
+                    <div class="stats-item">
+                        <div class="stats-value" id="yourMessagesCount">0</div>
+                        <div class="stats-label">我的消息</div>
+                    </div>
+                </div>
+                <div class="stats-online-time">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">🕐 在线时长</span>
+                        <span class="value" id="onlineTimeValue">00:00:00</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 设备管理面板 -->
-        <div class="device-panel" id="devicePanel">
-            <div class="panel-header">
+        <!-- 提醒面板 -->
+        <div class="reminder-panel" id="reminderPanel">
+            <div class="reminder-header">
+                <span>⏰ 定时提醒</span>
+                <button class="reminder-close" id="reminderClose">×</button>
+            </div>
+            <div class="reminder-add">
+                <div class="reminder-input-group">
+                    <input type="time" id="reminderTimeInput" placeholder="选择时间">
+                </div>
+                <div class="reminder-input-group">
+                    <input type="text" id="reminderContentInput" placeholder="提醒内容" maxlength="100">
+                </div>
+                <button class="reminder-add-btn" id="addReminderBtn">添加提醒</button>
+            </div>
+            <div class="reminder-list" id="reminderList"></div>
+        </div>
+
+        <!-- 快捷键提示 -->
+        <div class="shortcuts-hint" id="shortcutsHint">
+            <div class="shortcuts-title">⌨️ 快捷键</div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+Enter</span>
+                    <span>发送消息</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Esc</span>
+                    <span>关闭弹窗</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">↑ / ↓</span>
+                    <span>切换快捷回复</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">/</span>
+                    <span>快速搜索</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+S</span>
+                    <span>打开设置</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+H</span>
+                    <span>显示快捷键</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 群公告横幅 -->
+        <div class="announcement-banner" id="announcementBanner">
+            <span class="announcement-icon">📢</span>
+            <div class="announcement-content">
+                <strong id="announcementAuthor"></strong>: <span id="announcementText"></span>
+            </div>
+            <div class="announcement-actions" id="announcementActions">
+                <button class="announcement-close" id="announcementCloseBanner">×</button>
+            </div>
+        </div>
+
+        <!-- 群公告面板 -->
+        <div class="announcement-panel" id="announcementPanel">
+            <div class="announcement-header">
+                <span>📢 群公告</span>
+                <button class="announcement-close" id="announcementClose">×</button>
+            </div>
+            <div class="announcement-create">
+                <textarea id="announcementInput" placeholder="输入公告内容..." maxlength="500"></textarea>
+                <button class="announcement-create-btn" id="announcementCreateBtn">发布公告</button>
+            </div>
+            <div class="announcement-list" id="announcementList"></div>
+        </div>
+
+        <!-- 投票面板 -->
+        <div class="vote-panel" id="votePanel">
+            <div class="vote-header">
+                <span>🗳️ 投票</span>
+                <button class="vote-close" id="voteClose">×</button>
+            </div>
+            <div class="vote-create">
+                <input type="text" class="vote-create-title" id="voteTitleInput" placeholder="投票标题" maxlength="100">
+                <div class="vote-options" id="voteOptions">
+                    <div class="vote-option-item">
+                        <input type="text" placeholder="选项 1" maxlength="50">
+                        <button class="remove-option" style="visibility: hidden;">×</button>
+                    </div>
+                    <div class="vote-option-item">
+                        <input type="text" placeholder="选项 2" maxlength="50">
+                        <button class="remove-option" style="visibility: hidden;">×</button>
+                    </div>
+                </div>
+                <button class="add-option-btn" id="addVoteOptionBtn">+ 添加选项</button>
+                <div class="vote-settings">
+                    <label>
+                        <input type="checkbox" id="voteMultiSelect"> 多选
+                    </label>
+                    <input type="datetime-local" id="voteDeadlineInput">
+                </div>
+                <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
+            </div>
+            <div class="vote-list" id="voteList"></div>
+        </div>
+
+        <!-- 用户资料卡 -->
+        <div class="user-profile-card" id="userProfileCard">
+            <button class="profile-card-close" id="profileCardClose">×</button>
+            <div class="profile-card-header">
+                <div class="profile-card-avatar" id="profileCardAvatar">?</div>
+                <div class="profile-card-info">
+                    <div class="profile-card-name" id="profileCardName">用户名</div>
+                    <div class="profile-card-status" id="profileCardStatus">在线</div>
+                </div>
+            </div>
+            <div class="profile-card-stats">
+                <div class="profile-stat-item">
+                    <div class="profile-stat-value" id="profileMsgCount">0</div>
+                    <div class="profile-stat-label">消息数</div>
+                </div>
+                <div class="profile-stat-item">
+                    <div class="profile-stat-value" id="profileJoinTime">-</div>
+                    <div class="profile-stat-label">加入时间</div>
+                </div>
+            </div>
+            <div class="profile-card-detail">
+                <span class="profile-card-detail-label">最后在线</span>
+                <span class="profile-card-detail-value" id="profileLastOnline">-</span>
+            </div>
+            <div class="profile-card-actions">
+                <button class="profile-card-btn private-chat" id="profilePrivateChatBtn">💬 私聊</button>
+                <button class="profile-card-btn block" id="profileBlockBtn">🚫 拉黑</button>
+            </div>
+        </div>
+
+        <!-- 标签选择器 -->
+        <div class="tag-selector" id="tagSelector">
+            <div class="tag-selector-title">选择标签</div>
+            <div class="tag-selector-options" id="tagSelectorOptions">
+                <span class="tag-option important" data-tag="重要" data-color="important">重要</span>
+                <span class="tag-option todo" data-tag="待办" data-color="todo">待办</span>
+                <span class="tag-option question" data-tag="问题" data-color="question">问题</span>
+                <span class="tag-option idea" data-tag="想法" data-color="idea">想法</span>
+            </div>
+            <div class="tag-selector-custom">
+                <input type="text" id="tagCustomInput" placeholder="自定义标签" maxlength="20">
+                <button id="tagCustomAddBtn">添加</button>
+            </div>
+        </div>
+
+        <!-- 标签筛选面板 -->
+        <div class="tag-filter-panel" id="tagFilterPanel">
+            <div class="tag-filter-header">🏷️ 筛选标签</div>
+            <div class="tag-filter-options" id="tagFilterOptions">
+                <span class="tag-filter-option all active" data-filter="all">全部</span>
+                <span class="tag-filter-option" data-filter="important" style="border-color: #f44336; color: #f44336;">重要</span>
+                <span class="tag-filter-option" data-filter="todo" style="border-color: #ff9800; color: #ff9800;">待办</span>
+                <span class="tag-filter-option" data-filter="question" style="border-color: #2196f3; color: #2196f3;">问题</span>
+                <span class="tag-filter-option" data-filter="idea" style="border-color: #4caf50; color: #4caf50;">想法</span>
+                <span class="tag-filter-option" data-filter="custom" style="border-color: #9c27b0; color: #9c27b0;">自定义</span>
+            </div>
+        </div>
+
+        <!-- 消息防骚扰面板 -->
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-header">
+                <span>🛡️ 防骚扰设置</span>
+                <button class="filter-close" id="filterClose">×</button>
+            </div>
+            <div class="filter-tabs">
+                <span class="filter-tab active" data-tab="keywords">关键词过滤</span>
+                <span class="filter-tab" data-tab="sensitive">敏感词库</span>
+                <span class="filter-tab" data-tab="reports">举报记录</span>
+            </div>
+            <div class="filter-content" id="filterKeywordsContent">
+                <div class="filter-section">
+                    <div class="filter-section-title">自定义过滤关键词</div>
+                    <div class="filter-keywords" id="filterKeywordsList"></div>
+                    <div class="filter-add-group">
+                        <input type="text" id="filterKeywordInput" placeholder="输入关键词" maxlength="50">
+                        <button id="addFilterKeywordBtn">添加</button>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <div class="filter-toggle">
+                        <label>🔔 显示过滤提示</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showFilterNotice" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-content" id="filterSensitiveContent" style="display: none;">
+                <div class="filter-section">
+                    <div class="filter-section-title">常见敏感词库（点击启用）</div>
+                    <div class="sensitive-words-list" id="sensitiveWordsList"></div>
+                </div>
+            </div>
+            <div class="filter-content" id="filterReportsContent" style="display: none;">
+                <div class="report-history-list" id="reportHistoryList"></div>
+            </div>
+        </div>
+
+        <!-- 举报面板 -->
+        <div class="report-panel" id="reportPanel">
+            <div class="report-header">
+                <span class="report-title">🚨 举报消息</span>
+                <button class="report-close" id="reportClose">×</button>
+            </div>
+            <div class="report-message-preview" id="reportMessagePreview">
+                <div class="report-message-author" id="reportAuthor"></div>
+                <div class="report-message-content" id="reportContent"></div>
+            </div>
+            <div class="report-reasons">
+                <div class="filter-section-title">举报原因</div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="spam" id="reasonSpam" checked>
+                    <label class="report-reason-label" for="reasonSpam">🚫 垃圾广告</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="attack" id="reasonAttack">
+                    <label class="report-reason-label" for="reasonAttack">👊 人身攻击</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="illegal" id="reasonIllegal">
+                    <label class="report-reason-label" for="reasonIllegal">⚠️ 违法内容</label>
+                </div>
+                <div class="report-reason">
+                    <input type="radio" name="reportReason" value="other" id="reasonOther">
+                    <label class="report-reason-label" for="reasonOther">❓ 其他</label>
+                </div>
+            </div>
+            <div class="report-description">
+                <div class="filter-section-title">补充说明（可选）</div>
+                <textarea id="reportDescription" placeholder="请详细描述问题..." maxlength="200"></textarea>
+            </div>
+            <button class="report-submit" id="reportSubmitBtn">提交举报</button>
+        </div>
+
+        <!-- 多设备管理面板 -->
+        <div class="devices-panel" id="devicesPanel">
+            <div class="devices-header">
                 <span>📱 设备管理</span>
-                <button class="panel-close" id="deviceClose">×</button>
+                <button class="devices-close" id="devicesClose">×</button>
             </div>
-            <div class="device-list" id="deviceList"></div>
-            <div class="device-sync">
-                <button class="sync-all-btn" id="syncAllBtn">同步所有设备</button>
+            <div class="devices-current">
+                <div class="devices-current-label">当前设备</div>
+                <div class="devices-current-info">
+                    <span class="device-icon" id="currentDeviceIcon">💻</span>
+                    <div class="device-details">
+                        <div class="device-name" id="currentDeviceName">本设备</div>
+                        <div class="device-last-active">在线</div>
+                    </div>
+                </div>
+            </div>
+            <div class="devices-list">
+                <div class="devices-list-title">其他登录设备</div>
+                <div id="devicesList"></div>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <button class="device-sync-btn" id="syncAllBtn" style="width: 100%;">🔄 同步所有设备</button>
+            </div>
+        </div>
+
+        <!-- 私聊加密面板 -->
+        <div class="encryption-panel" id="encryptionPanel">
+            <div class="encryption-header">
+                <span class="encryption-title">🔐 加密设置</span>
+                <button class="encryption-close" id="encryptionClose">×</button>
+            </div>
+            <div class="encryption-toggle">
+                <label>🔒 启用加密</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="encryptionToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="encryption-key-section">
+                <div class="encryption-key-label">加密密钥</div>
+                <div class="encryption-key-display">
+                    <input type="text" id="encryptionKeyInput" placeholder="输入或生成密钥" maxlength="32">
+                    <button id="generateKeyBtn">生成</button>
+                </div>
+            </div>
+            <div class="encryption-info">
+                💡 密钥将用于加密私聊消息，请妥善保管
+            </div>
+        </div>
+
+        <!-- AI助手设置面板 -->
+        <div class="ai-settings-panel" id="aiSettingsPanel">
+            <div class="ai-settings-header">
+                <span>🤖 AI助手设置</span>
+                <button class="ai-settings-close" id="aiSettingsClose">×</button>
+            </div>
+            <div class="ai-settings-content">
+                <div class="ai-toggle">
+                    <label>✨ 启用AI助手</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="aiEnabledToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="ai-role-selector">
+                    <label>AI角色</label>
+                    <select id="aiRoleSelect">
+                        <option value="assistant">💬 智能助手</option>
+                        <option value="translator">🌐 翻译官</option>
+                        <option value="summarizer">📝 内容总结</option>
+                        <option value="coder">💻 代码助手</option>
+                        <option value="helper">🔍 问答助手</option>
+                    </select>
+                </div>
+                <div class="ai-context-info">
+                    <div class="ai-context-label">对话上下文</div>
+                    <div class="ai-context-value" id="aiContextCount">0 条消息</div>
+                </div>
+                <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
+            </div>
+        </div>
+
+        <!-- 新设备登录通知 -->
+        <div class="new-device-notification" id="newDeviceNotification">
+            <div class="new-device-notification-header">
+                <span class="new-device-notification-icon">📱</span>
+                <span class="new-device-notification-title">新设备登录提醒</span>
+            </div>
+            <div class="new-device-notification-content" id="newDeviceContent">
+                检测到新设备登录
+            </div>
+            <div class="new-device-notification-actions">
+                <button class="new-device-notification-btn trust" id="trustDeviceBtn">信任此设备</button>
+                <button class="new-device-notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
             </div>
         </div>
     </div>
 
-    <!-- 通话面板 -->
-    <div class="call-panel" id="callPanel">
-        <div class="call-header">
-            <h3>📞 通话</h3>
-            <button class="call-close" id="callClose">×</button>
-        </div>
-        <div class="call-users" id="callUsers"></div>
-    </div>
-
-    <!-- 黑名单面板 -->
-    <div class="blocked-panel" id="blockedPanel">
-        <div class="blocked-header">
-            <span>🚫 黑名单</span>
-            <button class="blocked-close" id="blockedClose">×</button>
-        </div>
-        <div class="blocked-list" id="blockedList"></div>
-    </div>
-
-    <!-- 来电弹窗 -->
+    <!-- 来电弹窗 - 保持在容器外部，因为它是全屏弹窗 -->
     <div class="incoming-call-modal" id="incomingCallModal">
         <div class="incoming-call-content">
             <div class="incoming-call-avatar" id="incomingCallAvatar">?</div>
@@ -5140,373 +6494,68 @@
         </div>
     </div>
 
-    <!-- 统计面板 -->
-    <div class="stats-panel" id="statsPanel">
-        <div class="stats-header">
-            <span>📊 聊天统计</span>
-            <button class="stats-close" id="statsClose">×</button>
+    <!-- 视频通话窗口 - 保持在容器外部，因为它是全屏覆盖 -->
+    <div class="video-call-window" id="videoCallWindow">
+        <div class="video-call-header">
+            <div class="video-call-title" id="videoCallTitle">视频通话</div>
+            <div class="video-call-timer" id="videoCallTimer">00:00:00</div>
         </div>
-        <div class="stats-content">
-            <div class="stats-grid">
-                <div class="stats-item">
-                    <div class="stats-value" id="totalMessagesCount">0</div>
-                    <div class="stats-label">总消息数</div>
+        <div class="video-call-container">
+            <div class="remote-video-container" id="remoteVideoContainer">
+                <div class="remote-video-placeholder" id="remoteVideoPlaceholder">
+                    <div class="avatar-large" id="remoteAvatar">?</div>
                 </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="todayMessagesCount">0</div>
-                    <div class="stats-label">今日消息</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="avgMsgLength">0</div>
-                    <div class="stats-label">平均长度</div>
-                </div>
-                <div class="stats-item">
-                    <div class="stats-value" id="yourMessagesCount">0</div>
-                    <div class="stats-label">我的消息</div>
-                </div>
+                <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
             </div>
-            <div class="stats-online-time">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 13px; color: var(--text-secondary);">🕐 在线时长</span>
-                    <span class="value" id="onlineTimeValue">00:00:00</span>
+            <div class="local-video-container">
+                <video id="localVideo" autoplay playsinline muted></video>
+            </div>
+        </div>
+        <div class="video-call-controls">
+            <div class="volume-indicator-container">
+                <span>🔊</span>
+                <div class="volume-indicator-bar">
+                    <div class="volume-indicator" id="videoVolumeIndicator"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 提醒面板 -->
-    <div class="reminder-panel" id="reminderPanel">
-        <div class="reminder-header">
-            <span>⏰ 定时提醒</span>
-            <button class="reminder-close" id="reminderClose">×</button>
-        </div>
-        <div class="reminder-add">
-            <div class="reminder-input-group">
-                <input type="time" id="reminderTimeInput" placeholder="选择时间">
-            </div>
-            <div class="reminder-input-group">
-                <input type="text" id="reminderContentInput" placeholder="提醒内容" maxlength="100">
-            </div>
-            <button class="reminder-add-btn" id="addReminderBtn">添加提醒</button>
-        </div>
-        <div class="reminder-list" id="reminderList"></div>
-    </div>
-
-    <!-- 快捷键提示 -->
-    <div class="shortcuts-hint" id="shortcutsHint">
-        <div class="shortcuts-title">⌨️ 快捷键</div>
-        <div class="shortcuts-list">
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+Enter</span>
-                <span>发送消息</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Esc</span>
-                <span>关闭弹窗</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">↑ / ↓</span>
-                <span>切换快捷回复</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">/</span>
-                <span>快速搜索</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+S</span>
-                <span>打开设置</span>
-            </div>
-            <div class="shortcut-item">
-                <span class="shortcut-key">Ctrl+H</span>
-                <span>显示快捷键</span>
+            <div class="video-call-buttons">
+                <button class="video-call-btn mute" id="videoMuteBtn">🔇</button>
+                <button class="video-call-btn camera" id="videoCameraBtn">📹</button>
+                <button class="video-call-btn end" id="videoEndCallBtn">🔴</button>
             </div>
         </div>
     </div>
 
-    <!-- 群公告横幅 -->
-    <div class="announcement-banner" id="announcementBanner">
-        <span class="announcement-icon">📢</span>
-        <div class="announcement-content">
-            <strong id="announcementAuthor"></strong>: <span id="announcementText"></span>
+    <!-- 语音通话窗口 - 保持在容器外部，因为它是弹窗 -->
+    <div class="voice-call-window" id="voiceCallWindow">
+        <div class="voice-call-header">
+            <div class="voice-call-title">语音通话</div>
         </div>
-        <div class="announcement-actions" id="announcementActions">
-            <button class="announcement-close" id="announcementCloseBanner">×</button>
+        <div class="voice-call-avatar">
+            <div class="avatar-voice" id="voiceCallAvatar">?</div>
+        </div>
+        <div class="voice-call-name" id="voiceCallName">用户名</div>
+        <div class="voice-call-status" id="voiceCallStatus">通话中</div>
+        <div class="voice-call-timer" id="voiceCallTimer">00:00:00</div>
+        <div class="volume-indicator-container">
+            <span>🔊</span>
+            <div class="volume-indicator-bar">
+                <div class="volume-indicator" id="voiceVolumeIndicator"></div>
+            </div>
+        </div>
+        <div class="voice-call-buttons">
+            <button class="voice-call-btn mute" id="voiceMuteBtn">🔇</button>
+            <button class="voice-call-btn end" id="voiceEndCallBtn">🔴</button>
         </div>
     </div>
 
-    <!-- 群公告面板 -->
-    <div class="announcement-panel" id="announcementPanel">
-        <div class="announcement-header">
-            <span>📢 群公告</span>
-            <button class="announcement-close" id="announcementClose">×</button>
+    <!-- 预览面板 - 保持在容器外部，因为它是全屏预览 -->
+    <div class="preview-panel" id="previewPanel">
+        <div class="preview-header">
+            <div class="preview-title" id="previewTitle">预览</div>
+            <button class="preview-close" id="previewClose">×</button>
         </div>
-        <div class="announcement-create">
-            <textarea id="announcementInput" placeholder="输入公告内容..." maxlength="500"></textarea>
-            <button class="announcement-create-btn" id="announcementCreateBtn">发布公告</button>
-        </div>
-        <div class="announcement-list" id="announcementList"></div>
-    </div>
-
-    <!-- 投票面板 -->
-    <div class="vote-panel" id="votePanel">
-        <div class="vote-header">
-            <span>🗳️ 投票</span>
-            <button class="vote-close" id="voteClose">×</button>
-        </div>
-        <div class="vote-create">
-            <input type="text" class="vote-create-title" id="voteTitleInput" placeholder="投票标题" maxlength="100">
-            <div class="vote-options" id="voteOptions">
-                <div class="vote-option-item">
-                    <input type="text" placeholder="选项 1" maxlength="50">
-                    <button class="remove-option" style="visibility: hidden;">×</button>
-                </div>
-                <div class="vote-option-item">
-                    <input type="text" placeholder="选项 2" maxlength="50">
-                    <button class="remove-option" style="visibility: hidden;">×</button>
-                </div>
-            </div>
-            <button class="add-option-btn" id="addVoteOptionBtn">+ 添加选项</button>
-            <div class="vote-settings">
-                <label>
-                    <input type="checkbox" id="voteMultiSelect"> 多选
-                </label>
-                <input type="datetime-local" id="voteDeadlineInput">
-            </div>
-            <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
-        </div>
-        <div class="vote-list" id="voteList"></div>
-    </div>
-
-    <!-- 用户资料卡 -->
-    <div class="user-profile-card" id="userProfileCard">
-        <button class="profile-card-close" id="profileCardClose">×</button>
-        <div class="profile-card-header">
-            <div class="profile-card-avatar" id="profileCardAvatar">?</div>
-            <div class="profile-card-info">
-                <div class="profile-card-name" id="profileCardName">用户名</div>
-                <div class="profile-card-status" id="profileCardStatus">在线</div>
-            </div>
-        </div>
-        <div class="profile-card-stats">
-            <div class="profile-stat-item">
-                <div class="profile-stat-value" id="profileMsgCount">0</div>
-                <div class="profile-stat-label">消息数</div>
-            </div>
-            <div class="profile-stat-item">
-                <div class="profile-stat-value" id="profileJoinTime">-</div>
-                <div class="profile-stat-label">加入时间</div>
-            </div>
-        </div>
-        <div class="profile-card-detail">
-            <span class="profile-card-detail-label">最后在线</span>
-            <span class="profile-card-detail-value" id="profileLastOnline">-</span>
-        </div>
-        <div class="profile-card-actions">
-            <button class="profile-card-btn private-chat" id="profilePrivateChatBtn">💬 私聊</button>
-            <button class="profile-card-btn block" id="profileBlockBtn">🚫 拉黑</button>
-        </div>
-    </div>
-
-    <!-- 标签选择器 -->
-    <div class="tag-selector" id="tagSelector">
-        <div class="tag-selector-title">选择标签</div>
-        <div class="tag-selector-options" id="tagSelectorOptions">
-            <span class="tag-option important" data-tag="重要" data-color="important">重要</span>
-            <span class="tag-option todo" data-tag="待办" data-color="todo">待办</span>
-            <span class="tag-option question" data-tag="问题" data-color="question">问题</span>
-            <span class="tag-option idea" data-tag="想法" data-color="idea">想法</span>
-        </div>
-        <div class="tag-selector-custom">
-            <input type="text" id="tagCustomInput" placeholder="自定义标签" maxlength="20">
-            <button id="tagCustomAddBtn">添加</button>
-        </div>
-    </div>
-
-    <!-- 标签筛选面板 -->
-    <div class="tag-filter-panel" id="tagFilterPanel">
-        <div class="tag-filter-header">🏷️ 筛选标签</div>
-        <div class="tag-filter-options" id="tagFilterOptions">
-            <span class="tag-filter-option all active" data-filter="all">全部</span>
-            <span class="tag-filter-option" data-filter="important" style="border-color: #f44336; color: #f44336;">重要</span>
-            <span class="tag-filter-option" data-filter="todo" style="border-color: #ff9800; color: #ff9800;">待办</span>
-            <span class="tag-filter-option" data-filter="question" style="border-color: #2196f3; color: #2196f3;">问题</span>
-            <span class="tag-filter-option" data-filter="idea" style="border-color: #4caf50; color: #4caf50;">想法</span>
-            <span class="tag-filter-option" data-filter="custom" style="border-color: #9c27b0; color: #9c27b0;">自定义</span>
-        </div>
-    </div>
-
-    <!-- 消息防骚扰面板 -->
-    <div class="filter-panel" id="filterPanel">
-        <div class="filter-header">
-            <span>🛡️ 防骚扰设置</span>
-            <button class="filter-close" id="filterClose">×</button>
-        </div>
-        <div class="filter-tabs">
-            <span class="filter-tab active" data-tab="keywords">关键词过滤</span>
-            <span class="filter-tab" data-tab="sensitive">敏感词库</span>
-            <span class="filter-tab" data-tab="reports">举报记录</span>
-        </div>
-        <div class="filter-content" id="filterKeywordsContent">
-            <div class="filter-section">
-                <div class="filter-section-title">自定义过滤关键词</div>
-                <div class="filter-keywords" id="filterKeywordsList"></div>
-                <div class="filter-add-group">
-                    <input type="text" id="filterKeywordInput" placeholder="输入关键词" maxlength="50">
-                    <button id="addFilterKeywordBtn">添加</button>
-                </div>
-            </div>
-            <div class="filter-section">
-                <div class="filter-toggle">
-                    <label>🔔 显示过滤提示</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="showFilterNotice" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="filter-content" id="filterSensitiveContent" style="display: none;">
-            <div class="filter-section">
-                <div class="filter-section-title">常见敏感词库（点击启用）</div>
-                <div class="sensitive-words-list" id="sensitiveWordsList"></div>
-            </div>
-        </div>
-        <div class="filter-content" id="filterReportsContent" style="display: none;">
-            <div class="report-history-list" id="reportHistoryList"></div>
-        </div>
-    </div>
-
-    <!-- 举报面板 -->
-    <div class="report-panel" id="reportPanel">
-        <div class="report-header">
-            <span class="report-title">🚨 举报消息</span>
-            <button class="report-close" id="reportClose">×</button>
-        </div>
-        <div class="report-message-preview" id="reportMessagePreview">
-            <div class="report-message-author" id="reportAuthor"></div>
-            <div class="report-message-content" id="reportContent"></div>
-        </div>
-        <div class="report-reasons">
-            <div class="filter-section-title">举报原因</div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="spam" id="reasonSpam" checked>
-                <label class="report-reason-label" for="reasonSpam">🚫 垃圾广告</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="attack" id="reasonAttack">
-                <label class="report-reason-label" for="reasonAttack">👊 人身攻击</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="illegal" id="reasonIllegal">
-                <label class="report-reason-label" for="reasonIllegal">⚠️ 违法内容</label>
-            </div>
-            <div class="report-reason">
-                <input type="radio" name="reportReason" value="other" id="reasonOther">
-                <label class="report-reason-label" for="reasonOther">❓ 其他</label>
-            </div>
-        </div>
-        <div class="report-description">
-            <div class="filter-section-title">补充说明（可选）</div>
-            <textarea id="reportDescription" placeholder="请详细描述问题..." maxlength="200"></textarea>
-        </div>
-        <button class="report-submit" id="reportSubmitBtn">提交举报</button>
-    </div>
-
-    <!-- 多设备管理面板 -->
-    <div class="devices-panel" id="devicesPanel">
-        <div class="devices-header">
-            <span>📱 设备管理</span>
-            <button class="devices-close" id="devicesClose">×</button>
-        </div>
-        <div class="devices-current">
-            <div class="devices-current-label">当前设备</div>
-            <div class="devices-current-info">
-                <span class="device-icon" id="currentDeviceIcon">💻</span>
-                <div class="device-details">
-                    <div class="device-name" id="currentDeviceName">本设备</div>
-                    <div class="device-last-active">在线</div>
-                </div>
-            </div>
-        </div>
-        <div class="devices-list">
-            <div class="devices-list-title">其他登录设备</div>
-            <div id="devicesList"></div>
-        </div>
-        <div style="padding: 0 16px 16px;">
-            <button class="device-sync-btn" id="syncAllBtn" style="width: 100%;">🔄 同步所有设备</button>
-        </div>
-    </div>
-
-    <!-- 私聊加密面板 -->
-    <div class="encryption-panel" id="encryptionPanel">
-        <div class="encryption-header">
-            <span class="encryption-title">🔐 加密设置</span>
-            <button class="encryption-close" id="encryptionClose">×</button>
-        </div>
-        <div class="encryption-toggle">
-            <label>🔒 启用加密</label>
-            <label class="toggle-switch">
-                <input type="checkbox" id="encryptionToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-        <div class="encryption-key-section">
-            <div class="encryption-key-label">加密密钥</div>
-            <div class="encryption-key-display">
-                <input type="text" id="encryptionKeyInput" placeholder="输入或生成密钥" maxlength="32">
-                <button id="generateKeyBtn">生成</button>
-            </div>
-        </div>
-        <div class="encryption-info">
-            💡 密钥将用于加密私聊消息，请妥善保管
-        </div>
-    </div>
-
-    <!-- AI助手设置面板 -->
-    <div class="ai-settings-panel" id="aiSettingsPanel">
-        <div class="ai-settings-header">
-            <span>🤖 AI助手设置</span>
-            <button class="ai-settings-close" id="aiSettingsClose">×</button>
-        </div>
-        <div class="ai-settings-content">
-            <div class="ai-toggle">
-                <label>✨ 启用AI助手</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="aiEnabledToggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="ai-role-selector">
-                <label>AI角色</label>
-                <select id="aiRoleSelect">
-                    <option value="assistant">💬 智能助手</option>
-                    <option value="translator">🌐 翻译官</option>
-                    <option value="summarizer">📝 内容总结</option>
-                    <option value="coder">💻 代码助手</option>
-                    <option value="helper">🔍 问答助手</option>
-                </select>
-            </div>
-            <div class="ai-context-info">
-                <div class="ai-context-label">对话上下文</div>
-                <div class="ai-context-value" id="aiContextCount">0 条消息</div>
-            </div>
-            <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
-        </div>
-    </div>
-
-    <!-- 新设备登录通知 -->
-    <div class="new-device-notification" id="newDeviceNotification">
-        <div class="new-device-notification-header">
-            <span class="new-device-notification-icon">📱</span>
-            <span class="new-device-notification-title">新设备登录提醒</span>
-        </div>
-        <div class="new-device-notification-content" id="newDeviceContent">
-            检测到新设备登录
-        </div>
-        <div class="new-device-notification-actions">
-            <button class="new-device-notification-btn trust" id="trustDeviceBtn">信任此设备</button>
-            <button class="new-device-notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
-        </div>
+        <div class="preview-content" id="previewContent"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>

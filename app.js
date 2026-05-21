@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let mentionFilter = '';
 
     const loginScreen = document.getElementById('loginScreen');
+    const moreBtn = document.getElementById('moreBtn');
+    const moreDropdown = document.getElementById('moreDropdown');
     const usernameInput = document.getElementById('usernameInput');
     const loginBtn = document.getElementById('loginBtn');
     const messagesArea = document.getElementById('messagesArea');
@@ -81,15 +83,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickReplyInput = document.getElementById('quickReplyInput');
     const forwardPanel = document.getElementById('forwardPanel');
     const forwardClose = document.getElementById('forwardClose');
-    const forwardTargetList = document.getElementById('forwardTargetList');
+    const forwardTargetList = document.getElementById('forwardList');
     const starredBtn = document.getElementById('starredBtn');
     const starredPanel = document.getElementById('starredPanel');
     const starredClose = document.getElementById('starredClose');
     const starredList = document.getElementById('starredList');
     const backgroundBtn = document.getElementById('backgroundBtn');
-    const backgroundPanel = document.getElementById('backgroundPanel');
-    const backgroundClose = document.getElementById('backgroundClose');
-    const backgroundOptions = document.getElementById('backgroundOptions');
+    const backgroundPanel = document.getElementById('bgPanel');
+    const backgroundClose = document.getElementById('bgClose');
+    const backgroundOptions = document.getElementById('bgOptions');
     const bgUploadInput = document.getElementById('bgUploadInput');
     const bgUploadBtn = document.getElementById('bgUploadBtn');
     const searchFilterUser = document.getElementById('searchFilterUser');
@@ -237,6 +239,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     themeBtn.addEventListener('click', toggleTheme);
+
+    // 更多菜单处理
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreDropdown.classList.toggle('active');
+    });
+
+    // 点击其他地方关闭更多菜单
+    document.addEventListener('click', (e) => {
+        if (!moreDropdown.contains(e.target) && e.target !== moreBtn) {
+            moreDropdown.classList.remove('active');
+        }
+    });
+
+    // 下拉菜单项点击处理
+    moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const btnId = item.dataset.btn;
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.click();
+            }
+            moreDropdown.classList.remove('active');
+        });
+    });
 
     function toggleSettings() {
         settingsPanel.classList.toggle('active');
@@ -6023,10 +6050,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在页面加载完成后初始化新功能
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initNewFeatures);
-    } else {
-        initNewFeatures();
-    }
+    initNewFeatures();
 
 });
