@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeCallBar = document.getElementById('activeCallBar');
     const activeCallStatus = document.getElementById('activeCallStatus');
     const endCallBtn = document.getElementById('endCallBtn');
+    const remoteAudio = document.getElementById('remoteAudio');
     const locationBtn = document.getElementById('locationBtn');
     const atAllBtn = document.getElementById('atAllBtn');
     const quickReplyBtn = document.getElementById('quickReplyBtn');
@@ -177,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let videoContainer = null;
     let localVideo = null;
     let remoteVideo = null;
-    let remoteAudio = null;
     let audioToggleBtn = null;
     let videoToggleBtn = null;
     let volumeIndicator = null;
