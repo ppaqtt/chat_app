@@ -3507,6 +3507,424 @@
             color: var(--text-secondary);
         }
 
+        /* ========== 背景设置面板样式 ========== */
+        #bgPanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 360px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            max-height: 520px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes panelSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        #bgPanel.active {
+            display: block;
+        }
+
+        .panel-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.1) 0%, 
+                rgba(118, 75, 162, 0.08) 50%,
+                rgba(236, 72, 153, 0.05) 100%);
+        }
+
+        .panel-header span {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-close {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .panel-close:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .background-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            padding: 20px;
+        }
+
+        .bg-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-option::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.2) 0%, 
+                transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bg-option:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .bg-option:hover::before {
+            opacity: 1;
+        }
+
+        .bg-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 
+                        0 0 0 5px var(--primary-color),
+                        0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .bg-option.active::after {
+            content: '✓';
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--primary-gradient);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .background-upload {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.03));
+        }
+
+        .background-upload input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .upload-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* ========== 通知设置面板样式 ========== */
+        #notificationPanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 340px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #notificationPanel.active {
+            display: block;
+        }
+
+        .notification-settings {
+            padding: 20px 24px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .setting-item span {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item select {
+            padding: 10px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: rgba(15, 15, 26, 0.8);
+            color: var(--text-color);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+            min-width: 140px;
+        }
+
+        .setting-item select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .setting-item select:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .setting-item input[type="checkbox"] {
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            accent-color: #8b5cf6;
+            transition: all 0.2s;
+        }
+
+        .setting-item input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* ========== 设备管理面板样式 ========== */
+        #devicePanel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 340px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            z-index: 100;
+            max-height: 480px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #devicePanel.active {
+            display: block;
+        }
+
+        .device-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .device-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .device-icon {
+            font-size: 26px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            color: var(--text-color);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .device-status {
+            color: var(--text-secondary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .device-status.online {
+            color: #4ade80;
+        }
+
+        .device-status.online::before {
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .device-sync {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.03));
+        }
+
+        .sync-all-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sync-all-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .sync-all-btn:active {
+            transform: translateY(-1px);
+        }
+
         /* ========== 用户资料卡样式 ========== */
         .user-profile-card {
             position: absolute;
@@ -4170,13 +4588,19 @@
             top: 60px;
             right: 20px;
             width: 420px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: none;
             z-index: 100;
-            max-height: 500px;
+            max-height: 520px;
             overflow-y: auto;
+            overflow-x: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .devices-panel.active {
@@ -4184,42 +4608,88 @@
         }
 
         .devices-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-weight: 700;
             color: var(--text-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.1) 0%, 
+                rgba(118, 75, 162, 0.08) 50%,
+                rgba(236, 72, 153, 0.05) 100%);
+        }
+
+        .devices-header span {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .devices-close {
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-secondary);
             font-size: 24px;
             cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .devices-close:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .devices-current {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .devices-current-label {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .devices-current-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .devices-current-info:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .device-icon {
             font-size: 32px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .device-details {
@@ -4227,35 +4697,58 @@
         }
 
         .device-name {
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-color);
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .device-last-active {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
+            font-size: 13px;
+            color: #4ade80;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-last-active::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+            animation: pulseDot 2s infinite;
         }
 
         .devices-list {
-            padding: 16px;
+            padding: 20px 24px;
         }
 
         .devices-list-title {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-secondary);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            font-weight: 600;
         }
 
         .device-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 8px;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .device-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .device-item:last-child {
@@ -4299,23 +4792,47 @@
         }
 
         .device-kick-btn {
-            background: #ff6b6b;
+            background: linear-gradient(135deg, #f44336, #d32f2f);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+
+        .device-kick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
         }
 
         .device-sync-btn {
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .device-sync-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45);
+        }
+
+        .device-sync-btn:active {
+            transform: translateY(-1px);
         }
 
         /* ========== 私聊加密功能样式 ========== */
@@ -5329,23 +5846,7 @@
         </div>
 
         <!-- 背景设置面板 -->
-        <div class="bg-panel" id="bgPanel">
-            <div class="bg-header">
-                <span>🎨 聊天背景</span>
-                <button class="bg-close" id="bgClose">×</button>
-            </div>
-            <div class="bg-options" id="bgOptions">
-                <div class="bg-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-bg="default"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-bg="pink"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-bg="blue"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-bg="green"></div>
-                <div class="bg-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="orange"></div>
-                <div class="bg-option" style="background: #f5f5f5;" data-bg="light"></div>
-            </div>
-            <div class="bg-upload">
-                <input type="file" id="bgUploadInput" accept="image/*" placeholder="上传自定义背景">
-            </div>
-        </div>
+
 
         <!-- 通话状态栏 -->
         <div class="active-call-bar" id="activeCallBar">
@@ -5565,6 +6066,21 @@
                 </div>
             </div>
         </div>
+
+        <!-- 背景设置面板 -->
+        <div class="background-panel" id="bgPanel">
+            <div class="panel-header">
+                <span>🎨 聊天背景</span>
+                <button class="panel-close" id="bgClose">×</button>
+            </div>
+            <div class="background-options" id="bgOptions"></div>
+            <div class="background-upload">
+                <input type="file" id="bgUploadInput" accept="image/*">
+                <button class="upload-btn" id="bgUploadBtn">上传自定义背景</button>
+            </div>
+        </div>
+
+
 
         <div class="input-area">
             <button class="action-btn" id="emojiBtn">😀</button>
