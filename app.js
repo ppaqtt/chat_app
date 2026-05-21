@@ -3083,16 +3083,32 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
 
             // 无论是视频还是语音通话，都需要播放音频
+            if (!remoteAudio) {
+                remoteAudio = document.getElementById('remoteAudio');
+            }
+            
             if (remoteAudio) {
+                console.log('设置远程音频，remoteStream有', remoteStream.getTracks().length, '个轨道');
                 remoteAudio.srcObject = remoteStream;
                 remoteAudio.muted = false;
-                remoteAudio.play().then(() => {
-                    console.log('远程音频开始播放');
-                }).catch(err => {
-                    console.error('播放远程音频失败:', err);
-                });
+                
+                // 尝试播放
+                const playPromise = remoteAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ 远程音频开始播放成功');
+                    }).catch(error => {
+                        console.error('❌ 播放远程音频失败:', error);
+                        // 尝试交互式播放
+                        remoteAudio.muted = true;
+                        setTimeout(() => {
+                            remoteAudio.muted = false;
+                            remoteAudio.play().catch(e => console.error('重试播放失败:', e));
+                        }, 100);
+                    });
+                }
             } else {
-                console.error('remoteAudio元素未找到');
+                console.error('❌ remoteAudio元素未找到');
             }
 
             // 视频通话时设置视频
@@ -3393,6 +3409,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const videoCallTimer = document.getElementById('videoCallTimer');
+        callSeconds = 0;  // 重置计时器
         if (callTimer) clearInterval(callTimer);
         callTimer = setInterval(() => {
             callSeconds++;
@@ -3460,6 +3477,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const voiceCallTimer = document.getElementById('voiceCallTimer');
+        callSeconds = 0;  // 重置计时器
         if (callTimer) clearInterval(callTimer);
         callTimer = setInterval(() => {
             callSeconds++;
