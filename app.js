@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let videoContainer = null;
     let localVideo = null;
     let remoteVideo = null;
+    let remoteAudio = null;
     let audioToggleBtn = null;
     let videoToggleBtn = null;
     let volumeIndicator = null;
@@ -3080,10 +3081,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (currentCall && currentCall.type === 'video' && remoteVideo) {
                 remoteVideo.srcObject = remoteStream;
-            } else if (currentCall && currentCall.type === 'voice' && audioContext) {
-                const audio = new Audio();
-                audio.srcObject = remoteStream;
-                audio.play().catch(err => console.error('播放远程音频失败:', err));
+            } else if (currentCall && currentCall.type === 'voice') {
+                if (remoteAudio) {
+                    remoteAudio.srcObject = remoteStream;
+                    remoteAudio.play().catch(err => {
+                        console.error('播放远程音频失败:', err);
+                        remoteAudio.muted = false;
+                    });
+                }
             }
         };
 
@@ -3345,6 +3350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         localVideo = document.getElementById('localVideo');
         remoteVideo = document.getElementById('remoteVideo');
+        remoteAudio = document.getElementById('remoteAudio');
         audioToggleBtn = document.getElementById('audioToggleBtn');
         videoToggleBtn = document.getElementById('videoToggleBtn');
         volumeIndicator = document.getElementById('volumeIndicator');
@@ -3421,6 +3427,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.body.appendChild(callVideoWindow);
 
+        remoteAudio = document.getElementById('remoteAudio');
         audioToggleBtn = document.getElementById('audioToggleBtn');
         volumeIndicator = document.getElementById('volumeIndicator');
         const voiceEndCallBtn = document.getElementById('voiceEndCallBtn');
@@ -3530,6 +3537,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (audioContext) {
             audioContext.close();
             audioContext = null;
+        }
+
+        if (remoteAudio) {
+            remoteAudio.srcObject = null;
+            remoteAudio.pause();
         }
 
         analyser = null;
