@@ -2537,9 +2537,11 @@ document.addEventListener('DOMContentLoaded', function() {
             quickReplyPanel.classList.add('active');
         });
 
-        quickReplyClose.addEventListener('click', () => {
-            quickReplyPanel.classList.remove('active');
-        });
+        if (quickReplyClose) {
+            quickReplyClose.addEventListener('click', () => {
+                quickReplyPanel.classList.remove('active');
+            });
+        }
 
         quickReplyAdd.addEventListener('click', addQuickReply);
 
@@ -2547,27 +2549,33 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') addQuickReply();
         });
 
-        forwardClose.addEventListener('click', () => {
-            forwardPanel.classList.remove('active');
-        });
+        if (forwardClose) {
+            forwardClose.addEventListener('click', () => {
+                forwardPanel.classList.remove('active');
+            });
+        }
 
         starredBtn.addEventListener('click', () => {
             renderStarredMessages();
             starredPanel.classList.add('active');
         });
 
-        starredClose.addEventListener('click', () => {
-            starredPanel.classList.remove('active');
-        });
+        if (starredClose) {
+            starredClose.addEventListener('click', () => {
+                starredPanel.classList.remove('active');
+            });
+        }
 
         backgroundBtn.addEventListener('click', () => {
             renderBackgroundOptions();
             backgroundPanel.classList.add('active');
         });
 
-        backgroundClose.addEventListener('click', () => {
-            backgroundPanel.classList.remove('active');
-        });
+        if (backgroundClose) {
+            backgroundClose.addEventListener('click', () => {
+                backgroundPanel.classList.remove('active');
+            });
+        }
 
         bgUploadBtn.addEventListener('click', () => {
             bgUploadInput.click();
@@ -2597,9 +2605,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         exportBtn.addEventListener('click', exportChatHistory);
 
-        blockedClose.addEventListener('click', () => {
-            blockedPanel.classList.remove('active');
-        });
+        if (blockedClose) {
+            blockedClose.addEventListener('click', () => {
+                blockedPanel.classList.remove('active');
+            });
+        }
 
         initAnnouncementFeature();
         initVoteFeature();
