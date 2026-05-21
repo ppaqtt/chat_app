@@ -3073,30 +3073,31 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         peerConnection.ontrack = (event) => {
-            console.log('收到远程轨道:', event.track.kind);
+            console.log('收到远程轨道:', event.track.kind, '轨道数:', remoteStream ? remoteStream.getTracks().length : 0);
+            
             if (!remoteStream) {
                 remoteStream = new MediaStream();
             }
+            
             remoteStream.addTrack(event.track);
+            console.log('添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
 
-            if (currentCall && currentCall.type === 'video') {
-                if (remoteVideo) {
-                    remoteVideo.srcObject = remoteStream;
-                }
-                if (remoteAudio) {
-                    remoteAudio.srcObject = remoteStream;
-                    remoteAudio.play().catch(err => {
-                        console.error('播放远程音频失败:', err);
-                    });
-                }
-            } else if (currentCall && currentCall.type === 'voice') {
-                if (remoteAudio) {
-                    remoteAudio.srcObject = remoteStream;
-                    remoteAudio.play().catch(err => {
-                        console.error('播放远程音频失败:', err);
-                        remoteAudio.muted = false;
-                    });
-                }
+            // 无论是视频还是语音通话，都需要播放音频
+            if (remoteAudio) {
+                remoteAudio.srcObject = remoteStream;
+                remoteAudio.muted = false;
+                remoteAudio.play().then(() => {
+                    console.log('远程音频开始播放');
+                }).catch(err => {
+                    console.error('播放远程音频失败:', err);
+                });
+            } else {
+                console.error('remoteAudio元素未找到');
+            }
+
+            // 视频通话时设置视频
+            if (currentCall && currentCall.type === 'video' && remoteVideo) {
+                remoteVideo.srcObject = remoteStream;
             }
         };
 
@@ -3152,6 +3153,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             showCallUI(callType);
+            
+            // 确保获取remoteAudio元素
+            remoteAudio = document.getElementById('remoteAudio');
 
             activeCallBar.classList.add('active');
             activeCallStatus.textContent = '正在呼叫 ' + targetUser + '...';
@@ -3277,6 +3281,9 @@ document.addEventListener('DOMContentLoaded', function() {
             incomingCallModal.classList.remove('active');
 
             showCallUI(currentCall.type);
+            
+            // 确保获取remoteAudio元素
+            remoteAudio = document.getElementById('remoteAudio');
 
             activeCallBar.classList.add('active');
             startCallTimer();
