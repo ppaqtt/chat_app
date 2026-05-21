@@ -47,7 +47,7 @@
 
         .chat-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1400px;
             height: 90vh;
             background: var(--bg-color);
             border-radius: 16px;
@@ -5059,6 +5059,54 @@
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
         </div>
+
+        <!-- 背景设置面板 -->
+        <div class="background-panel" id="backgroundPanel">
+            <div class="panel-header">
+                <span>🎨 聊天背景</span>
+                <button class="panel-close" id="backgroundClose">×</button>
+            </div>
+            <div class="background-options" id="backgroundOptions"></div>
+            <div class="background-upload">
+                <input type="file" id="bgUploadInput" accept="image/*">
+                <button class="upload-btn" id="bgUploadBtn">上传自定义背景</button>
+            </div>
+        </div>
+
+        <!-- 通知设置面板 -->
+        <div class="notification-panel" id="notificationPanel">
+            <div class="panel-header">
+                <span>🔔 声音设置</span>
+                <button class="panel-close" id="notificationClose">×</button>
+            </div>
+            <div class="notification-settings">
+                <label class="setting-item">
+                    <span>开启声音提醒</span>
+                    <input type="checkbox" id="soundToggle" checked>
+                </label>
+                <div class="setting-item">
+                    <span>声音类型</span>
+                    <select id="soundTypeSelect">
+                        <option value="chime">清脆铃声</option>
+                        <option value="ding">提示音</option>
+                        <option value="pop">气泡音</option>
+                        <option value="bell">门铃声</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备管理面板 -->
+        <div class="device-panel" id="devicePanel">
+            <div class="panel-header">
+                <span>📱 设备管理</span>
+                <button class="panel-close" id="deviceClose">×</button>
+            </div>
+            <div class="device-list" id="deviceList"></div>
+            <div class="device-sync">
+                <button class="sync-all-btn" id="syncAllBtn">同步所有设备</button>
+            </div>
+        </div>
     </div>
 
     <!-- 通话面板 -->
@@ -5227,54 +5275,6 @@
             <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
         </div>
         <div class="vote-list" id="voteList"></div>
-    </div>
-
-    <!-- 背景设置面板 -->
-    <div class="background-panel" id="backgroundPanel">
-        <div class="panel-header">
-            <span>🎨 聊天背景</span>
-            <button class="panel-close" id="backgroundClose">×</button>
-        </div>
-        <div class="background-options" id="backgroundOptions"></div>
-        <div class="background-upload">
-            <input type="file" id="bgUploadInput" accept="image/*">
-            <button class="upload-btn" id="bgUploadBtn">上传自定义背景</button>
-        </div>
-    </div>
-
-    <!-- 通知设置面板 -->
-    <div class="notification-panel" id="notificationPanel">
-        <div class="panel-header">
-            <span>🔔 声音设置</span>
-            <button class="panel-close" id="notificationClose">×</button>
-        </div>
-        <div class="notification-settings">
-            <label class="setting-item">
-                <span>开启声音提醒</span>
-                <input type="checkbox" id="soundToggle" checked>
-            </label>
-            <div class="setting-item">
-                <span>声音类型</span>
-                <select id="soundTypeSelect">
-                    <option value="chime">清脆铃声</option>
-                    <option value="ding">提示音</option>
-                    <option value="pop">气泡音</option>
-                    <option value="bell">门铃声</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- 设备管理面板 -->
-    <div class="device-panel" id="devicePanel">
-        <div class="panel-header">
-            <span>📱 设备管理</span>
-            <button class="panel-close" id="deviceClose">×</button>
-        </div>
-        <div class="device-list" id="deviceList"></div>
-        <div class="device-sync">
-            <button class="sync-all-btn" id="syncAllBtn">同步所有设备</button>
-        </div>
     </div>
 
     <!-- 用户资料卡 -->
