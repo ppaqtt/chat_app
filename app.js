@@ -2543,11 +2543,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        quickReplyAdd.addEventListener('click', addQuickReply);
+        if (quickReplyAdd) {
+            quickReplyAdd.addEventListener('click', addQuickReply);
+        }
 
-        quickReplyInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addQuickReply();
-        });
+        if (quickReplyInput) {
+            quickReplyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addQuickReply();
+            });
+        }
 
         if (forwardClose) {
             forwardClose.addEventListener('click', () => {
@@ -2577,28 +2581,32 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        bgUploadBtn.addEventListener('click', () => {
-            bgUploadInput.click();
-        });
+        if (bgUploadBtn) {
+            bgUploadBtn.addEventListener('click', () => {
+                bgUploadInput.click();
+            });
+        }
 
-        bgUploadInput.addEventListener('change', async function() {
-            const file = bgUploadInput.files[0];
-            if (!file) return;
+        if (bgUploadInput) {
+            bgUploadInput.addEventListener('change', async function() {
+                const file = bgUploadInput.files[0];
+                if (!file) return;
 
-            const formData = new FormData();
-            formData.append('file', file);
+                const formData = new FormData();
+                formData.append('file', file);
 
-            try {
-                const response = await fetch('/api/upload', { method: 'POST', body: formData });
-                const data = await response.json();
-                if (data.url) {
-                    setCustomBackground(data.url);
+                try {
+                    const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (data.url) {
+                        setCustomBackground(data.url);
+                    }
+                } catch (error) {
+                    console.error('背景上传失败:', error);
+                    alert('背景上传失败');
                 }
-            } catch (error) {
-                console.error('背景上传失败:', error);
-                alert('背景上传失败');
-            }
-        });
+            });
+        }
 
         searchFilterUser.addEventListener('change', performSearch);
         searchFilterStarred.addEventListener('change', performSearch);
