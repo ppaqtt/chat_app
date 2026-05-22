@@ -94,6 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const bgUploadBtn = document.getElementById('bgUploadBtn');
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeValue = document.getElementById('volumeValue');
+    const soundToggle = document.getElementById('soundToggle');
+    const soundTypeSelect = document.getElementById('soundTypeSelect');
     const syncAllBtn = document.getElementById('syncAllBtn');
     const logoutAllBtn = document.getElementById('logoutAllBtn');
     const searchFilterUser = document.getElementById('searchFilterUser');
