@@ -6398,16 +6398,16 @@
                     <div class="device-current">
                         <div class="device-icon">💻</div>
                         <div class="device-info">
-                            <div class="device-name" id="currentDeviceName">本设备</div>
+                            <div class="device-name">本设备</div>
                             <div class="device-status">在线</div>
                         </div>
                     </div>
                     <div class="device-other-label">其他登录设备</div>
-                    <div id="otherDevicesList" style="min-height: 80px;">
+                    <div style="min-height: 80px;">
                         <div class="no-devices">暂无其他设备登录</div>
                     </div>
-                    <button class="device-action-btn" id="syncAllBtn">🔄 同步所有设备</button>
-                    <button class="device-action-btn secondary" id="logoutAllBtn">🚪 退出所有设备</button>
+                    <button class="device-action-btn">🔄 同步所有设备</button>
+                    <button class="device-action-btn secondary">🚪 退出所有设备</button>
                 </div>
             </div>
         </div>
@@ -6425,6 +6425,41 @@
             <button id="sendBtn">发送</button>
         </div>
 
+        <!-- 设备管理面板 -->
+        <div class="devices-panel" id="devicesPanel">
+            <div class="settings-header">
+                <h3>📱 设备管理</h3>
+                <button class="settings-close" id="devicesClose">×</button>
+            </div>
+            <div class="device-section">
+                <div class="device-current">
+                    <div class="device-icon" id="currentDeviceIcon">💻</div>
+                    <div class="device-info">
+                        <div class="device-name" id="currentDeviceName">本设备</div>
+                        <div class="device-status">在线</div>
+                    </div>
+                </div>
+                <div class="device-other-label">其他登录设备</div>
+                <div id="devicesList" style="min-height: 80px;">
+                    <div class="no-devices">暂无其他设备登录</div>
+                </div>
+                <button class="device-action-btn" id="syncAllBtn">🔄 同步所有设备</button>
+                <button class="device-action-btn secondary" id="logoutAllBtn">🚪 退出所有设备</button>
+            </div>
+        </div>
+        
+        <!-- 新设备通知 -->
+        <div class="new-device-notification" id="newDeviceNotification">
+            <div class="notification-content">
+                <div class="notification-title">发现新设备登录</div>
+                <div class="notification-device-info" id="newDeviceInfo"></div>
+            </div>
+            <div class="notification-actions">
+                <button class="notification-btn trust" id="trustDeviceBtn">信任</button>
+                <button class="notification-btn ignore" id="ignoreDeviceBtn">忽略</button>
+            </div>
+        </div>
+        
         <!-- 通话面板 -->
         <div class="call-panel" id="callPanel">
             <div class="call-header">
