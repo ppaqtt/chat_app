@@ -709,7 +709,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         currentUsername = username;
-        ws = new WebSocket('ws://' + window.location.host);
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(wsProtocol + '//' + window.location.host);
 
         ws.onopen = () => {
             ws.send(JSON.stringify({
