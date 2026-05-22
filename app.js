@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let mentionFilter = '';
 
     const loginScreen = document.getElementById('loginScreen');
+    const moreBtn = document.getElementById('moreBtn');
+    const moreDropdown = document.getElementById('moreDropdown');
     const usernameInput = document.getElementById('usernameInput');
     const loginBtn = document.getElementById('loginBtn');
     const messagesArea = document.getElementById('messagesArea');
@@ -71,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeCallBar = document.getElementById('activeCallBar');
     const activeCallStatus = document.getElementById('activeCallStatus');
     const endCallBtn = document.getElementById('endCallBtn');
-    const remoteAudio = document.getElementById('remoteAudio');
     const locationBtn = document.getElementById('locationBtn');
     const atAllBtn = document.getElementById('atAllBtn');
     const quickReplyBtn = document.getElementById('quickReplyBtn');
@@ -82,15 +83,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickReplyInput = document.getElementById('quickReplyInput');
     const forwardPanel = document.getElementById('forwardPanel');
     const forwardClose = document.getElementById('forwardClose');
-    const forwardTargetList = document.getElementById('forwardTargetList');
+    const forwardTargetList = document.getElementById('forwardList');
     const starredBtn = document.getElementById('starredBtn');
     const starredPanel = document.getElementById('starredPanel');
     const starredClose = document.getElementById('starredClose');
     const starredList = document.getElementById('starredList');
-    const bgBtn = document.getElementById('bgBtn');
-    const backgroundPanel = document.getElementById('backgroundPanel');
-    const backgroundClose = document.getElementById('backgroundClose');
-    const backgroundOptions = document.getElementById('backgroundOptions');
+    const backgroundBtn = document.getElementById('backgroundBtn');
+    const backgroundPanel = document.getElementById('bgPanel');
+    const backgroundClose = document.getElementById('bgClose');
+    const backgroundOptions = document.getElementById('bgOptions');
     const bgUploadInput = document.getElementById('bgUploadInput');
     const bgUploadBtn = document.getElementById('bgUploadBtn');
     const searchFilterUser = document.getElementById('searchFilterUser');
@@ -186,10 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let videoEnabled = true;
     let iceServers = [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' }
     ];
 
     let rooms = {};
@@ -241,6 +239,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     themeBtn.addEventListener('click', toggleTheme);
+
+    // 更多菜单处理
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreDropdown.classList.toggle('active');
+    });
+
+    // 点击其他地方关闭更多菜单
+    document.addEventListener('click', (e) => {
+        if (!moreDropdown.contains(e.target) && e.target !== moreBtn) {
+            moreDropdown.classList.remove('active');
+        }
+    });
+
+    // 下拉菜单项点击处理
+    moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const btnId = item.dataset.btn;
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.click();
+            }
+            moreDropdown.classList.remove('active');
+        });
+    });
 
     function toggleSettings() {
         settingsPanel.classList.toggle('active');
@@ -670,26 +693,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function login() {
         const username = usernameInput.value.trim();
+        
         if (!username) {
             alert('请输入昵称');
             return;
         }
 
+        if (username.length < 2 || username.length > 20) {
+            alert('昵称长度必须在2-20个字符之间');
+            return;
+        }
+
+        if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(username)) {
+            alert('昵称只能包含中文、英文、数字和下划线');
+            return;
+        }
+
         currentUsername = username;
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(wsProtocol + '//' + window.location.host);
+        ws = new WebSocket('ws://' + window.location.host);
 
         ws.onopen = () => {
-            loginScreen.style.display = 'none';
             ws.send(JSON.stringify({
                 type: 'login',
                 username: username,
                 avatar: '',
                 room: currentRoom
             }));
-            messageInput.focus();
-            initTheme();
-            initExtraFeatures();
         };
 
         ws.onmessage = (event) => {
@@ -710,6 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMessage(data) {
         switch(data.type) {
             case 'loginSuccess':
+                loginScreen.style.display = 'none';
                 currentUsername = data.username;
                 currentAvatar = data.avatar;
                 currentRoom = data.room || '大厅';
@@ -735,7 +765,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.votes) {
                     votes = data.votes;
                 }
+                messageInput.focus();
+                initTheme();
+                initExtraFeatures();
                 scrollToBottom();
+                break;
+            case 'loginFailed':
+                alert(data.message || '登录失败，请重试');
+                if (ws) {
+                    ws.close();
+                    ws = null;
+                }
+                usernameInput.focus();
                 break;
             case 'message':
                 allMessages.push(data);
@@ -1933,86 +1974,6 @@ document.addEventListener('DOMContentLoaded', function() {
         callPanel.classList.remove('active');
     });
 
-    // ========== 麦克风测试功能 ==========
-    let microphoneTestStream = null;
-    let microphoneTestInterval = null;
-
-    const testMicrophoneBtn = document.getElementById('testMicrophoneBtn');
-    const microphoneTestStatus = document.getElementById('microphoneTestStatus');
-
-    testMicrophoneBtn.addEventListener('click', async () => {
-        if (microphoneTestStream) {
-            microphoneTestStream.getTracks().forEach(track => track.stop());
-            microphoneTestStream = null;
-            if (microphoneTestInterval) {
-                clearInterval(microphoneTestInterval);
-                microphoneTestInterval = null;
-            }
-            testMicrophoneBtn.innerHTML = '🎤 测试麦克风';
-            microphoneTestStatus.textContent = '';
-            return;
-        }
-
-        testMicrophoneBtn.innerHTML = '🔄 测试中...';
-        microphoneTestStatus.textContent = '正在请求麦克风权限...';
-
-        try {
-            microphoneTestStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            console.log('✅ 麦克风测试：权限获取成功');
-
-            microphoneTestStatus.textContent = '✅ 麦克风正常！正在监听...';
-            microphoneTestStatus.style.color = '#4CAF50';
-            testMicrophoneBtn.innerHTML = '⏹ 停止测试';
-
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createMediaStreamSource(microphoneTestStream);
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-            microphoneTestInterval = setInterval(() => {
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) {
-                    sum += dataArray[i];
-                }
-                const audioLevel = sum / dataArray.length / 255;
-
-                if (audioLevel > 0.05) {
-                    microphoneTestStatus.textContent = '🎙 麦克风正常！检测到声音输入';
-                    microphoneTestStatus.style.color = '#4CAF50';
-                } else {
-                    microphoneTestStatus.textContent = '🎤 麦克风正常，请对准麦克风说话';
-                    microphoneTestStatus.style.color = '#4CAF50';
-                }
-            }, 200);
-
-        } catch (error) {
-            console.error('❌ 麦克风测试失败:', error);
-            testMicrophoneBtn.innerHTML = '🎤 测试麦克风';
-            microphoneTestStatus.style.color = '#f44336';
-
-            let errorMessage = '';
-            switch (error.name) {
-                case 'NotAllowedError':
-                case 'PermissionDeniedError':
-                    errorMessage = '❌ 权限被拒绝，请点击地址栏左侧的麦克风图标选择"允许"';
-                    break;
-                case 'NotFoundError':
-                    errorMessage = '❌ 未找到麦克风设备，请检查是否连接了麦克风';
-                    break;
-                case 'NotReadableError':
-                    errorMessage = '❌ 麦克风被其他程序占用，请关闭其他使用麦克风的程序';
-                    break;
-                default:
-                    errorMessage = '❌ 麦克风测试失败: ' + error.message;
-            }
-            microphoneTestStatus.textContent = errorMessage;
-        }
-    });
-
     function renderCallUsers() {
         callUsers.innerHTML = '';
         onlineUsers.forEach(user => {
@@ -2120,21 +2081,8 @@ document.addEventListener('DOMContentLoaded', function() {
             callSeconds++;
             const min = Math.floor(callSeconds / 60);
             const sec = callSeconds % 60;
-            const timeText = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
             const target = currentCall ? (currentCall.target || currentCall.from) : '';
-            activeCallStatus.textContent = '与 ' + target + ' 通话中 ' + timeText;
-            
-            // 更新语音通话计时器
-            const voiceCallTimer = document.getElementById('voiceCallTimer');
-            if (voiceCallTimer) {
-                voiceCallTimer.textContent = timeText;
-            }
-            
-            // 更新视频通话计时器
-            const videoCallTimer = document.getElementById('videoCallTimer');
-            if (videoCallTimer) {
-                videoCallTimer.textContent = timeText;
-            }
+            activeCallStatus.textContent = '与 ' + target + ' 通话中 ' + String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
         }, 1000);
     }
 
@@ -2635,89 +2583,69 @@ document.addEventListener('DOMContentLoaded', function() {
             quickReplyPanel.classList.add('active');
         });
 
-        if (quickReplyClose) {
-            quickReplyClose.addEventListener('click', () => {
-                quickReplyPanel.classList.remove('active');
-            });
-        }
+        quickReplyClose.addEventListener('click', () => {
+            quickReplyPanel.classList.remove('active');
+        });
 
-        if (quickReplyAdd) {
-            quickReplyAdd.addEventListener('click', addQuickReply);
-        }
+        quickReplyAdd.addEventListener('click', addQuickReply);
 
-        if (quickReplyInput) {
-            quickReplyInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addQuickReply();
-            });
-        }
+        quickReplyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addQuickReply();
+        });
 
-        if (forwardClose) {
-            forwardClose.addEventListener('click', () => {
-                forwardPanel.classList.remove('active');
-            });
-        }
+        forwardClose.addEventListener('click', () => {
+            forwardPanel.classList.remove('active');
+        });
 
         starredBtn.addEventListener('click', () => {
             renderStarredMessages();
             starredPanel.classList.add('active');
         });
 
-        if (starredClose) {
-            starredClose.addEventListener('click', () => {
-                starredPanel.classList.remove('active');
-            });
-        }
+        starredClose.addEventListener('click', () => {
+            starredPanel.classList.remove('active');
+        });
 
-        if (bgBtn) {
-            bgBtn.addEventListener('click', () => {
-                renderBackgroundOptions();
-                backgroundPanel.classList.add('active');
-            });
-        }
+        backgroundBtn.addEventListener('click', () => {
+            renderBackgroundOptions();
+            backgroundPanel.classList.add('active');
+        });
 
-        if (backgroundClose) {
-            backgroundClose.addEventListener('click', () => {
-                backgroundPanel.classList.remove('active');
-            });
-        }
+        backgroundClose.addEventListener('click', () => {
+            backgroundPanel.classList.remove('active');
+        });
 
-        if (bgUploadBtn) {
-            bgUploadBtn.addEventListener('click', () => {
-                bgUploadInput.click();
-            });
-        }
+        bgUploadBtn.addEventListener('click', () => {
+            bgUploadInput.click();
+        });
 
-        if (bgUploadInput) {
-            bgUploadInput.addEventListener('change', async function() {
-                const file = bgUploadInput.files[0];
-                if (!file) return;
+        bgUploadInput.addEventListener('change', async function() {
+            const file = bgUploadInput.files[0];
+            if (!file) return;
 
-                const formData = new FormData();
-                formData.append('file', file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-                try {
-                    const response = await fetch('/api/upload', { method: 'POST', body: formData });
-                    const data = await response.json();
-                    if (data.url) {
-                        setCustomBackground(data.url);
-                    }
-                } catch (error) {
-                    console.error('背景上传失败:', error);
-                    alert('背景上传失败');
+            try {
+                const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (data.url) {
+                    setCustomBackground(data.url);
                 }
-            });
-        }
+            } catch (error) {
+                console.error('背景上传失败:', error);
+                alert('背景上传失败');
+            }
+        });
 
         searchFilterUser.addEventListener('change', performSearch);
         searchFilterStarred.addEventListener('change', performSearch);
 
         exportBtn.addEventListener('click', exportChatHistory);
 
-        if (blockedClose) {
-            blockedClose.addEventListener('click', () => {
-                blockedPanel.classList.remove('active');
-            });
-        }
+        blockedClose.addEventListener('click', () => {
+            blockedPanel.classList.remove('active');
+        });
 
         initAnnouncementFeature();
         initVoteFeature();
@@ -3104,89 +3032,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== WebRTC 通话功能 ==========
 
-    async function checkMediaPermissions() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            return { audio: false, video: false, error: '您的浏览器不支持麦克风功能' };
-        }
-
-        try {
-            const result = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-            result.getTracks().forEach(track => track.stop());
-            return { audio: true, video: true, error: null };
-        } catch (error) {
-            console.error('权限检查失败:', error);
-            if (error.name === 'NotAllowedError') {
-                return { audio: false, video: false, error: '麦克风权限被拒绝，请在浏览器设置中允许访问麦克风' };
-            } else if (error.name === 'NotFoundError') {
-                return { audio: false, video: false, error: '未找到麦克风设备，请连接麦克风后重试' };
-            } else if (error.name === 'NotReadableError') {
-                return { audio: false, video: false, error: '麦克风被其他程序占用，请关闭其他使用麦克风的程序' };
-            } else {
-                return { audio: false, video: false, error: '无法访问麦克风: ' + error.message };
-            }
-        }
-    }
-
     async function getMediaStream(callType) {
         try {
             const constraints = callType === 'video'
                 ? { video: true, audio: true }
                 : { audio: true };
 
-            console.log('正在请求麦克风权限，类型:', callType);
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            
-            console.log('✅ 麦克风权限获取成功');
-            console.log('获取到的媒体流，轨道数:', stream.getTracks().length);
-            stream.getTracks().forEach(track => {
-                console.log('轨道信息:', track.kind, '- enabled:', track.enabled, '- readyState:', track.readyState);
-            });
 
             if (callType === 'voice') {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const source = audioContext.createMediaStreamSource(stream);
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 256;
-                    source.connect(analyser);
-                    startAudioLevelMonitoring();
-                    console.log('✅ 音频分析器初始化成功');
-                } catch (audioError) {
-                    console.error('❌ 音频分析器初始化失败:', audioError);
-                }
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                startAudioLevelMonitoring();
             }
 
             return stream;
         } catch (error) {
-            console.error('❌ 获取媒体流失败:', error);
-            console.error('错误类型:', error.name);
-            console.error('错误消息:', error.message);
-            
-            let errorMessage = '';
-            switch (error.name) {
-                case 'NotAllowedError':
-                case 'PermissionDeniedError':
-                    errorMessage = '麦克风权限被拒绝！\n\n解决方法：\n1. 点击浏览器地址栏左侧的摄像头/麦克风图标\n2. 选择"允许"访问麦克风\n3. 刷新页面后重新尝试';
-                    break;
-                case 'NotFoundError':
-                case 'DevicesNotFoundError':
-                    errorMessage = '未找到麦克风设备！\n\n解决方法：\n1. 检查电脑是否连接了麦克风\n2. 在系统设置中确认麦克风已启用\n3. 如果使用耳机，确保耳机麦克风已连接';
-                    break;
-                case 'NotReadableError':
-                case 'TrackStartError':
-                    errorMessage = '麦克风被其他程序占用！\n\n解决方法：\n1. 关闭其他正在使用麦克风的程序（如微信、QQ、Skype等）\n2. 关闭浏览器的其他标签页\n3. 重新尝试通话';
-                    break;
-                case 'OverconstrainedError':
-                    errorMessage = '麦克风配置不兼容！\n\n解决方法：\n1. 尝试使用系统默认麦克风\n2. 更新您的浏览器到最新版本';
-                    break;
-                case 'PermissionDismissedError':
-                    errorMessage = '麦克风权限请求被取消！\n\n解决方法：\n1. 点击浏览器地址栏左侧的麦克风图标\n2. 选择"允许"访问麦克风';
-                    break;
-                default:
-                    errorMessage = '无法获取麦克风权限\n\n错误信息：' + error.message + '\n\n解决方法：\n1. 确保使用 HTTPS 或 localhost 访问\n2. 在浏览器设置中允许麦克风访问\n3. 尝试使用 Chrome 浏览器';
-            }
-            
-            alert(errorMessage);
+            console.error('获取媒体流失败:', error);
+            alert('无法获取' + (callType === 'video' ? '摄像头' : '麦克风') + '权限，请检查设置');
             return null;
         }
     }
@@ -3217,105 +3083,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function createPeerConnection() {
-        console.log('=== 创建 PeerConnection ===');
-        console.log('ICE服务器配置:', iceServers);
-
         peerConnection = new RTCPeerConnection({ iceServers: iceServers });
 
         peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log('生成ICE候选:', event.candidate.candidate.substring(0, 100));
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    const target = currentCall.target || currentCall.from;
-                    ws.send(JSON.stringify({
-                        type: 'webrtcIceCandidate',
-                        toUser: target,
-                        candidate: event.candidate
-                    }));
-                    console.log('发送ICE候选给', target);
-                }
-            } else {
-                console.log('ICE候选收集完成（end of candidates）');
+            if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
+                const target = currentCall.target || currentCall.from;
+                ws.send(JSON.stringify({
+                    type: 'webrtcIceCandidate',
+                    toUser: target,
+                    candidate: event.candidate
+                }));
+            }
+        };
+
+        peerConnection.ontrack = (event) => {
+            console.log('收到远程轨道:', event.track.kind);
+            if (!remoteStream) {
+                remoteStream = new MediaStream();
+            }
+            remoteStream.addTrack(event.track);
+
+            if (currentCall && currentCall.type === 'video' && remoteVideo) {
+                remoteVideo.srcObject = remoteStream;
+            } else if (currentCall && currentCall.type === 'voice' && audioContext) {
+                const audio = new Audio();
+                audio.srcObject = remoteStream;
+                audio.play().catch(err => console.error('播放远程音频失败:', err));
             }
         };
 
         peerConnection.oniceconnectionstatechange = () => {
-            console.log('❄️ ICE连接状态变更:', peerConnection.iceConnectionState);
-            console.log('ICE连接状态详情:');
-            console.log('  - connectionState:', peerConnection.connectionState);
-            console.log('  - iceConnectionState:', peerConnection.iceConnectionState);
-            console.log('  - iceGatheringState:', peerConnection.iceGatheringState);
-
-            if (peerConnection.iceConnectionState === 'connected') {
-                console.log('✅ ICE连接建立成功！');
-            } else if (peerConnection.iceConnectionState === 'disconnected') {
-                console.log('⚠️ ICE连接断开');
-            } else if (peerConnection.iceConnectionState === 'failed') {
-                console.error('❌ ICE连接失败');
-                alert('通话连接失败，请检查网络设置');
-            } else if (peerConnection.iceConnectionState === 'closed') {
-                console.log('ICE连接已关闭');
-            }
-        };
-
-        peerConnection.onconnectionstatechange = () => {
-            console.log('🔗 PeerConnection状态:', peerConnection.connectionState);
-        };
-
-        peerConnection.ontrack = (event) => {
-            console.log('📡 收到远程轨道:', event.track.kind);
-            console.log('轨道ID:', event.track.id);
-            console.log('轨道标签:', event.track.label);
-
-            if (!remoteStream) {
-                console.log('创建新的远程流');
-                remoteStream = new MediaStream();
-            }
-
-            remoteStream.addTrack(event.track);
-            console.log('✅ 添加轨道后，远程流轨道数:', remoteStream.getTracks().length);
-
-            // 无论是视频还是语音通话，都播放音频
-            if (remoteAudio) {
-                console.log('设置远程音频，音频元素:', remoteAudio);
-                remoteAudio.srcObject = remoteStream;
-                remoteAudio.muted = false;
-                remoteAudio.volume = 1.0;
-
-                // 立即尝试播放
-                remoteAudio.play()
-                    .then(() => console.log('✅ 远程音频开始播放成功'))
-                    .catch(error => {
-                        console.error('❌ 播放远程音频失败:', error);
-                        // 尝试用户交互触发播放
-                        const tryAgain = () => {
-                            remoteAudio.play()
-                                .then(() => console.log('✅ 用户交互后播放成功'))
-                                .catch(e => console.error('❌ 用户交互后播放仍失败:', e));
-                            document.removeEventListener('click', tryAgain);
-                        };
-                        document.addEventListener('click', tryAgain, { once: true });
-                    });
-            } else {
-                console.error('❌ remoteAudio元素未找到');
-            }
-
-            // 视频通话时设置视频
-            if (currentCall && currentCall.type === 'video' && remoteVideo) {
-                console.log('设置远程视频流');
-                remoteVideo.srcObject = remoteStream;
+            console.log('ICE连接状态:', peerConnection.iceConnectionState);
+            if (peerConnection.iceConnectionState === 'disconnected' ||
+                peerConnection.iceConnectionState === 'failed') {
+                handleCallEnded({});
             }
         };
 
         if (localStream) {
-            console.log('添加本地轨道到 PeerConnection，当前轨道数:', localStream.getTracks().length);
             localStream.getTracks().forEach(track => {
-                console.log('添加轨道:', track.kind, 'enabled:', track.enabled);
                 peerConnection.addTrack(track, localStream);
             });
-            console.log('添加完成，当前 PeerConnection 发送轨道数:', peerConnection.getSenders().length);
-        } else {
-            console.error('❌ localStream 为空，无法添加音频轨道');
         }
 
         return peerConnection;
@@ -3328,20 +3136,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            console.log('=== 开始发起通话 ===');
-            console.log('目标用户:', targetUser);
-            console.log('通话类型:', callType);
-
             const stream = await getMediaStream(callType);
-            if (!stream) {
-                console.error('获取媒体流失败，终止通话');
-                return;
-            }
-
-            console.log('获取媒体流成功，轨道数:', stream.getTracks().length);
-            stream.getTracks().forEach(track => {
-                console.log('本地轨道:', track.kind, 'enabled:', track.enabled);
-            });
+            if (!stream) return;
 
             localStream = stream;
 
@@ -3352,8 +3148,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
-
-            console.log('创建并设置本地 SDP Offer 成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3367,8 +3161,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: targetUser,
                     offer: offer
                 }));
-
-                console.log('发送 WebRTC Offer 给', targetUser);
             }
 
             showCallUI(callType);
@@ -3384,26 +3176,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleWebRTCOffer(data) {
-        console.log('收到 WebRTC Offer from', data.from);
-        console.log('当前通话状态:', currentCall ? currentCall.status : '无通话');
-
-        if (!currentCall || currentCall.status !== 'incoming') {
-            console.log('忽略 WebRTC Offer：没有来电或状态不是 incoming');
-            return;
-        }
+        if (!currentCall || currentCall.status !== 'incoming') return;
 
         try {
-            console.log('正在设置远程描述...');
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-            console.log('✅ 远程描述设置成功');
 
-            console.log('正在创建 Answer...');
             const answer = await peerConnection.createAnswer();
-            console.log('✅ Answer 创建成功');
-
-            console.log('正在设置本地描述...');
             await peerConnection.setLocalDescription(answer);
-            console.log('✅ 本地描述设置成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3411,47 +3190,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: data.from,
                     answer: answer
                 }));
-                console.log('发送 WebRTC Answer 给', data.from);
             }
         } catch (error) {
-            console.error('处理 WebRTC Offer 失败:', error);
-            alert('处理通话请求失败');
+            console.error('处理WebRTC Offer失败:', error);
         }
     }
 
     async function handleWebRTCAnswer(data) {
-        console.log('收到 WebRTC Answer from', data.from);
-
-        if (!peerConnection) {
-            console.error('PeerConnection 不存在，无法设置 Answer');
-            return;
-        }
-
         try {
-            console.log('正在设置远程 Answer...');
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-            console.log('✅ WebRTC Answer 已设置，连接应该建立');
+            console.log('WebRTC Answer已设置');
         } catch (error) {
-            console.error('处理 WebRTC Answer 失败:', error);
+            console.error('处理WebRTC Answer失败:', error);
         }
     }
 
     async function handleWebRTCIceCandidate(data) {
         try {
-            if (!peerConnection) {
-                console.error('PeerConnection 不存在，无法添加 ICE 候选');
-                return;
-            }
-
-            if (data.candidate) {
-                console.log('添加 ICE 候选:', data.candidate.candidate.substring(0, 50) + '...');
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                console.log('✅ ICE 候选添加成功');
-            } else {
-                console.log('收到空的 ICE 候选');
+            if (peerConnection && data.candidate) {
+                await peerConnection.addIceCandidate(new RTCCandidate(data.candidate));
             }
         } catch (error) {
-            console.error('添加 ICE 候选失败:', error);
+            console.error('添加ICE候选失败:', error);
         }
     }
 
@@ -3513,19 +3273,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const stream = await getMediaStream(currentCall.type);
             if (!stream) return;
 
-            console.log('接听：获取媒体流成功，轨道数:', stream.getTracks().length);
-            stream.getTracks().forEach(track => {
-                console.log('接听：本地轨道:', track.kind, 'enabled:', track.enabled);
-            });
-
             localStream = stream;
 
             createPeerConnection();
-
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-
-            console.log('接听：创建并设置本地 SDP Answer 成功');
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3533,14 +3283,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     toUser: currentCall.from,
                     callId: currentCall.callId
                 }));
-
-                ws.send(JSON.stringify({
-                    type: 'webrtcAnswer',
-                    toUser: currentCall.from,
-                    answer: answer
-                }));
-
-                console.log('接听：发送 WebRTC Answer 给', currentCall.from);
             }
 
             currentCall.status = 'connected';
@@ -3655,11 +3397,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const videoCallTimer = document.getElementById('videoCallTimer');
-        // 先设置初始状态，不立即开始计时
-        if (videoCallTimer) {
-            videoCallTimer.textContent = '00:00';
-        }
-        // 不在这里设置计时器，等到通话连接后由startCallTimer统一处理
+        if (callTimer) clearInterval(callTimer);
+        callTimer = setInterval(() => {
+            callSeconds++;
+            const min = Math.floor(callSeconds / 60);
+            const sec = callSeconds % 60;
+            if (videoCallTimer) {
+                videoCallTimer.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+            }
+        }, 1000);
     }
 
     function showVoiceCallUI() {
@@ -3717,11 +3463,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const voiceCallTimer = document.getElementById('voiceCallTimer');
-        // 先设置初始状态，不立即开始计时
-        if (voiceCallTimer) {
-            voiceCallTimer.textContent = '00:00';
-        }
-        // 不在这里设置计时器，等到通话连接后由startCallTimer统一处理
+        if (callTimer) clearInterval(callTimer);
+        callTimer = setInterval(() => {
+            callSeconds++;
+            const min = Math.floor(callSeconds / 60);
+            const sec = callSeconds % 60;
+            if (voiceCallTimer) {
+                voiceCallTimer.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+            }
+        }, 1000);
     }
 
     function toggleAudio() {
@@ -3805,11 +3555,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (audioContext) {
             audioContext.close();
             audioContext = null;
-        }
-
-        if (remoteAudio) {
-            remoteAudio.srcObject = null;
-            remoteAudio.pause();
         }
 
         analyser = null;
@@ -6324,10 +6069,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 在页面加载完成后初始化新功能
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initNewFeatures);
-    } else {
-        initNewFeatures();
-    }
+    initNewFeatures();
 
 });
