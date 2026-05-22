@@ -89,15 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const starredClose = document.getElementById('starredClose');
     const starredList = document.getElementById('starredList');
     const backgroundBtn = document.getElementById('backgroundBtn');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const settingsClose = document.getElementById('settingsClose');
     const backgroundOptions = document.getElementById('bgOptions');
     const bgUploadInput = document.getElementById('bgUploadInput');
     const bgUploadBtn = document.getElementById('bgUploadBtn');
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeValue = document.getElementById('volumeValue');
-    const soundToggle = document.getElementById('soundToggle');
-    const soundTypeSelect = document.getElementById('soundTypeSelect');
     const syncAllBtn = document.getElementById('syncAllBtn');
     const logoutAllBtn = document.getElementById('logoutAllBtn');
     const searchFilterUser = document.getElementById('searchFilterUser');
@@ -117,8 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const addReminderBtn = document.getElementById('addReminderBtn');
     const reminderList = document.getElementById('reminderList');
     const shortcutsHint = document.getElementById('shortcutsHint');
-    const soundToggle = document.getElementById('soundToggle');
-    const soundTypeSelect = document.getElementById('soundTypeSelect');
     const totalMessagesCount = document.getElementById('totalMessagesCount');
     const todayMessagesCount = document.getElementById('todayMessagesCount');
     const avgMsgLength = document.getElementById('avgMsgLength');
