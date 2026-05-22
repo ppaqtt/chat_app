@@ -89,11 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const starredClose = document.getElementById('starredClose');
     const starredList = document.getElementById('starredList');
     const backgroundBtn = document.getElementById('backgroundBtn');
-    const backgroundPanel = document.getElementById('bgPanel');
-    const backgroundClose = document.getElementById('bgClose');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsClose = document.getElementById('settingsClose');
     const backgroundOptions = document.getElementById('bgOptions');
     const bgUploadInput = document.getElementById('bgUploadInput');
     const bgUploadBtn = document.getElementById('bgUploadBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const soundToggle = document.getElementById('soundToggle');
+    const soundTypeSelect = document.getElementById('soundTypeSelect');
+    const syncAllBtn = document.getElementById('syncAllBtn');
+    const logoutAllBtn = document.getElementById('logoutAllBtn');
     const searchFilterUser = document.getElementById('searchFilterUser');
     const searchFilterStarred = document.getElementById('searchFilterStarred');
     const exportBtn = document.getElementById('exportBtn');
@@ -2608,12 +2614,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
         backgroundBtn.addEventListener('click', () => {
             renderBackgroundOptions();
-            backgroundPanel.classList.add('active');
+            settingsPanel.classList.add('active');
+            showTab('background');
         });
 
-        backgroundClose.addEventListener('click', () => {
-            backgroundPanel.classList.remove('active');
+        settingsClose.addEventListener('click', () => {
+            settingsPanel.classList.remove('active');
         });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                showTab(tabId);
+            });
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            volumeValue.textContent = volumeSlider.value + '%';
+        });
+
+        soundToggle.addEventListener('change', () => {
+            if (soundToggle.checked) {
+                playNotificationSound();
+            }
+        });
+
+        syncAllBtn.addEventListener('click', () => {
+            alert('已同步所有设备的数据！');
+        });
+
+        logoutAllBtn.addEventListener('click', () => {
+            if (confirm('确定要退出所有设备吗？')) {
+                alert('已退出所有登录设备！');
+            }
+        });
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.settings-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(`${tabId}Tab`).style.display = 'block';
+        }
 
         bgUploadBtn.addEventListener('click', () => {
             bgUploadInput.click();
