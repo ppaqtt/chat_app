@@ -6336,13 +6336,28 @@
             
             <!-- 设置选项卡 -->
             <div class="settings-tabs">
-                <button class="tab-btn active" data-tab="background">🎨 背景</button>
+                <button class="tab-btn active" data-tab="profile">👤 个人资料</button>
+                <button class="tab-btn" data-tab="background">🎨 背景</button>
                 <button class="tab-btn" data-tab="sound">🔊 声音</button>
                 <button class="tab-btn" data-tab="device">📱 设备</button>
             </div>
             
+            <!-- 个人资料设置 -->
+            <div class="settings-content" id="profileTab">
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview">?</div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <button class="avatar-upload-btn" id="avatarUploadBtn">更换头像</button>
+                </div>
+                <div class="settings-field">
+                    <label>昵称</label>
+                    <input type="text" id="nicknameInput" placeholder="请输入昵称">
+                </div>
+                <button class="settings-save" id="settingsSaveBtn">保存设置</button>
+            </div>
+            
             <!-- 聊天背景设置 -->
-            <div class="settings-content" id="backgroundTab">
+            <div class="settings-content" id="backgroundTab" style="display: none;">
                 <div class="background-options" id="bgOptions"></div>
                 <div class="background-upload">
                     <input type="file" id="bgUploadInput" accept="image/*">
