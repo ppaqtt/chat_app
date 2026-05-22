@@ -2413,8 +2413,12 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
             z-index: 2000;
-            display: flex;
+            display: none;
             flex-direction: column;
+        }
+        
+        .video-call-window.active {
+            display: flex;
         }
 
         .video-call-header {
@@ -2590,6 +2594,11 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 2000;
             text-align: center;
+            display: none;
+        }
+        
+        .voice-call-window.active {
+            display: block;
         }
 
         .voice-call-header {

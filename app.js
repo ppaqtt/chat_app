@@ -3328,7 +3328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         callVideoWindow = document.createElement('div');
-        callVideoWindow.className = 'video-call-window';
+        callVideoWindow.className = 'video-call-window active';
         callVideoWindow.innerHTML = `
             <div class="video-call-header">
                 <span class="video-call-title">视频通话</span>
@@ -3417,7 +3417,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const avatarChar = targetName.charAt(0).toUpperCase() || '?';
 
         callVideoWindow = document.createElement('div');
-        callVideoWindow.className = 'voice-call-window';
+        callVideoWindow.className = 'voice-call-window active';
         callVideoWindow.innerHTML = `
             <div class="voice-call-header">
                 <span class="voice-call-title">语音通话</span>
