@@ -693,8 +693,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function login() {
         const username = usernameInput.value.trim();
+        
         if (!username) {
             alert('请输入昵称');
+            return;
+        }
+
+        if (username.length < 2 || username.length > 20) {
+            alert('昵称长度必须在2-20个字符之间');
+            return;
+        }
+
+        if (!/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/.test(username)) {
+            alert('昵称只能包含中文、英文、数字和下划线');
             return;
         }
 
@@ -702,16 +713,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ws = new WebSocket('ws://' + window.location.host);
 
         ws.onopen = () => {
-            loginScreen.style.display = 'none';
             ws.send(JSON.stringify({
                 type: 'login',
                 username: username,
                 avatar: '',
                 room: currentRoom
             }));
-            messageInput.focus();
-            initTheme();
-            initExtraFeatures();
         };
 
         ws.onmessage = (event) => {
@@ -732,6 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMessage(data) {
         switch(data.type) {
             case 'loginSuccess':
+                loginScreen.style.display = 'none';
                 currentUsername = data.username;
                 currentAvatar = data.avatar;
                 currentRoom = data.room || '大厅';
@@ -757,7 +765,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.votes) {
                     votes = data.votes;
                 }
+                messageInput.focus();
+                initTheme();
+                initExtraFeatures();
                 scrollToBottom();
+                break;
+            case 'loginFailed':
+                alert(data.message || '登录失败，请重试');
+                if (ws) {
+                    ws.close();
+                    ws = null;
+                }
+                usernameInput.focus();
                 break;
             case 'message':
                 allMessages.push(data);
