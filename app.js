@@ -687,7 +687,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('roomBtn').addEventListener('click', () => {
-        const roomPanel = document.getElementById('roomPanel');
         roomPanel.classList.toggle('active');
     });
 
@@ -4486,7 +4485,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentDeviceIcon = document.getElementById('currentDeviceIcon');
     const currentDeviceName = document.getElementById('currentDeviceName');
     const devicesList = document.getElementById('devicesList');
-    const syncAllBtn = document.getElementById('syncAllBtn');
     const newDeviceNotification = document.getElementById('newDeviceNotification');
     const newDeviceContent = document.getElementById('newDeviceContent');
     const trustDeviceBtn = document.getElementById('trustDeviceBtn');
