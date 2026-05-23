@@ -240,48 +240,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    themeBtn.addEventListener('click', toggleTheme);
+    if (themeBtn) {
+        themeBtn.addEventListener('click', toggleTheme);
+    }
 
     // 更多菜单处理
-    moreBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        moreDropdown.classList.toggle('active');
-    });
-
-    // 点击其他地方关闭更多菜单
-    document.addEventListener('click', (e) => {
-        if (!moreDropdown.contains(e.target) && e.target !== moreBtn) {
-            moreDropdown.classList.remove('active');
-        }
-    });
-
-    // 下拉菜单项点击处理
-    moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const btnId = item.dataset.btn;
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                btn.click();
-            }
-            moreDropdown.classList.remove('active');
+    if (moreBtn && moreDropdown) {
+        moreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            moreDropdown.classList.toggle('active');
         });
-    });
+
+        // 点击其他地方关闭更多菜单
+        document.addEventListener('click', (e) => {
+            if (!moreDropdown.contains(e.target) && e.target !== moreBtn) {
+                moreDropdown.classList.remove('active');
+            }
+        });
+
+        // 下拉菜单项点击处理
+        moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const btnId = item.dataset.btn;
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.click();
+                }
+                moreDropdown.classList.remove('active');
+            });
+        });
+    }
 
     function toggleSettings() {
+        if (!settingsPanel) return;
+        
         settingsPanel.classList.toggle('active');
         if (settingsPanel.classList.contains('active')) {
             updateAvatarPreview();
-            nicknameInput.value = currentUsername;
+            if (nicknameInput) nicknameInput.value = currentUsername;
         }
     }
 
-    settingsBtn.addEventListener('click', toggleSettings);
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', toggleSettings);
+    }
 
-    settingsClose.addEventListener('click', () => {
-        settingsPanel.classList.remove('active');
-    });
+    if (settingsClose && settingsPanel) {
+        settingsClose.addEventListener('click', () => {
+            settingsPanel.classList.remove('active');
+        });
+    }
 
     function updateAvatarPreview() {
+        if (!avatarPreview) return;
+        
         if (currentAvatar && !currentAvatar.startsWith('#')) {
             avatarPreview.innerHTML = '<img src="' + currentAvatar + '" alt="头像">';
         } else {
@@ -290,88 +302,92 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    avatarUploadBtn.addEventListener('click', () => {
-        avatarInput.click();
-    });
+    if (avatarUploadBtn && avatarInput) {
+        avatarUploadBtn.addEventListener('click', () => {
+            avatarInput.click();
+        });
 
-    avatarInput.addEventListener('change', async function() {
-        const file = avatarInput.files[0];
-        if (!file) return;
+        avatarInput.addEventListener('change', async function() {
+            const file = avatarInput.files[0];
+            if (!file) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-        try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
 
-            if (data.url) {
-                newAvatarUrl = data.url;
-                updateAvatarPreview();
-            }
-        } catch (error) {
-            console.error('头像上传失败:', error);
-            alert('头像上传失败');
-        }
-
-        avatarInput.value = '';
-    });
-
-    settingsSaveBtn.addEventListener('click', () => {
-        const newNickname = nicknameInput.value.trim();
-        
-        if (newNickname && newNickname !== currentUsername) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'updateProfile',
-                    newUsername: newNickname,
-                    newAvatar: newAvatarUrl
-                }));
-            }
-            
-            const oldUsername = currentUsername;
-            currentUsername = newNickname;
-            
-            allMessages.forEach(msg => {
-                if (msg.username === oldUsername) {
-                    msg.username = newNickname;
+                if (data.url) {
+                    newAvatarUrl = data.url;
+                    updateAvatarPreview();
                 }
-            });
-            
-            if (newAvatarUrl) {
-                currentAvatar = newAvatarUrl;
+            } catch (error) {
+                console.error('头像上传失败:', error);
+                alert('头像上传失败');
             }
+
+            avatarInput.value = '';
+        });
+    }
+
+    if (settingsSaveBtn && nicknameInput && settingsPanel) {
+        settingsSaveBtn.addEventListener('click', () => {
+            const newNickname = nicknameInput.value.trim();
             
-            refreshMessages();
-            updateAvatarPreview();
-            
-            alert('设置已保存！');
-            settingsPanel.classList.remove('active');
-        } else if (!newNickname) {
-            alert('请输入昵称');
-        } else {
-            if (newAvatarUrl) {
-                currentAvatar = newAvatarUrl;
+            if (newNickname && newNickname !== currentUsername) {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({
                         type: 'updateProfile',
-                        newUsername: currentUsername,
+                        newUsername: newNickname,
                         newAvatar: newAvatarUrl
                     }));
                 }
+                
+                const oldUsername = currentUsername;
+                currentUsername = newNickname;
+                
+                allMessages.forEach(msg => {
+                    if (msg.username === oldUsername) {
+                        msg.username = newNickname;
+                    }
+                });
+                
+                if (newAvatarUrl) {
+                    currentAvatar = newAvatarUrl;
+                }
+                
+                refreshMessages();
                 updateAvatarPreview();
-                alert('头像已更新！');
+                
+                alert('设置已保存！');
                 settingsPanel.classList.remove('active');
+            } else if (!newNickname) {
+                alert('请输入昵称');
             } else {
-                alert('没有修改任何设置');
+                if (newAvatarUrl) {
+                    currentAvatar = newAvatarUrl;
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'updateProfile',
+                            newUsername: currentUsername,
+                            newAvatar: newAvatarUrl
+                        }));
+                    }
+                    updateAvatarPreview();
+                    alert('头像已更新！');
+                    settingsPanel.classList.remove('active');
+                } else {
+                    alert('没有修改任何设置');
+                }
             }
-        }
-        
-        newAvatarUrl = '';
-    });
+            
+            newAvatarUrl = '';
+        });
+    }
 
     function refreshMessages() {
         messagesArea.innerHTML = '';
@@ -382,6 +398,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showReactionSelector(messageId, targetElement) {
+        if (!reactionSelector || !messagesArea) return;
+        
         activeReactionMessageId = messageId;
         const rect = targetElement.getBoundingClientRect();
         const messagesRect = messagesArea.getBoundingClientRect();
@@ -392,36 +410,43 @@ document.addEventListener('DOMContentLoaded', function() {
         reactionSelector.classList.add('active');
     }
 
-    document.querySelectorAll('.reaction-selector-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const emoji = item.dataset.emoji;
-            if (activeReactionMessageId && ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'addReaction',
-                    messageId: activeReactionMessageId,
-                    emoji: emoji,
-                    username: currentUsername
-                }));
+    const reactionSelectorItems = document.querySelectorAll('.reaction-selector-item');
+    if (reactionSelectorItems.length > 0 && reactionSelector && messagesArea) {
+        reactionSelectorItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const emoji = item.dataset.emoji;
+                if (activeReactionMessageId && ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'addReaction',
+                        messageId: activeReactionMessageId,
+                        emoji: emoji,
+                        username: currentUsername
+                    }));
 
-                const messageEl = messagesArea.querySelector('[data-message-id="' + activeReactionMessageId + '"]');
-                if (messageEl) {
-                    animateReaction(messageEl, emoji);
+                    const messageEl = messagesArea.querySelector('[data-message-id="' + activeReactionMessageId + '"]');
+                    if (messageEl) {
+                        animateReaction(messageEl, emoji);
+                    }
+
+                    reactionSelector.classList.remove('active');
+                    activeReactionMessageId = null;
                 }
+            });
+        });
+    }
 
+    if (reactionSelector) {
+        document.addEventListener('click', (e) => {
+            if (!reactionSelector.contains(e.target) && !e.target.classList.contains('react')) {
                 reactionSelector.classList.remove('active');
                 activeReactionMessageId = null;
             }
         });
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!reactionSelector.contains(e.target) && !e.target.classList.contains('react')) {
-            reactionSelector.classList.remove('active');
-            activeReactionMessageId = null;
-        }
-    });
+    }
 
     function toggleSearch() {
+        if (!searchPanel || !searchInput || !searchResults) return;
+        
         searchPanel.classList.toggle('active');
         if (searchPanel.classList.contains('active')) {
             searchInput.focus();
@@ -431,11 +456,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    searchBtn.addEventListener('click', toggleSearch);
+    if (searchBtn) {
+        searchBtn.addEventListener('click', toggleSearch);
+    }
 
-    searchInput.addEventListener('input', performSearch);
-    searchFilterUser.addEventListener('change', performSearch);
-    searchFilterStarred.addEventListener('change', performSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+    }
+    
+    if (searchFilterUser) {
+        searchFilterUser.addEventListener('change', performSearch);
+    }
+    
+    if (searchFilterStarred) {
+        searchFilterStarred.addEventListener('change', performSearch);
+    }
 
     function updateSearchFilterUsers() {
         if (!searchFilterUser) return;
@@ -454,12 +489,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    searchBtn.addEventListener('click', () => {
-        toggleSearch();
-        if (searchPanel.classList.contains('active')) {
-            updateSearchFilterUsers();
-        }
-    });
+    if (searchBtn && searchPanel) {
+        searchBtn.addEventListener('click', () => {
+            toggleSearch();
+            if (searchPanel.classList.contains('active')) {
+                updateSearchFilterUsers();
+            }
+        });
+    }
 
     function scrollToMessage(messageId) {
         const msgElement = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
@@ -473,6 +510,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initEmojiPicker() {
+        if (!emojiPicker || !messageInput) return;
+        
         emojis.forEach(emoji => {
             const emojiItem = document.createElement('span');
             emojiItem.className = 'emoji-item';
@@ -487,26 +526,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function toggleEmojiPicker() {
+        if (!emojiPicker) return;
         emojiPicker.classList.toggle('active');
     }
 
-    emojiBtn.addEventListener('click', toggleEmojiPicker);
+    if (emojiBtn) {
+        emojiBtn.addEventListener('click', toggleEmojiPicker);
+    }
 
-    document.addEventListener('click', (e) => {
-        if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-            emojiPicker.classList.remove('active');
-        }
-        if (!mentionSuggestions.contains(e.target) && e.target !== messageInput) {
-            mentionSuggestions.classList.remove('active');
-            mentionMode = false;
-        }
-    });
+    if (emojiPicker && emojiBtn && mentionSuggestions && messageInput) {
+        document.addEventListener('click', (e) => {
+            if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+                emojiPicker.classList.remove('active');
+            }
+            if (!mentionSuggestions.contains(e.target) && e.target !== messageInput) {
+                mentionSuggestions.classList.remove('active');
+                mentionMode = false;
+            }
+        });
+    }
 
-    imageBtn.addEventListener('click', () => {
-        imageInput.click();
-    });
+    if (imageBtn && imageInput) {
+        imageBtn.addEventListener('click', () => {
+            imageInput.click();
+        });
 
-    imageInput.addEventListener('change', handleImageUpload);
+        imageInput.addEventListener('change', handleImageUpload);
+    }
 
     async function handleImageUpload() {
         const file = imageInput.files[0];
@@ -566,63 +612,77 @@ document.addEventListener('DOMContentLoaded', function() {
                String(date.getSeconds()).padStart(2, '0');
     }
 
-    createRoomBtn.addEventListener('click', () => {
-        const roomName = newRoomInput.value.trim();
-        if (roomName) {
-            ws.send(JSON.stringify({
-                type: 'createRoom',
-                roomName: roomName
-            }));
-            newRoomInput.value = '';
-        }
-    });
+    if (createRoomBtn && newRoomInput) {
+        createRoomBtn.addEventListener('click', () => {
+            const roomName = newRoomInput.value.trim();
+            if (roomName) {
+                ws.send(JSON.stringify({
+                    type: 'createRoom',
+                    roomName: roomName
+                }));
+                newRoomInput.value = '';
+            }
+        });
+    }
 
-    loginBtn.addEventListener('click', login);
-    usernameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-    });
+    if (loginBtn) {
+        loginBtn.addEventListener('click', login);
+    }
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    }
 
-    sendBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !mentionMode) sendMessage();
-    });
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+    }
+    
+    if (messageInput) {
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !mentionMode) sendMessage();
+        });
 
-    messageInput.addEventListener('input', () => {
-        const value = messageInput.value;
-        const lastAtIndex = value.lastIndexOf('@');
+        messageInput.addEventListener('input', () => {
+            const value = messageInput.value;
+            const lastAtIndex = value.lastIndexOf('@');
 
-        if (lastAtIndex !== -1 && (lastAtIndex === 0 || value[lastAtIndex - 1] === ' ')) {
-            const afterAt = value.substring(lastAtIndex + 1);
-            if (!afterAt.includes(' ')) {
-                mentionMode = true;
-                mentionFilter = afterAt.toLowerCase();
-                showMentionSuggestions();
+            if (lastAtIndex !== -1 && (lastAtIndex === 0 || value[lastAtIndex - 1] === ' ')) {
+                const afterAt = value.substring(lastAtIndex + 1);
+                if (!afterAt.includes(' ')) {
+                    mentionMode = true;
+                    mentionFilter = afterAt.toLowerCase();
+                    showMentionSuggestions();
+                } else {
+                    mentionMode = false;
+                    if (mentionSuggestions) mentionSuggestions.classList.remove('active');
+                }
             } else {
                 mentionMode = false;
-                mentionSuggestions.classList.remove('active');
+                if (mentionSuggestions) mentionSuggestions.classList.remove('active');
             }
-        } else {
-            mentionMode = false;
-            mentionSuggestions.classList.remove('active');
-        }
 
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                type: 'typing',
-                username: currentUsername
-            }));
-
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
-                    type: 'stopTyping',
+                    type: 'typing',
                     username: currentUsername
                 }));
-            }, 2000);
-        }
-    });
+
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    ws.send(JSON.stringify({
+                        type: 'stopTyping',
+                        username: currentUsername
+                    }));
+                }, 2000);
+            }
+        });
+    }
 
     function showMentionSuggestions() {
+        if (!mentionSuggestions || !messageInput) return;
+        
         mentionSuggestions.innerHTML = '';
         const filteredUsers = onlineUsers.filter(user => 
             user.username !== currentUsername &&
@@ -652,45 +712,57 @@ document.addEventListener('DOMContentLoaded', function() {
         mentionSuggestions.classList.add('active');
     }
 
-    replyBoxClose.addEventListener('click', clearReply);
+    if (replyBoxClose && replyBox && replyBoxText) {
+        replyBoxClose.addEventListener('click', clearReply);
+    }
 
     function setReply(messageId, author, content) {
+        if (!replyBox || !replyBoxText) return;
+        
         replyingTo = { id: messageId, author: author, content: content };
         replyBox.classList.add('active');
         replyBoxText.textContent = author + ': ' + content;
     }
 
     function clearReply() {
+        if (!replyBox || !replyBoxText) return;
+        
         replyingTo = null;
         replyBox.classList.remove('active');
         replyBoxText.textContent = '';
     }
 
-    groupChatBtn.addEventListener('click', () => {
-        isPrivateMode = false;
-        privateTarget = null;
-        groupChatBtn.classList.add('active');
-        privateChatBtn.classList.remove('active');
-        privateChatPanel.classList.remove('active');
-        messageInput.placeholder = '在 ' + currentRoom + ' 发消息...';
-        messagesArea.innerHTML = '';
-        allMessages.forEach(msg => {
-            if (!msg.isPrivate || msg.toUser === currentUsername || msg.username === currentUsername) {
+    if (groupChatBtn && privateChatBtn && privateChatPanel && messageInput && messagesArea) {
+        groupChatBtn.addEventListener('click', () => {
+            isPrivateMode = false;
+            privateTarget = null;
+            groupChatBtn.classList.add('active');
+            privateChatBtn.classList.remove('active');
+            privateChatPanel.classList.remove('active');
+            messageInput.placeholder = '在 ' + currentRoom + ' 发消息...';
+            messagesArea.innerHTML = '';
+            allMessages.forEach(msg => {
+                if (!msg.isPrivate || msg.toUser === currentUsername || msg.username === currentUsername) {
                 addMessage(msg);
             }
         });
     });
 
-    privateChatBtn.addEventListener('click', () => {
-        isPrivateMode = true;
-        groupChatBtn.classList.remove('active');
-        privateChatBtn.classList.add('active');
-        privateChatPanel.classList.toggle('active');
-    });
+    if (privateChatBtn && groupChatBtn && privateChatPanel) {
+        privateChatBtn.addEventListener('click', () => {
+            isPrivateMode = true;
+            groupChatBtn.classList.remove('active');
+            privateChatBtn.classList.add('active');
+            privateChatPanel.classList.toggle('active');
+        });
+    }
 
-    document.getElementById('roomBtn').addEventListener('click', () => {
-        roomPanel.classList.toggle('active');
-    });
+    const roomBtn = document.getElementById('roomBtn');
+    if (roomBtn && roomPanel) {
+        roomBtn.addEventListener('click', () => {
+            roomPanel.classList.toggle('active');
+        });
+    }
 
     function login() {
         const username = usernameInput.value.trim();
@@ -741,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMessage(data) {
         switch(data.type) {
             case 'loginSuccess':
-                loginScreen.style.display = 'none';
+                if (loginScreen) loginScreen.style.display = 'none';
                 currentUsername = data.username;
                 currentAvatar = data.avatar;
                 currentRoom = data.room || '大厅';
@@ -767,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.votes) {
                     votes = data.votes;
                 }
-                messageInput.focus();
+                if (messageInput) messageInput.focus();
                 initTheme();
                 initExtraFeatures();
                 scrollToBottom();
@@ -778,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ws.close();
                     ws = null;
                 }
-                usernameInput.focus();
+                if (usernameInput) usernameInput.focus();
                 break;
             case 'message':
                 allMessages.push(data);
@@ -4227,47 +4299,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function initFilterFeature() {
         loadFilterSettings();
-        renderFilterKeywords();
-        renderSensitiveWords();
-        renderReportHistory();
+        if (filterKeywordsList) renderFilterKeywords();
+        if (sensitiveWordsList) renderSensitiveWords();
+        if (reportHistoryList) renderReportHistory();
 
-        filterBtn.addEventListener('click', () => {
-            filterPanel.classList.toggle('active');
-        });
-
-        filterClose.addEventListener('click', () => {
-            filterPanel.classList.remove('active');
-        });
-
-        filterTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.tab;
-                filterTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                filterKeywordsContent.style.display = 'none';
-                filterSensitiveContent.style.display = 'none';
-                filterReportsContent.style.display = 'none';
-
-                if (tabName === 'keywords') {
-                    filterKeywordsContent.style.display = 'block';
-                } else if (tabName === 'sensitive') {
-                    filterSensitiveContent.style.display = 'block';
-                } else if (tabName === 'reports') {
-                    filterReportsContent.style.display = 'block';
-                }
+        if (filterBtn && filterPanel) {
+            filterBtn.addEventListener('click', () => {
+                filterPanel.classList.toggle('active');
             });
-        });
+        }
 
-        addFilterKeywordBtn.addEventListener('click', addFilterKeyword);
-        filterKeywordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addFilterKeyword();
-        });
+        if (filterClose && filterPanel) {
+            filterClose.addEventListener('click', () => {
+                filterPanel.classList.remove('active');
+            });
+        }
 
-        showFilterNoticeToggle.addEventListener('change', () => {
-            showFilterNotice = showFilterNoticeToggle.checked;
-            saveFilterSettings();
-        });
+        if (filterTabs.length > 0 && filterKeywordsContent && filterSensitiveContent && filterReportsContent) {
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    filterKeywordsContent.style.display = 'none';
+                    filterSensitiveContent.style.display = 'none';
+                    filterReportsContent.style.display = 'none';
+
+                    if (tabName === 'keywords') {
+                        filterKeywordsContent.style.display = 'block';
+                    } else if (tabName === 'sensitive') {
+                        filterSensitiveContent.style.display = 'block';
+                    } else if (tabName === 'reports') {
+                        filterReportsContent.style.display = 'block';
+                    }
+                });
+            });
+        }
+
+        if (addFilterKeywordBtn) {
+            addFilterKeywordBtn.addEventListener('click', addFilterKeyword);
+        }
+
+        if (filterKeywordInput) {
+            filterKeywordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addFilterKeyword();
+            });
+        }
+
+        if (showFilterNoticeToggle) {
+            showFilterNoticeToggle.addEventListener('change', () => {
+                showFilterNotice = showFilterNoticeToggle.checked;
+                saveFilterSettings();
+            });
+        }
     }
 
     function loadFilterSettings() {
@@ -4282,7 +4367,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const savedNotice = localStorage.getItem('showFilterNotice');
         if (savedNotice !== null) showFilterNotice = savedNotice === 'true';
-        showFilterNoticeToggle.checked = showFilterNotice;
+        if (showFilterNoticeToggle) showFilterNoticeToggle.checked = showFilterNotice;
     }
 
     function saveFilterSettings() {
@@ -4293,6 +4378,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addFilterKeyword() {
+        if (!filterKeywordInput) return;
         const keyword = filterKeywordInput.value.trim();
         if (!keyword) return;
 
@@ -4312,27 +4398,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderFilterKeywords() {
-        filterKeywordsList.innerHTML = '';
-        filterKeywords.forEach(keyword => {
-            const span = document.createElement('span');
-            span.className = 'filter-keyword';
-            span.innerHTML = `${keyword} <span class="delete-keyword" data-keyword="${keyword}">×</span>`;
-            span.querySelector('.delete-keyword').addEventListener('click', () => removeFilterKeyword(keyword));
-            filterKeywordsList.appendChild(span);
-        });
+        if (filterKeywordsList) {
+            filterKeywordsList.innerHTML = '';
+            filterKeywords.forEach(keyword => {
+                const span = document.createElement('span');
+                span.className = 'filter-keyword';
+                span.innerHTML = `${keyword} <span class="delete-keyword" data-keyword="${keyword}">×</span>`;
+                span.querySelector('.delete-keyword').addEventListener('click', () => removeFilterKeyword(keyword));
+                filterKeywordsList.appendChild(span);
+            });
+        }
     }
 
     function renderSensitiveWords() {
-        sensitiveWordsList.innerHTML = '';
-        defaultSensitiveWords.forEach(word => {
-            const isEnabled = sensitiveWords.includes(word);
-            const div = document.createElement('div');
-            div.style.cssText = 'display: inline-block; margin: 4px; cursor: pointer; padding: 4px 10px; border-radius: 12px; font-size: 12px; transition: all 0.2s;' +
-                (isEnabled ? 'background: var(--primary-color); color: white;' : 'background: var(--bg-secondary); color: var(--text-secondary);');
-            div.textContent = (isEnabled ? '✓ ' : '') + word;
-            div.addEventListener('click', () => toggleSensitiveWord(word, div));
-            sensitiveWordsList.appendChild(div);
-        });
+        if (sensitiveWordsList) {
+            sensitiveWordsList.innerHTML = '';
+            defaultSensitiveWords.forEach(word => {
+                const isEnabled = sensitiveWords.includes(word);
+                const div = document.createElement('div');
+                div.style.cssText = 'display: inline-block; margin: 4px; cursor: pointer; padding: 4px 10px; border-radius: 12px; font-size: 12px; transition: all 0.2s;' +
+                    (isEnabled ? 'background: var(--primary-color); color: white;' : 'background: var(--bg-secondary); color: var(--text-secondary);');
+                div.textContent = (isEnabled ? '✓ ' : '') + word;
+                div.addEventListener('click', () => toggleSensitiveWord(word, div));
+                sensitiveWordsList.appendChild(div);
+            });
+        }
     }
 
     function toggleSensitiveWord(word, element) {
@@ -4351,27 +4441,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderReportHistory() {
-        if (reportHistory.length === 0) {
-            reportHistoryList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无举报记录</div>';
-            return;
-        }
+        if (reportHistoryList) {
+            if (reportHistory.length === 0) {
+                reportHistoryList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无举报记录</div>';
+                return;
+            }
 
-        reportHistoryList.innerHTML = '';
-        reportHistory.slice().reverse().forEach(report => {
-            const item = document.createElement('div');
-            item.className = 'report-history-item';
-            item.innerHTML = `
-                <div class="report-history-content">${report.content}</div>
-                <div class="report-history-meta">
-                    <span>举报人: ${report.reporter}</span>
-                    <span>${report.time}</span>
-                </div>
-                <div style="margin-top: 6px;">
-                    <span class="report-history-status ${report.status}">${getReportStatusText(report.status)}</span>
-                </div>
-            `;
-            reportHistoryList.appendChild(item);
-        });
+            reportHistoryList.innerHTML = '';
+            reportHistory.slice().reverse().forEach(report => {
+                const item = document.createElement('div');
+                item.className = 'report-history-item';
+                item.innerHTML = `
+                    <div class="report-history-content">${report.content}</div>
+                    <div class="report-history-meta">
+                        <span>举报人: ${report.reporter}</span>
+                        <span>${report.time}</span>
+                    </div>
+                    <div style="margin-top: 6px;">
+                        <span class="report-history-status ${report.status}">${getReportStatusText(report.status)}</span>
+                    </div>
+                `;
+                reportHistoryList.appendChild(item);
+            });
+        }
     }
 
     function getReportStatusText(status) {
@@ -4539,23 +4631,34 @@ document.addEventListener('DOMContentLoaded', function() {
         loadDevicesData();
         registerCurrentDevice();
 
-        devicesBtn.addEventListener('click', () => {
-            devicesPanel.classList.toggle('active');
-            if (devicesPanel.classList.contains('active')) {
-                renderDevicesList();
-            }
-        });
+        if (devicesBtn && devicesPanel) {
+            devicesBtn.addEventListener('click', () => {
+                devicesPanel.classList.toggle('active');
+                if (devicesPanel.classList.contains('active')) {
+                    renderDevicesList();
+                }
+            });
+        }
 
-        devicesClose.addEventListener('click', () => {
-            devicesPanel.classList.remove('active');
-        });
+        if (devicesClose && devicesPanel) {
+            devicesClose.addEventListener('click', () => {
+                devicesPanel.classList.remove('active');
+            });
+        }
 
-        syncAllBtn.addEventListener('click', syncAllDevices);
+        if (syncAllBtn) {
+            syncAllBtn.addEventListener('click', syncAllDevices);
+        }
 
-        trustDeviceBtn.addEventListener('click', trustNewDevice);
-        ignoreDeviceBtn.addEventListener('click', () => {
-            newDeviceNotification.classList.remove('active');
-        });
+        if (trustDeviceBtn) {
+            trustDeviceBtn.addEventListener('click', trustNewDevice);
+        }
+
+        if (ignoreDeviceBtn && newDeviceNotification) {
+            ignoreDeviceBtn.addEventListener('click', () => {
+                newDeviceNotification.classList.remove('active');
+            });
+        }
 
         startDeviceSync();
     }
@@ -4569,8 +4672,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedDevices) devices = JSON.parse(savedDevices);
 
         const deviceInfo = getDeviceInfo();
-        currentDeviceIcon.textContent = deviceInfo.icon;
-        currentDeviceName.textContent = deviceInfo.name;
+        if (currentDeviceIcon) currentDeviceIcon.textContent = deviceInfo.icon;
+        if (currentDeviceName) currentDeviceName.textContent = deviceInfo.name;
     }
 
     function registerCurrentDevice() {
@@ -4599,42 +4702,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderDevicesList() {
-        devicesList.innerHTML = '';
+        if (devicesList) {
+            devicesList.innerHTML = '';
 
-        const otherDevices = devices.filter(d => d.id !== currentDeviceId);
+            const otherDevices = devices.filter(d => d.id !== currentDeviceId);
 
-        if (otherDevices.length === 0) {
-            devicesList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无其他设备</div>';
-            return;
-        }
+            if (otherDevices.length === 0) {
+                devicesList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无其他设备</div>';
+                return;
+            }
 
-        otherDevices.forEach(device => {
-            const item = document.createElement('div');
-            item.className = 'device-item';
+            otherDevices.forEach(device => {
+                const item = document.createElement('div');
+                item.className = 'device-item';
 
-            const lastActive = new Date(device.lastActive);
-            const timeStr = getRelativeTime(lastActive);
+                const lastActive = new Date(device.lastActive);
+                const timeStr = getRelativeTime(lastActive);
 
-            item.innerHTML = `
-                <span class="device-icon">${device.icon}</span>
-                <div class="device-item-info">
-                    <div class="device-item-name">
-                        ${device.name}
-                        ${device.trusted ? '<span class="current-badge">已信任</span>' : ''}
+                item.innerHTML = `
+                    <span class="device-icon">${device.icon}</span>
+                    <div class="device-item-info">
+                        <div class="device-item-name">
+                            ${device.name}
+                            ${device.trusted ? '<span class="current-badge">已信任</span>' : ''}
+                        </div>
+                        <div class="device-item-meta">最后活动: ${timeStr}</div>
                     </div>
-                    <div class="device-item-meta">最后活动: ${timeStr}</div>
-                </div>
-                <div class="device-item-actions">
-                    <button class="device-sync-btn" data-device-id="${device.id}">同步</button>
-                    <button class="device-kick-btn" data-device-id="${device.id}">踢出</button>
-                </div>
-            `;
+                    <div class="device-item-actions">
+                        <button class="device-sync-btn" data-device-id="${device.id}">同步</button>
+                        <button class="device-kick-btn" data-device-id="${device.id}">踢出</button>
+                    </div>
+                `;
 
-            item.querySelector('.device-sync-btn').addEventListener('click', () => syncDevice(device.id));
-            item.querySelector('.device-kick-btn').addEventListener('click', () => kickDevice(device.id));
+                item.querySelector('.device-sync-btn').addEventListener('click', () => syncDevice(device.id));
+                item.querySelector('.device-kick-btn').addEventListener('click', () => kickDevice(device.id));
 
-            devicesList.appendChild(item);
-        });
+                devicesList.appendChild(item);
+            });
+        }
     }
 
     function getRelativeTime(date) {
@@ -4720,11 +4825,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showNewDeviceNotification(deviceInfo) {
-        newDeviceContent.textContent = `检测到新设备登录: ${deviceInfo.name}`;
-        newDeviceNotification.classList.add('active');
+        if (newDeviceContent) newDeviceContent.textContent = `检测到新设备登录: ${deviceInfo.name}`;
+        if (newDeviceNotification) newDeviceNotification.classList.add('active');
 
         setTimeout(() => {
-            newDeviceNotification.classList.remove('active');
+            if (newDeviceNotification) newDeviceNotification.classList.remove('active');
         }, 10000);
     }
 
@@ -4735,7 +4840,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveDevicesData();
         }
 
-        newDeviceNotification.classList.remove('active');
+        if (newDeviceNotification) newDeviceNotification.classList.remove('active');
     }
 
     function startDeviceSync() {
@@ -4766,30 +4871,40 @@ document.addEventListener('DOMContentLoaded', function() {
     function initEncryptionFeature() {
         loadEncryptionSettings();
 
-        encryptionBtn.addEventListener('click', () => {
-            encryptionPanel.classList.toggle('active');
-        });
+        if (encryptionBtn && encryptionPanel) {
+            encryptionBtn.addEventListener('click', () => {
+                encryptionPanel.classList.toggle('active');
+            });
+        }
 
-        encryptionClose.addEventListener('click', () => {
-            encryptionPanel.classList.remove('active');
-        });
+        if (encryptionClose && encryptionPanel) {
+            encryptionClose.addEventListener('click', () => {
+                encryptionPanel.classList.remove('active');
+            });
+        }
 
-        encryptionToggle.addEventListener('change', () => {
-            encryptionEnabled = encryptionToggle.checked;
-            saveEncryptionSettings();
-            updateEncryptionIndicator();
-        });
+        if (encryptionToggle) {
+            encryptionToggle.addEventListener('change', () => {
+                encryptionEnabled = encryptionToggle.checked;
+                saveEncryptionSettings();
+                updateEncryptionIndicator();
+            });
+        }
 
-        encryptionKeyInput.addEventListener('input', () => {
-            encryptionKey = encryptionKeyInput.value;
-            saveEncryptionSettings();
-        });
+        if (encryptionKeyInput) {
+            encryptionKeyInput.addEventListener('input', () => {
+                encryptionKey = encryptionKeyInput.value;
+                saveEncryptionSettings();
+            });
+        }
 
-        generateKeyBtn.addEventListener('click', () => {
-            encryptionKey = generateRandomKey();
-            encryptionKeyInput.value = encryptionKey;
-            saveEncryptionSettings();
-        });
+        if (generateKeyBtn && encryptionKeyInput) {
+            generateKeyBtn.addEventListener('click', () => {
+                encryptionKey = generateRandomKey();
+                encryptionKeyInput.value = encryptionKey;
+                saveEncryptionSettings();
+            });
+        }
     }
 
     function loadEncryptionSettings() {
@@ -4799,8 +4914,8 @@ document.addEventListener('DOMContentLoaded', function() {
             encryptionEnabled = settings.enabled || false;
             encryptionKey = settings.key || '';
 
-            encryptionToggle.checked = encryptionEnabled;
-            encryptionKeyInput.value = encryptionKey;
+            if (encryptionToggle) encryptionToggle.checked = encryptionEnabled;
+            if (encryptionKeyInput) encryptionKeyInput.value = encryptionKey;
         }
     }
 
@@ -4898,32 +5013,42 @@ document.addEventListener('DOMContentLoaded', function() {
     function initAIFeature() {
         loadAISettings();
 
-        aiBtn.addEventListener('click', () => {
-            aiSettingsPanel.classList.toggle('active');
-        });
+        if (aiBtn && aiSettingsPanel) {
+            aiBtn.addEventListener('click', () => {
+                aiSettingsPanel.classList.toggle('active');
+            });
+        }
 
-        aiSettingsClose.addEventListener('click', () => {
-            aiSettingsPanel.classList.remove('active');
-        });
+        if (aiSettingsClose && aiSettingsPanel) {
+            aiSettingsClose.addEventListener('click', () => {
+                aiSettingsPanel.classList.remove('active');
+            });
+        }
 
-        aiEnabledToggle.addEventListener('change', () => {
-            aiEnabled = aiEnabledToggle.checked;
-            saveAISettings();
-        });
-
-        aiRoleSelect.addEventListener('change', () => {
-            aiRole = aiRoleSelect.value;
-            saveAISettings();
-        });
-
-        aiResetContextBtn.addEventListener('click', () => {
-            if (confirm('确定要清空AI对话上下文吗？')) {
-                aiContext = [];
+        if (aiEnabledToggle) {
+            aiEnabledToggle.addEventListener('change', () => {
+                aiEnabled = aiEnabledToggle.checked;
                 saveAISettings();
-                updateAIContextCount();
-                alert('上下文已清空');
-            }
-        });
+            });
+        }
+
+        if (aiRoleSelect) {
+            aiRoleSelect.addEventListener('change', () => {
+                aiRole = aiRoleSelect.value;
+                saveAISettings();
+            });
+        }
+
+        if (aiResetContextBtn) {
+            aiResetContextBtn.addEventListener('click', () => {
+                if (confirm('确定要清空AI对话上下文吗？')) {
+                    aiContext = [];
+                    saveAISettings();
+                    updateAIContextCount();
+                    alert('上下文已清空');
+                }
+            });
+        }
 
         updateAIContextCount();
     }
@@ -4936,8 +5061,8 @@ document.addEventListener('DOMContentLoaded', function() {
             aiRole = settings.role || 'assistant';
             aiContext = settings.context || [];
 
-            aiEnabledToggle.checked = aiEnabled;
-            aiRoleSelect.value = aiRole;
+            if (aiEnabledToggle) aiEnabledToggle.checked = aiEnabled;
+            if (aiRoleSelect) aiRoleSelect.value = aiRole;
         }
     }
 
@@ -4950,7 +5075,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateAIContextCount() {
-        aiContextCount.textContent = aiContext.length + ' 条消息';
+        if (aiContextCount) aiContextCount.textContent = aiContext.length + ' 条消息';
     }
 
     function shouldTriggerAI(text) {
@@ -5447,75 +5572,98 @@ document.addEventListener('DOMContentLoaded', function() {
         const stylePanel = document.getElementById('styleSettingsPanel');
         const styleClose = document.getElementById('styleSettingsClose');
 
-        styleBtn.addEventListener('click', () => {
-            stylePanel.classList.toggle('active');
-        });
-
-        styleClose.addEventListener('click', () => {
-            stylePanel.classList.remove('active');
-        });
-
-        document.querySelectorAll('.bubble-theme-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.bubble-theme-option').forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                currentBubbleTheme = option.dataset.theme;
-                saveBubbleSettings();
-                applyBubbleStyles();
+        if (styleBtn && stylePanel) {
+            styleBtn.addEventListener('click', () => {
+                stylePanel.classList.toggle('active');
             });
-        });
+        }
+
+        if (styleClose && stylePanel) {
+            styleClose.addEventListener('click', () => {
+                stylePanel.classList.remove('active');
+            });
+        }
+
+        const themeOptions = document.querySelectorAll('.bubble-theme-option');
+        if (themeOptions.length > 0) {
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.bubble-theme-option').forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    currentBubbleTheme = option.dataset.theme;
+                    saveBubbleSettings();
+                    applyBubbleStyles();
+                });
+            });
+        }
 
         const colorPicker = document.getElementById('bubbleColorPicker');
         const colorText = document.getElementById('bubbleColorText');
 
-        colorPicker.addEventListener('input', (e) => {
-            customBubbleColor = e.target.value;
-            colorText.value = e.target.value;
-            saveBubbleSettings();
-            applyBubbleStyles();
-        });
-
-        colorText.addEventListener('input', (e) => {
-            const value = e.target.value;
-            if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-                customBubbleColor = value;
-                colorPicker.value = value;
+        if (colorPicker && colorText) {
+            colorPicker.addEventListener('input', (e) => {
+                customBubbleColor = e.target.value;
+                colorText.value = e.target.value;
                 saveBubbleSettings();
                 applyBubbleStyles();
-            }
-        });
+            });
+
+            colorText.addEventListener('input', (e) => {
+                const value = e.target.value;
+                if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                    customBubbleColor = value;
+                    colorPicker.value = value;
+                    saveBubbleSettings();
+                    applyBubbleStyles();
+                }
+            });
+        }
 
         const radiusSlider = document.getElementById('bubbleRadiusSlider');
         const radiusValue = document.getElementById('bubbleRadiusValue');
 
-        radiusSlider.addEventListener('input', (e) => {
-            bubbleRadius = parseInt(e.target.value);
-            radiusValue.textContent = bubbleRadius + 'px';
-            saveBubbleSettings();
-            applyBubbleStyles();
-        });
+        if (radiusSlider && radiusValue) {
+            radiusSlider.addEventListener('input', (e) => {
+                bubbleRadius = parseInt(e.target.value);
+                radiusValue.textContent = bubbleRadius + 'px';
+                saveBubbleSettings();
+                applyBubbleStyles();
+            });
+        }
 
-        document.getElementById('bubbleShadowToggle').addEventListener('change', (e) => {
-            bubbleShadowEnabled = e.target.checked;
-            saveBubbleSettings();
-            applyBubbleStyles();
-        });
+        const shadowToggle = document.getElementById('bubbleShadowToggle');
+        if (shadowToggle) {
+            shadowToggle.addEventListener('change', (e) => {
+                bubbleShadowEnabled = e.target.checked;
+                saveBubbleSettings();
+                applyBubbleStyles();
+            });
+        }
 
-        document.getElementById('animationToggle').addEventListener('change', (e) => {
-            animationsEnabled = e.target.checked;
-            saveBubbleSettings();
-            applyBubbleStyles();
-        });
+        const animationToggle = document.getElementById('animationToggle');
+        if (animationToggle) {
+            animationToggle.addEventListener('change', (e) => {
+                animationsEnabled = e.target.checked;
+                saveBubbleSettings();
+                applyBubbleStyles();
+            });
+        }
 
-        document.getElementById('slideAnimToggle').addEventListener('change', (e) => {
-            slideAnimEnabled = e.target.checked;
-            saveBubbleSettings();
-        });
+        const slideAnimToggle = document.getElementById('slideAnimToggle');
+        if (slideAnimToggle) {
+            slideAnimToggle.addEventListener('change', (e) => {
+                slideAnimEnabled = e.target.checked;
+                saveBubbleSettings();
+            });
+        }
 
-        document.getElementById('emojiAnimToggle').addEventListener('change', (e) => {
-            emojiAnimEnabled = e.target.checked;
-            saveBubbleSettings();
-        });
+        const emojiAnimToggle = document.getElementById('emojiAnimToggle');
+        if (emojiAnimToggle) {
+            emojiAnimToggle.addEventListener('change', (e) => {
+                emojiAnimEnabled = e.target.checked;
+                saveBubbleSettings();
+            });
+        }
     }
 
     function applyBubbleStyles() {
@@ -5803,48 +5951,67 @@ document.addEventListener('DOMContentLoaded', function() {
         const userColorsPanel = document.getElementById('userColorsPanel');
         const userColorsClose = document.getElementById('userColorsClose');
 
-        userColorsBtn.addEventListener('click', () => {
-            userColorsPanel.classList.toggle('active');
-        });
+        if (userColorsBtn && userColorsPanel) {
+            userColorsBtn.addEventListener('click', () => {
+                userColorsPanel.classList.toggle('active');
+            });
+        }
 
-        userColorsClose.addEventListener('click', () => {
-            userColorsPanel.classList.remove('active');
-        });
+        if (userColorsClose && userColorsPanel) {
+            userColorsClose.addEventListener('click', () => {
+                userColorsPanel.classList.remove('active');
+            });
+        }
 
-        document.querySelectorAll('.color-preset').forEach(preset => {
-            preset.addEventListener('click', () => {
-                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
-                customBubbleColor = preset.dataset.color;
+        const colorPresets = document.querySelectorAll('.color-preset');
+        if (colorPresets.length > 0) {
+            colorPresets.forEach(preset => {
+                preset.addEventListener('click', () => {
+                    document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+                    preset.classList.add('active');
+                    customBubbleColor = preset.dataset.color;
+                    saveBubbleSettings();
+                    applyBubbleStyles();
+                });
+            });
+        }
+
+        const userCustomColorPicker = document.getElementById('userCustomColorPicker');
+        if (userCustomColorPicker) {
+            userCustomColorPicker.addEventListener('input', (e) => {
+                customBubbleColor = e.target.value;
                 saveBubbleSettings();
                 applyBubbleStyles();
             });
-        });
+        }
 
-        document.getElementById('userCustomColorPicker').addEventListener('input', (e) => {
-            customBubbleColor = e.target.value;
-            saveBubbleSettings();
-            applyBubbleStyles();
-        });
-
-        document.getElementById('specialBadgeToggle').addEventListener('change', (e) => {
-            specialBadgeEnabled = e.target.checked;
-            saveUserColors();
-            applyUserColors();
-        });
-
-        document.getElementById('resetUserColorsBtn').addEventListener('click', () => {
-            if (confirm('确定要重置所有用户颜色吗？')) {
-                userColors = {};
+        const specialBadgeToggle = document.getElementById('specialBadgeToggle');
+        if (specialBadgeToggle) {
+            specialBadgeToggle.addEventListener('change', (e) => {
+                specialBadgeEnabled = e.target.checked;
                 saveUserColors();
                 applyUserColors();
-                alert('用户颜色已重置');
-            }
-        });
+            });
+        }
+
+        const resetUserColorsBtn = document.getElementById('resetUserColorsBtn');
+        if (resetUserColorsBtn) {
+            resetUserColorsBtn.addEventListener('click', () => {
+                if (confirm('确定要重置所有用户颜色吗？')) {
+                    userColors = {};
+                    saveUserColors();
+                    applyUserColors();
+                    alert('用户颜色已重置');
+                }
+            });
+        }
     }
 
     function applyUserColors() {
-        document.getElementById('specialBadgeToggle').checked = specialBadgeEnabled;
+        const specialBadgeToggle = document.getElementById('specialBadgeToggle');
+        if (specialBadgeToggle) {
+            specialBadgeToggle.checked = specialBadgeEnabled;
+        }
     }
 
     function getUserColorClass(username) {
@@ -5898,46 +6065,62 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupBackupListeners() {
         const exportBtn = document.getElementById('exportBtn');
 
-        exportBtn.addEventListener('click', () => {
-            backupPanel.classList.toggle('active');
-        });
-
-        backupClose.addEventListener('click', () => {
-            backupPanel.classList.remove('active');
-        });
-
-        document.querySelectorAll('.time-range-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                backupTimeRange = btn.dataset.range;
-                saveBackupSettings();
+        if (exportBtn && backupPanel) {
+            exportBtn.addEventListener('click', () => {
+                backupPanel.classList.toggle('active');
             });
-        });
+        }
 
-        exportChatBtn.addEventListener('click', exportChat);
+        if (backupClose && backupPanel) {
+            backupClose.addEventListener('click', () => {
+                backupPanel.classList.remove('active');
+            });
+        }
 
-        importChatBtn.addEventListener('click', () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    importChat(file);
-                }
-            };
-            input.click();
-        });
+        const timeRangeBtns = document.querySelectorAll('.time-range-btn');
+        if (timeRangeBtns.length > 0) {
+            timeRangeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    backupTimeRange = btn.dataset.range;
+                    saveBackupSettings();
+                });
+            });
+        }
 
-        document.getElementById('autoBackupToggle').addEventListener('change', (e) => {
-            autoBackupEnabled = e.target.checked;
-            saveBackupSettings();
-            setupAutoBackup();
-        });
+        if (exportChatBtn) {
+            exportChatBtn.addEventListener('click', exportChat);
+        }
+
+        if (importChatBtn) {
+            importChatBtn.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        importChat(file);
+                    }
+                };
+                input.click();
+            });
+        }
+
+        const autoBackupToggle = document.getElementById('autoBackupToggle');
+        if (autoBackupToggle) {
+            autoBackupToggle.addEventListener('change', (e) => {
+                autoBackupEnabled = e.target.checked;
+                saveBackupSettings();
+                setupAutoBackup();
+            });
+        }
     }
 
     function updateBackupRoomOptions() {
+        if (!backupRoomSelect) return;
+        
         const roomNames = Object.keys(rooms);
         backupRoomSelect.innerHTML = '<option value="all">所有房间</option>';
 
@@ -5950,10 +6133,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function exportChat() {
-        const format = document.getElementById('backupFormat').value;
-        const room = document.getElementById('backupRoom').value;
-        const includeImages = document.getElementById('backupIncludeImages').checked;
-        const includeFiles = document.getElementById('backupIncludeFiles').checked;
+        const backupFormat = document.getElementById('backupFormat');
+        const backupRoom = document.getElementById('backupRoom');
+        const backupIncludeImages = document.getElementById('backupIncludeImages');
+        const backupIncludeFiles = document.getElementById('backupIncludeFiles');
+        
+        if (!backupFormat || !backupRoom || !backupIncludeImages || !backupIncludeFiles) {
+            alert('导出功能配置不完整，请刷新页面后重试');
+            return;
+        }
+        
+        const format = backupFormat.value;
+        const room = backupRoom.value;
+        const includeImages = backupIncludeImages.checked;
+        const includeFiles = backupIncludeFiles.checked;
 
         let filteredMessages = allMessages;
 
@@ -6001,7 +6194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         downloadFile(content, filename, mimeType);
-        backupPanel.classList.remove('active');
+        if (backupPanel) backupPanel.classList.remove('active');
         alert('导出成功！');
     }
 
