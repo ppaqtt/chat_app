@@ -5060,6 +5060,10 @@ document.addEventListener('DOMContentLoaded', function() {
         initPreviewFeature();
         initUserColors();
         initBackupFeature();
+        initStats();
+        initReminders();
+        initSoundSettings();
+        initKeyboardShortcuts();
     }
 
     // 在消息操作按钮中添加新按钮
