@@ -260,8 +260,43 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', () => {
             const btnId = item.dataset.btn;
             const btn = document.getElementById(btnId);
-            if (btn) {
+            if (btn && btn !== item) {
                 btn.click();
+            } else if (btnId === 'statsBtn') {
+                statsPanel.classList.toggle('active');
+                if (statsPanel.classList.contains('active')) {
+                    updateStats();
+                }
+            } else if (btnId === 'userColorsBtn') {
+                const userColorsPanel = document.getElementById('userColorsPanel');
+                userColorsPanel.classList.toggle('active');
+            } else if (btnId === 'styleBtn') {
+                const stylePanel = document.getElementById('styleSettingsPanel');
+                stylePanel.classList.toggle('active');
+            } else if (btnId === 'backgroundBtn') {
+                renderBackgroundOptions();
+                settingsPanel.classList.add('active');
+                showTab('background');
+            } else if (btnId === 'filterBtn') {
+                const filterPanel = document.getElementById('filterPanel');
+                filterPanel.classList.toggle('active');
+            } else if (btnId === 'devicesBtn') {
+                const devicesPanel = document.getElementById('devicesPanel');
+                devicesPanel.classList.toggle('active');
+            } else if (btnId === 'encryptionBtn') {
+                const encryptionPanel = document.getElementById('encryptionPanel');
+                encryptionPanel.classList.toggle('active');
+            } else if (btnId === 'aiBtn') {
+                const aiPanel = document.getElementById('aiPanel');
+                aiPanel.classList.toggle('active');
+            } else if (btnId === 'reminderBtn') {
+                reminderPanel.classList.toggle('active');
+                if (reminderPanel.classList.contains('active')) {
+                    renderReminders();
+                }
+            } else if (btnId === 'exportBtn') {
+                const backupPanel = document.getElementById('backupPanel');
+                backupPanel.classList.toggle('active');
             }
             moreDropdown.classList.remove('active');
         });
