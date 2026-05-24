@@ -158,26 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const tagFilterBtn = document.getElementById('tagFilterBtn');
     const tagFilterPanel = document.getElementById('tagFilterPanel');
     const tagFilterOptions = document.getElementById('tagFilterOptions');
-    const filterPanel = document.getElementById('filterPanel');
-    const filterClose = document.getElementById('filterClose');
-    const devicesPanel = document.getElementById('devicesPanel');
-    const devicesClose = document.getElementById('devicesClose');
-    const devicesList = document.getElementById('devicesList');
-    const trustDeviceBtn = document.getElementById('trustDeviceBtn');
-    const ignoreDeviceBtn = document.getElementById('ignoreDeviceBtn');
-    const newDeviceNotification = document.getElementById('newDeviceNotification');
-    const currentDeviceIcon = document.getElementById('currentDeviceIcon');
-    const currentDeviceName = document.getElementById('currentDeviceName');
-    const encryptionPanel = document.getElementById('encryptionPanel');
-    const encryptionClose = document.getElementById('encryptionClose');
-    const styleSettingsPanel = document.getElementById('styleSettingsPanel');
-    const styleSettingsClose = document.getElementById('styleSettingsClose');
-    const userColorsPanel = document.getElementById('userColorsPanel');
-    const userColorsClose = document.getElementById('userColorsClose');
-    const aiPanel = document.getElementById('aiPanel');
-    const aiClose = document.getElementById('aiClose');
-    const backupPanel = document.getElementById('backupPanel');
-    const backupClose = document.getElementById('backupClose');
 
     let newAvatarUrl = '';
     let editingMessageId = null;
@@ -283,33 +263,54 @@ document.addEventListener('DOMContentLoaded', function() {
             if (btn && btn !== item) {
                 btn.click();
             } else if (btnId === 'statsBtn') {
-                statsPanel.classList.toggle('active');
-                if (statsPanel.classList.contains('active')) {
-                    updateStats();
+                const statsPanelEl = document.getElementById('statsPanel');
+                if (statsPanelEl) {
+                    statsPanelEl.classList.toggle('active');
+                    if (statsPanelEl.classList.contains('active')) {
+                        updateStats();
+                    }
                 }
             } else if (btnId === 'userColorsBtn') {
-                userColorsPanel.classList.toggle('active');
+                const userColorsPanelEl = document.getElementById('userColorsPanel');
+                if (userColorsPanelEl) {
+                    userColorsPanelEl.classList.toggle('active');
+                }
             } else if (btnId === 'styleBtn') {
-                styleSettingsPanel.classList.toggle('active');
+                const stylePanelEl = document.getElementById('styleSettingsPanel');
+                if (stylePanelEl) {
+                    stylePanelEl.classList.toggle('active');
+                }
             } else if (btnId === 'backgroundBtn') {
                 renderBackgroundOptions();
                 settingsPanel.classList.add('active');
                 showTab('background');
             } else if (btnId === 'filterBtn') {
-                filterPanel.classList.toggle('active');
+                const filterPanelEl = document.getElementById('filterPanel');
+                if (filterPanelEl) {
+                    filterPanelEl.classList.toggle('active');
+                }
             } else if (btnId === 'devicesBtn') {
-                devicesPanel.classList.toggle('active');
+                const devicesPanelEl = document.getElementById('devicesPanel');
+                if (devicesPanelEl) {
+                    devicesPanelEl.classList.toggle('active');
+                }
             } else if (btnId === 'encryptionBtn') {
-                encryptionPanel.classList.toggle('active');
+                const encryptionPanelEl = document.getElementById('encryptionPanel');
+                if (encryptionPanelEl) {
+                    encryptionPanelEl.classList.toggle('active');
+                }
             } else if (btnId === 'aiBtn') {
                 const aiPanel = document.getElementById('aiPanel');
                 if (aiPanel) {
                     aiPanel.classList.toggle('active');
                 }
             } else if (btnId === 'reminderBtn') {
-                reminderPanel.classList.toggle('active');
-                if (reminderPanel.classList.contains('active')) {
-                    renderReminders();
+                const reminderPanelEl = document.getElementById('reminderPanel');
+                if (reminderPanelEl) {
+                    reminderPanelEl.classList.toggle('active');
+                    if (reminderPanelEl.classList.contains('active')) {
+                        renderReminders();
+                    }
                 }
             } else if (btnId === 'exportBtn') {
                 const backupPanel = document.getElementById('backupPanel');
