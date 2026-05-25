@@ -428,14 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
         newAvatarUrl = '';
     });
 
-    function refreshMessages() {
-        messagesArea.innerHTML = '';
-        allMessages.forEach(msg => {
-            addMessage(msg);
-        });
-        scrollToBottom();
-    }
-
     function showReactionSelector(messageId, targetElement) {
         activeReactionMessageId = messageId;
         const rect = targetElement.getBoundingClientRect();
@@ -1038,52 +1030,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========== 通话事件处理 ==========
-    function handleIncomingCall(data) {
-        if (currentCall) {
-            ws.send(JSON.stringify({
-                type: 'callReject',
-                toUser: data.from,
-                callId: data.callId
-            }));
-            return;
-        }
-
-        currentCall = {
-            from: data.from,
-            callId: data.callId,
-            type: data.callType,
-            status: 'incoming'
-        };
-
-        incomingCallAvatar.textContent = (data.from.charAt(0) || '?').toUpperCase();
-        incomingCallAvatar.style.backgroundColor = data.avatar || generateAvatarColor(data.from);
-        incomingCallText.textContent = data.from;
-        incomingCallType.textContent = data.callType === 'video' ? '视频通话' : '语音通话';
-        incomingCallModal.classList.add('active');
-    }
-
-    function handleCallAnswer(data) {
-        if (currentCall && currentCall.target === data.from) {
-            currentCall.status = 'connected';
-            activeCallBar.classList.add('active');
-            startCallTimer();
-        }
-    }
-
-    function handleCallRejected(data) {
-        if (currentCall) {
-            alert(data.from + ' 拒绝了通话');
-            endCurrentCall();
-        }
-    }
-
-    function handleCallEnded(data) {
-        if (currentCall) {
-            alert('通话已结束');
-            endCurrentCall();
-        }
-    }
-
     function updateMessageReactions(messageId, reactions) {
         const messageEl = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
         if (!messageEl) return;
@@ -1951,12 +1897,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ws.send(JSON.stringify(messageData));
     }
 
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    }
-
     // ========== 位置共享功能 ==========
     locationBtn.addEventListener('click', () => {
         if (!navigator.geolocation) {
@@ -2080,27 +2020,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function initiateCall(targetUser, callType) {
-        if (currentCall) {
-            alert('你正在通话中，请先结束当前通话');
-            return;
-        }
-
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                type: 'callOffer',
-                toUser: targetUser,
-                callType: callType
-            }));
-
-            currentCall = { target: targetUser, type: callType, status: 'calling' };
-            callPanel.classList.remove('active');
-
-            activeCallBar.classList.add('active');
-            activeCallStatus.textContent = '正在呼叫 ' + targetUser + '...';
-        }
-    }
-
     acceptCallBtn.addEventListener('click', () => {
         acceptCall();
     });
@@ -2119,17 +2038,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         endCurrentCall();
     });
-
-    function endCurrentCall() {
-        currentCall = null;
-        activeCallBar.classList.remove('active');
-        incomingCallModal.classList.remove('active');
-        if (callTimer) {
-            clearInterval(callTimer);
-            callTimer = null;
-        }
-        callSeconds = 0;
-    }
 
     function startCallTimer() {
         callSeconds = 0;
