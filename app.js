@@ -259,26 +259,25 @@ document.addEventListener('DOMContentLoaded', function() {
     moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
             const btnId = item.dataset.btn;
+            closeAllPanels(); // 先关闭所有面板
             const btn = document.getElementById(btnId);
             if (btn && btn !== item) {
                 btn.click();
             } else if (btnId === 'statsBtn') {
                 const statsPanelEl = document.getElementById('statsPanel');
                 if (statsPanelEl) {
-                    statsPanelEl.classList.toggle('active');
-                    if (statsPanelEl.classList.contains('active')) {
-                        updateStats();
-                    }
+                    statsPanelEl.classList.add('active');
+                    updateStats();
                 }
             } else if (btnId === 'userColorsBtn') {
                 const userColorsPanelEl = document.getElementById('userColorsPanel');
                 if (userColorsPanelEl) {
-                    userColorsPanelEl.classList.toggle('active');
+                    userColorsPanelEl.classList.add('active');
                 }
             } else if (btnId === 'styleBtn') {
                 const stylePanelEl = document.getElementById('styleSettingsPanel');
                 if (stylePanelEl) {
-                    stylePanelEl.classList.toggle('active');
+                    stylePanelEl.classList.add('active');
                 }
             } else if (btnId === 'backgroundBtn') {
                 renderBackgroundOptions();
@@ -287,35 +286,33 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (btnId === 'filterBtn') {
                 const filterPanelEl = document.getElementById('filterPanel');
                 if (filterPanelEl) {
-                    filterPanelEl.classList.toggle('active');
+                    filterPanelEl.classList.add('active');
                 }
             } else if (btnId === 'devicesBtn') {
                 const devicesPanelEl = document.getElementById('devicesPanel');
                 if (devicesPanelEl) {
-                    devicesPanelEl.classList.toggle('active');
+                    devicesPanelEl.classList.add('active');
                 }
             } else if (btnId === 'encryptionBtn') {
                 const encryptionPanelEl = document.getElementById('encryptionPanel');
                 if (encryptionPanelEl) {
-                    encryptionPanelEl.classList.toggle('active');
+                    encryptionPanelEl.classList.add('active');
                 }
             } else if (btnId === 'aiBtn') {
                 const aiPanel = document.getElementById('aiPanel');
                 if (aiPanel) {
-                    aiPanel.classList.toggle('active');
+                    aiPanel.classList.add('active');
                 }
             } else if (btnId === 'reminderBtn') {
                 const reminderPanelEl = document.getElementById('reminderPanel');
                 if (reminderPanelEl) {
-                    reminderPanelEl.classList.toggle('active');
-                    if (reminderPanelEl.classList.contains('active')) {
-                        renderReminders();
-                    }
+                    reminderPanelEl.classList.add('active');
+                    renderReminders();
                 }
             } else if (btnId === 'exportBtn') {
                 const backupPanel = document.getElementById('backupPanel');
                 if (backupPanel) {
-                    backupPanel.classList.toggle('active');
+                    backupPanel.classList.add('active');
                 }
             }
             moreDropdown.classList.remove('active');
@@ -2400,7 +2397,9 @@ document.addEventListener('DOMContentLoaded', function() {
         reminderPanel.classList.remove('active');
         quickReplyPanel.classList.remove('active');
         starredPanel.classList.remove('active');
-        backgroundPanel.classList.remove('active');
+        // backgroundPanel 可能不存在，所以直接移除
+        const bgPanel = document.getElementById('bgPanel');
+        if (bgPanel) bgPanel.classList.remove('active');
         blockedPanel.classList.remove('active');
         shortcutsHint.classList.remove('active');
         announcementPanel.classList.remove('active');
@@ -2408,6 +2407,21 @@ document.addEventListener('DOMContentLoaded', function() {
         tagFilterPanel.classList.remove('active');
         tagSelector.classList.remove('active');
         userProfileCard.classList.remove('active');
+        // 添加缺失的面板
+        const filterPanel = document.getElementById('filterPanel');
+        if (filterPanel) filterPanel.classList.remove('active');
+        const devicesPanel = document.getElementById('devicesPanel');
+        if (devicesPanel) devicesPanel.classList.remove('active');
+        const encryptionPanel = document.getElementById('encryptionPanel');
+        if (encryptionPanel) encryptionPanel.classList.remove('active');
+        const styleSettingsPanel = document.getElementById('styleSettingsPanel');
+        if (styleSettingsPanel) styleSettingsPanel.classList.remove('active');
+        const userColorsPanel = document.getElementById('userColorsPanel');
+        if (userColorsPanel) userColorsPanel.classList.remove('active');
+        const backupPanel = document.getElementById('backupPanel');
+        if (backupPanel) backupPanel.classList.remove('active');
+        const aiPanel = document.getElementById('aiPanel');
+        if (aiPanel) aiPanel.classList.remove('active');
     }
 
     function toggleShortcutsHint() {
