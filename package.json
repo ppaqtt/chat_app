@@ -1,11 +1,13 @@
 {
   "name": "simple-chat-app",
-  "version": "1.0.0",
-  "description": "极简实时聊天应用",
+  "version": "1.7.0",
+  "description": "极简实时聊天应用，支持局域网和公网访问",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "ip": "node get-ip.js",
+    "get-ip": "node get-ip.js"
   },
   "dependencies": {
     "ws": "^8.20.1"
@@ -13,7 +15,9 @@
   "keywords": [
     "chat",
     "websocket",
-    "nodejs"
+    "nodejs",
+    "局域网",
+    "多设备"
   ],
   "author": "",
   "license": "MIT"

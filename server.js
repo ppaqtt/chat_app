@@ -570,6 +570,8 @@ function getRoomUsers(room) {
     return roomUsers;
 }
 
-server.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
+    console.log(`本地访问: http://localhost:${PORT}`);
+    console.log(`局域网访问: http://[您的IP地址]:${PORT}`);
 });

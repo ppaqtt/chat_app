@@ -107,8 +107,86 @@
    npm start
    ```
 
-4. **访问应用**
+4. **访问应用（本地访问）**
    打开浏览器访问 http://localhost:3000
+
+5. **其他设备访问（局域网访问）**
+
+   要让同一局域网内的其他设备访问，需要：
+
+   - **方法一：使用本机 IP 地址（推荐）**
+     1. 查看本机 IP 地址：
+        - **快速获取**: 在项目根目录运行 `npm run ip` 或 `npm run get-ip`
+        - 手动获取:
+          - Windows: 在命令提示符中输入 `ipconfig`，找到 IPv4 地址（如：192.168.x.x）
+          - macOS/Linux: 在终端输入 `ifconfig` 或 `ip addr`，找到 inet 地址
+     2. （已默认配置）[server.js](file:///workspace/server.js#L573) 已默认监听所有网络接口（0.0.0.0）
+     3. 启动服务器：`npm start`
+     4. 其他设备可通过 `http://[你的IP地址]:3000` 访问
+
+   - **方法二：使用 Cloudflare Tunnel（推荐，免费！）**
+     Cloudflare Tunnel 是最推荐的公网访问方案，完全免费、安全稳定，自带 HTTPS 和 CDN：
+
+     **准备工作**：
+     1. 注册 Cloudflare 账号：https://dash.cloudflare.com/sign-up
+     2. 添加并配置你的域名到 Cloudflare（修改域名 DNS 为 Cloudflare 提供的 NS）
+
+     **快速开始（开发测试）**：
+     ```bash
+     # 1. 安装 cloudflared（Windows 用 winget，Linux 用 apt，macOS 用 brew）
+     winget install cloudflare.cloudflared  # Windows
+     # Linux: curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflare/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared.deb
+     # macOS: brew install cloudflared
+
+     # 2. 使用快速隧道（不需要域名，生成临时公网地址）
+     cloudflared tunnel --url http://localhost:3000
+     # 运行后会生成类似 https://example-trying-pacific.trycloudflare.com 的地址
+     ```
+
+     **正式使用（自定义域名）**：
+     ```bash
+     # 1. 登录 Cloudflare 并授权
+     cloudflared tunnel login
+
+     # 2. 创建隧道
+     cloudflared tunnel create my-chat-app
+
+     # 3. 绑定域名
+     cloudflared tunnel route dns my-chat-app chat.yourdomain.com
+
+     # 4. 创建配置文件 config.yml
+     tunnel: 你的Tunnel-ID
+     credentials-file: /path/to/你的Tunnel-ID.json
+     ingress:
+       - hostname: chat.yourdomain.com
+         service: http://localhost:3000
+       - service: http_status:404
+
+     # 5. 运行隧道
+     cloudflared tunnel run my-chat-app
+     ```
+
+     **后台服务化**：
+     ```bash
+     # Linux
+     sudo cloudflared service install
+     sudo systemctl enable cloudflared
+     sudo systemctl start cloudflared
+
+     # Windows
+     cloudflared service install
+     ```
+
+   - **方法三：其他内网穿透工具**
+     如需从外网访问，还可以使用：
+     - **ngrok**: `ngrok http 3000`
+     - **frp**: 自建内网穿透服务
+     - **花生壳**: 国内内网穿透工具
+
+6. **防火墙配置**
+   - Windows: 在「Windows Defender 防火墙」中允许 Node.js 应用
+   - macOS: 在「系统设置 → 网络 → 防火墙」中允许 incoming connections
+   - Linux: 配置 iptables 或 ufw 允许 3000 端口
 
 ### 使用方法
 
@@ -169,6 +247,13 @@ const emojis = ['😀', '😃', '...'];  // 添加更多表情
 ## 📝 开发说明
 
 ### 最近更新
+
+#### v1.7.0 (2026-05-28)
+- ✅ **下拉菜单面板显示修复** - 修复过滤、设备、加密、样式、用户颜色、背景按钮点击无界面问题
+- ✅ **closeAllPanels 函数优化** - 添加缺失面板的关闭逻辑，防止元素引用错误
+- ✅ **面板切换逻辑完善** - 点击下拉菜单时先关闭所有面板，确保只打开一个面板
+- ✅ **背景设置面板修复** - 确认背景设置功能在设置面板中正常显示
+- ✅ **所有面板完整性验证** - 确保所有面板元素都存在且功能正常
 
 #### v1.6.0 (2026-05-22)
 - ✅ **语音通话修复** - 修复麦克风不出声问题，添加详细的错误处理和权限检测
