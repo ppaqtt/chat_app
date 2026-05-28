@@ -124,8 +124,61 @@
      3. 启动服务器：`npm start`
      4. 其他设备可通过 `http://[你的IP地址]:3000` 访问
    
-   - **方法二：使用内网穿透工具（公网访问）**
-     如需从外网访问，可以使用以下工具：
+   - **方法二：使用 Cloudflare Tunnel（推荐，免费！）**
+     Cloudflare Tunnel 是最推荐的公网访问方案，完全免费、安全稳定，自带 HTTPS 和 CDN：
+     
+     **准备工作**：
+     1. 注册 Cloudflare 账号：https://dash.cloudflare.com/sign-up
+     2. 添加并配置你的域名到 Cloudflare（修改域名 DNS 为 Cloudflare 提供的 NS）
+     
+     **快速开始（开发测试）**：
+     ```bash
+     # 1. 安装 cloudflared（Windows 用 winget，Linux 用 apt，macOS 用 brew）
+     winget install cloudflare.cloudflared  # Windows
+     # Linux: curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared.deb
+     # macOS: brew install cloudflared
+     
+     # 2. 使用快速隧道（不需要域名，生成临时公网地址）
+     cloudflared tunnel --url http://localhost:3000
+     # 运行后会生成类似 https://example-trying-pacific.trycloudflare.com 的地址
+     ```
+     
+     **正式使用（自定义域名）**：
+     ```bash
+     # 1. 登录 Cloudflare 并授权
+     cloudflared tunnel login
+     
+     # 2. 创建隧道
+     cloudflared tunnel create my-chat-app
+     
+     # 3. 绑定域名
+     cloudflared tunnel route dns my-chat-app chat.yourdomain.com
+     
+     # 4. 创建配置文件 config.yml
+     tunnel: 你的Tunnel-ID
+     credentials-file: /path/to/你的Tunnel-ID.json
+     ingress:
+       - hostname: chat.yourdomain.com
+         service: http://localhost:3000
+       - service: http_status:404
+     
+     # 5. 运行隧道
+     cloudflared tunnel run my-chat-app
+     ```
+     
+     **后台服务化**：
+     ```bash
+     # Linux
+     sudo cloudflared service install
+     sudo systemctl enable cloudflared
+     sudo systemctl start cloudflared
+     
+     # Windows
+     cloudflared service install
+     ```
+   
+   - **方法三：其他内网穿透工具**
+     如需从外网访问，还可以使用：
      - **ngrok**: `ngrok http 3000`
      - **frp**: 自建内网穿透服务
      - **花生壳**: 国内内网穿透工具
