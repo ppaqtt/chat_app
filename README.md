@@ -107,8 +107,33 @@
    npm start
    ```
 
-4. **访问应用**
+4. **访问应用（本地访问）**
    打开浏览器访问 http://localhost:3000
+
+5. **其他设备访问（局域网访问）**
+   
+   要让同一局域网内的其他设备访问，需要：
+   
+   - **方法一：使用本机 IP 地址（推荐）**
+     1. 查看本机 IP 地址：
+        - **快速获取**: 在项目根目录运行 `npm run ip` 或 `npm run get-ip`
+        - 手动获取:
+          - Windows: 在命令提示符中输入 `ipconfig`，找到 IPv4 地址（如：192.168.x.x）
+          - macOS/Linux: 在终端输入 `ifconfig` 或 `ip addr`，找到 inet 地址
+     2. （已默认配置）[server.js](file:///workspace/server.js#L573) 已默认监听所有网络接口（0.0.0.0）
+     3. 启动服务器：`npm start`
+     4. 其他设备可通过 `http://[你的IP地址]:3000` 访问
+   
+   - **方法二：使用内网穿透工具（公网访问）**
+     如需从外网访问，可以使用以下工具：
+     - **ngrok**: `ngrok http 3000`
+     - **frp**: 自建内网穿透服务
+     - **花生壳**: 国内内网穿透工具
+
+6. **防火墙配置**
+   - Windows: 在「Windows Defender 防火墙」中允许 Node.js 应用
+   - macOS: 在「系统设置 → 网络 → 防火墙」中允许 incoming connections
+   - Linux: 配置 iptables 或 ufw 允许 3000 端口
 
 ### 使用方法
 
