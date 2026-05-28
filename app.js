@@ -259,25 +259,26 @@ document.addEventListener('DOMContentLoaded', function() {
     moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
             const btnId = item.dataset.btn;
-            closeAllPanels(); // 先关闭所有面板
             const btn = document.getElementById(btnId);
             if (btn && btn !== item) {
                 btn.click();
             } else if (btnId === 'statsBtn') {
                 const statsPanelEl = document.getElementById('statsPanel');
                 if (statsPanelEl) {
-                    statsPanelEl.classList.add('active');
-                    updateStats();
+                    statsPanelEl.classList.toggle('active');
+                    if (statsPanelEl.classList.contains('active')) {
+                        updateStats();
+                    }
                 }
             } else if (btnId === 'userColorsBtn') {
                 const userColorsPanelEl = document.getElementById('userColorsPanel');
                 if (userColorsPanelEl) {
-                    userColorsPanelEl.classList.add('active');
+                    userColorsPanelEl.classList.toggle('active');
                 }
             } else if (btnId === 'styleBtn') {
                 const stylePanelEl = document.getElementById('styleSettingsPanel');
                 if (stylePanelEl) {
-                    stylePanelEl.classList.add('active');
+                    stylePanelEl.classList.toggle('active');
                 }
             } else if (btnId === 'backgroundBtn') {
                 renderBackgroundOptions();
@@ -286,33 +287,35 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (btnId === 'filterBtn') {
                 const filterPanelEl = document.getElementById('filterPanel');
                 if (filterPanelEl) {
-                    filterPanelEl.classList.add('active');
+                    filterPanelEl.classList.toggle('active');
                 }
             } else if (btnId === 'devicesBtn') {
                 const devicesPanelEl = document.getElementById('devicesPanel');
                 if (devicesPanelEl) {
-                    devicesPanelEl.classList.add('active');
+                    devicesPanelEl.classList.toggle('active');
                 }
             } else if (btnId === 'encryptionBtn') {
                 const encryptionPanelEl = document.getElementById('encryptionPanel');
                 if (encryptionPanelEl) {
-                    encryptionPanelEl.classList.add('active');
+                    encryptionPanelEl.classList.toggle('active');
                 }
             } else if (btnId === 'aiBtn') {
                 const aiPanel = document.getElementById('aiPanel');
                 if (aiPanel) {
-                    aiPanel.classList.add('active');
+                    aiPanel.classList.toggle('active');
                 }
             } else if (btnId === 'reminderBtn') {
                 const reminderPanelEl = document.getElementById('reminderPanel');
                 if (reminderPanelEl) {
-                    reminderPanelEl.classList.add('active');
-                    renderReminders();
+                    reminderPanelEl.classList.toggle('active');
+                    if (reminderPanelEl.classList.contains('active')) {
+                        renderReminders();
+                    }
                 }
             } else if (btnId === 'exportBtn') {
                 const backupPanel = document.getElementById('backupPanel');
                 if (backupPanel) {
-                    backupPanel.classList.add('active');
+                    backupPanel.classList.toggle('active');
                 }
             }
             moreDropdown.classList.remove('active');
@@ -424,6 +427,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         newAvatarUrl = '';
     });
+
+    function refreshMessages() {
+        messagesArea.innerHTML = '';
+        allMessages.forEach(msg => {
+            addMessage(msg);
+        });
+        scrollToBottom();
+    }
 
     function showReactionSelector(messageId, targetElement) {
         activeReactionMessageId = messageId;
@@ -1027,6 +1038,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========== 通话事件处理 ==========
+    function handleIncomingCall(data) {
+        if (currentCall) {
+            ws.send(JSON.stringify({
+                type: 'callReject',
+                toUser: data.from,
+                callId: data.callId
+            }));
+            return;
+        }
+
+        currentCall = {
+            from: data.from,
+            callId: data.callId,
+            type: data.callType,
+            status: 'incoming'
+        };
+
+        incomingCallAvatar.textContent = (data.from.charAt(0) || '?').toUpperCase();
+        incomingCallAvatar.style.backgroundColor = data.avatar || generateAvatarColor(data.from);
+        incomingCallText.textContent = data.from;
+        incomingCallType.textContent = data.callType === 'video' ? '视频通话' : '语音通话';
+        incomingCallModal.classList.add('active');
+    }
+
+    function handleCallAnswer(data) {
+        if (currentCall && currentCall.target === data.from) {
+            currentCall.status = 'connected';
+            activeCallBar.classList.add('active');
+            startCallTimer();
+        }
+    }
+
+    function handleCallRejected(data) {
+        if (currentCall) {
+            alert(data.from + ' 拒绝了通话');
+            endCurrentCall();
+        }
+    }
+
+    function handleCallEnded(data) {
+        if (currentCall) {
+            alert('通话已结束');
+            endCurrentCall();
+        }
+    }
+
     function updateMessageReactions(messageId, reactions) {
         const messageEl = messagesArea.querySelector('[data-message-id="' + messageId + '"]');
         if (!messageEl) return;
@@ -1894,6 +1951,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ws.send(JSON.stringify(messageData));
     }
 
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
     // ========== 位置共享功能 ==========
     locationBtn.addEventListener('click', () => {
         if (!navigator.geolocation) {
@@ -2017,6 +2080,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function initiateCall(targetUser, callType) {
+        if (currentCall) {
+            alert('你正在通话中，请先结束当前通话');
+            return;
+        }
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'callOffer',
+                toUser: targetUser,
+                callType: callType
+            }));
+
+            currentCall = { target: targetUser, type: callType, status: 'calling' };
+            callPanel.classList.remove('active');
+
+            activeCallBar.classList.add('active');
+            activeCallStatus.textContent = '正在呼叫 ' + targetUser + '...';
+        }
+    }
+
     acceptCallBtn.addEventListener('click', () => {
         acceptCall();
     });
@@ -2035,6 +2119,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         endCurrentCall();
     });
+
+    function endCurrentCall() {
+        currentCall = null;
+        activeCallBar.classList.remove('active');
+        incomingCallModal.classList.remove('active');
+        if (callTimer) {
+            clearInterval(callTimer);
+            callTimer = null;
+        }
+        callSeconds = 0;
+    }
 
     function startCallTimer() {
         callSeconds = 0;
@@ -2397,9 +2492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         reminderPanel.classList.remove('active');
         quickReplyPanel.classList.remove('active');
         starredPanel.classList.remove('active');
-        // backgroundPanel 可能不存在，所以直接移除
-        const bgPanel = document.getElementById('bgPanel');
-        if (bgPanel) bgPanel.classList.remove('active');
+        backgroundPanel.classList.remove('active');
         blockedPanel.classList.remove('active');
         shortcutsHint.classList.remove('active');
         announcementPanel.classList.remove('active');
@@ -2407,21 +2500,6 @@ document.addEventListener('DOMContentLoaded', function() {
         tagFilterPanel.classList.remove('active');
         tagSelector.classList.remove('active');
         userProfileCard.classList.remove('active');
-        // 添加缺失的面板
-        const filterPanel = document.getElementById('filterPanel');
-        if (filterPanel) filterPanel.classList.remove('active');
-        const devicesPanel = document.getElementById('devicesPanel');
-        if (devicesPanel) devicesPanel.classList.remove('active');
-        const encryptionPanel = document.getElementById('encryptionPanel');
-        if (encryptionPanel) encryptionPanel.classList.remove('active');
-        const styleSettingsPanel = document.getElementById('styleSettingsPanel');
-        if (styleSettingsPanel) styleSettingsPanel.classList.remove('active');
-        const userColorsPanel = document.getElementById('userColorsPanel');
-        if (userColorsPanel) userColorsPanel.classList.remove('active');
-        const backupPanel = document.getElementById('backupPanel');
-        if (backupPanel) backupPanel.classList.remove('active');
-        const aiPanel = document.getElementById('aiPanel');
-        if (aiPanel) aiPanel.classList.remove('active');
     }
 
     function toggleShortcutsHint() {
@@ -5037,6 +5115,10 @@ document.addEventListener('DOMContentLoaded', function() {
         initPreviewFeature();
         initUserColors();
         initBackupFeature();
+        initStats();
+        initReminders();
+        initSoundSettings();
+        initKeyboardShortcuts();
     }
 
     // 在消息操作按钮中添加新按钮
