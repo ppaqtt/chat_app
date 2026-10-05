@@ -19,6 +19,22 @@ if %errorlevel% neq 0 (
 
 echo [OK] Node.js is installed
 echo.
+
+if not exist "node_modules\ws" (
+    echo [INFO] First run detected, installing dependencies...
+    echo.
+    call npm install
+    if %errorlevel% neq 0 (
+        echo.
+        echo [ERROR] npm install failed. Please run "npm install" manually.
+        pause
+        exit /b 1
+    )
+    echo.
+    echo [OK] Dependencies installed
+    echo.
+)
+
 echo Starting chat server...
 echo.
 
