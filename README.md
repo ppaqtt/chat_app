@@ -127,6 +127,8 @@
    - **方法二：使用 Cloudflare Tunnel（推荐，免费！）**
      Cloudflare Tunnel 是最推荐的公网访问方案，完全免费、安全稳定，自带 HTTPS 和 CDN：
 
+     > 💡 启动脚本（`start.bat` / `start.js`）已集成该方案：只要本机装好了 `cloudflared`，运行启动脚本时会**自动优先**用它生成公网地址；若未安装则自动回退到 localtunnel。
+
      **准备工作**：
      1. 注册 Cloudflare 账号：https://dash.cloudflare.com/sign-up
      2. 添加并配置你的域名到 Cloudflare（修改域名 DNS 为 Cloudflare 提供的 NS）
