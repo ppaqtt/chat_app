@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let callTimer = null;
     let callSeconds = 0;
     let peerConnection = null;
+    let pendingIceCandidates = [];
     let localStream = null;
     let remoteStream = null;
     let audioContext = null;
@@ -1082,12 +1083,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        if (blockedUsers.includes(data.username)) {
+            return;
+        }
+
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other');
+        let messageClass = data.username === currentUsername ? 'own' : 'other';
+        if (data.type === 'system') messageClass = 'system';
+        if (data.isAI) messageClass += ' ai';
+        if (data.isEncrypted) messageClass += ' encrypted';
+        if (data.decryptionFailed) messageClass += ' decryption-failed';
+        messageDiv.className = 'message ' + messageClass;
         messageDiv.dataset.messageId = data.id;
 
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
+        if (data.isAI) avatarDiv.classList.add('ai-avatar');
         if (data.avatar && !data.avatar.startsWith('#')) {
             const img = document.createElement('img');
             img.src = data.avatar;
@@ -1165,6 +1176,13 @@ document.addEventListener('DOMContentLoaded', function() {
             locationDiv.appendChild(mapDiv);
             locationDiv.appendChild(infoDiv);
             bubble.appendChild(locationDiv);
+        } else if (data.isEncrypted) {
+            const contentResult = processMessageContent(data.content, true);
+            if (contentResult.failed) {
+                bubble.innerHTML = '<span class="decryption-failed-icon">⚠️</span>' + contentResult.text;
+            } else {
+                bubble.textContent = contentResult.text;
+            }
         } else {
             bubble.innerHTML = content;
         }
@@ -1363,7 +1381,27 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(info);
+
+        if (data.tags && data.tags.length > 0) {
+            const tagsDiv = document.createElement('div');
+            tagsDiv.className = 'message-tags';
+            data.tags.forEach(tagObj => {
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'message-tag ' + tagObj.color;
+                tagSpan.textContent = tagObj.tag;
+                tagsDiv.appendChild(tagSpan);
+            });
+            messageDiv.appendChild(tagsDiv);
+            messageDiv.classList.add('with-tag');
+        }
+
         messagesArea.appendChild(messageDiv);
+
+        const actionsEl = info.querySelector('.message-actions');
+        if (actionsEl) addNewMessageActionButtons(actionsEl, data.id);
+
+        addMessageAnimation(messageDiv, data.username === currentUsername);
+        addSentIndicator(messageDiv);
 
         if (data.reactions && Object.keys(data.reactions).length > 0) {
             updateMessageReactions(data.id, data.reactions);
@@ -3196,16 +3234,12 @@ document.addEventListener('DOMContentLoaded', function() {
             await peerConnection.setLocalDescription(offer);
 
             if (ws && ws.readyState === WebSocket.OPEN) {
+                // 先只发送呼叫振铃，等对方接听后再发送 WebRTC offer，
+                // 否则对方此时还没有创建 peerConnection。
                 ws.send(JSON.stringify({
                     type: 'callOffer',
                     toUser: targetUser,
                     callType: callType
-                }));
-
-                ws.send(JSON.stringify({
-                    type: 'webrtcOffer',
-                    toUser: targetUser,
-                    offer: offer
                 }));
             }
 
@@ -3222,10 +3256,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleWebRTCOffer(data) {
-        if (!currentCall || currentCall.status !== 'incoming') return;
+        if (!currentCall || !peerConnection) return;
 
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            flushPendingIceCandidates();
 
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
@@ -3243,8 +3278,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleWebRTCAnswer(data) {
+        if (!peerConnection) return;
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            flushPendingIceCandidates();
             console.log('WebRTC Answer已设置');
         } catch (error) {
             console.error('处理WebRTC Answer失败:', error);
@@ -3252,13 +3289,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleWebRTCIceCandidate(data) {
+        if (!data.candidate) return;
+        // 远端可能在本地 peerConnection 就绪前就发来 ICE 候选，先缓存。
+        if (!peerConnection || !peerConnection.remoteDescription) {
+            pendingIceCandidates.push(data.candidate);
+            return;
+        }
         try {
-            if (peerConnection && data.candidate) {
-                await peerConnection.addIceCandidate(new RTCCandidate(data.candidate));
-            }
+            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         } catch (error) {
             console.error('添加ICE候选失败:', error);
         }
+    }
+
+    function flushPendingIceCandidates() {
+        if (!peerConnection || !peerConnection.remoteDescription || pendingIceCandidates.length === 0) return;
+        const candidates = pendingIceCandidates;
+        pendingIceCandidates = [];
+        candidates.forEach(candidate => {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+                .catch(err => console.error('添加ICE候选失败:', err));
+        });
     }
 
     function handleIncomingCall(data) {
@@ -3292,6 +3343,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleCallAnswer(data) {
         if (currentCall && currentCall.target === data.from) {
             currentCall.status = 'connected';
+            // 对方已接听并创建了 peerConnection，此时再发送 offer。
+            // 使用 localDescription 以包含已收集到的 ICE 候选。
+            if (ws && ws.readyState === WebSocket.OPEN && peerConnection && peerConnection.localDescription) {
+                ws.send(JSON.stringify({
+                    type: 'webrtcOffer',
+                    toUser: data.from,
+                    offer: peerConnection.localDescription
+                }));
+            }
             activeCallBar.classList.add('active');
             startCallTimer();
             activeCallStatus.textContent = '与 ' + data.from + ' 通话中 00:00';
@@ -3597,6 +3657,8 @@ document.addEventListener('DOMContentLoaded', function() {
             peerConnection.close();
             peerConnection = null;
         }
+
+        pendingIceCandidates = [];
 
         if (audioContext) {
             audioContext.close();
@@ -5155,152 +5217,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // ========== 修改现有消息显示函数以支持新功能 ==========
-    const originalAddMessage = addMessage;
-
-    addMessage = function(msg) {
-        if (msg.isPrivate && privateTarget) {
-            if (msg.toUser !== privateTarget && msg.username !== privateTarget) {
-                return;
-            }
-        }
-
-        if (blockedUsers.includes(msg.username)) {
-            return;
-        }
-
-        const messageDiv = document.createElement('div');
-
-        let messageClass = msg.username === currentUsername ? 'own' : 'other';
-        if (msg.type === 'system') messageClass = 'system';
-        if (msg.isAI) messageClass += ' ai';
-        if (msg.isEncrypted) messageClass += ' encrypted';
-        if (msg.decryptionFailed) messageClass += ' decryption-failed';
-
-        messageDiv.className = 'message ' + messageClass;
-        messageDiv.dataset.messageId = msg.id;
-
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar';
-        if (msg.isAI) avatarDiv.classList.add('ai-avatar');
-
-        if (msg.avatar && !msg.avatar.startsWith('#')) {
-            avatarDiv.innerHTML = '<img src="' + msg.avatar + '" alt="avatar">';
-        } else {
-            const avatarColor = msg.avatar || generateAvatarColor(msg.username);
-            avatarDiv.style.backgroundColor = avatarColor;
-            avatarDiv.textContent = (msg.username.charAt(0) || '?').toUpperCase();
-        }
-
-        const bubbleDiv = document.createElement('div');
-        bubbleDiv.className = 'message-bubble';
-
-        const contentResult = processMessageContent(msg.content, msg.isEncrypted);
-
-        if (msg.decryptionFailed) {
-            bubbleDiv.innerHTML = '<span class="decryption-failed-icon">⚠️</span>' + contentResult.text;
-        } else {
-            bubbleDiv.textContent = contentResult.text;
-        }
-
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'message-info';
-        infoDiv.innerHTML = `
-            <span>${msg.username}</span>
-            <span>${msg.timestamp}</span>
-        `;
-
-        if (msg.edited) {
-            const editedSpan = document.createElement('span');
-            editedSpan.className = 'edited';
-            editedSpan.textContent = '(已编辑)';
-            infoDiv.appendChild(editedSpan);
-        }
-
-        if (msg.readCount && msg.readCount > 0) {
-            const readSpan = document.createElement('span');
-            readSpan.className = 'read-count';
-            readSpan.textContent = '已读 ' + msg.readCount;
-            infoDiv.appendChild(readSpan);
-        }
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'message-actions';
-
-        if (msg.username === currentUsername) {
-            const recallBtn = document.createElement('button');
-            recallBtn.className = 'message-action-btn recall';
-            recallBtn.textContent = '撤回';
-            recallBtn.onclick = () => recallMessage(msg.id);
-            actionsDiv.appendChild(recallBtn);
-
-            const editBtn = document.createElement('button');
-            editBtn.className = 'message-action-btn edit';
-            editBtn.textContent = '编辑';
-            editBtn.onclick = () => editMessage(msg.id);
-            actionsDiv.appendChild(editBtn);
-        }
-
-        const reactBtn = document.createElement('button');
-        reactBtn.className = 'message-action-btn react';
-        reactBtn.textContent = '👍';
-        reactBtn.onclick = (e) => {
-            e.stopPropagation();
-            showReactionSelector(msg.id, reactBtn);
-        };
-        actionsDiv.appendChild(reactBtn);
-
-        const starBtn = document.createElement('button');
-        starBtn.className = 'message-action-btn star';
-        starBtn.textContent = '⭐';
-        starBtn.onclick = () => toggleStar(msg.id);
-        actionsDiv.appendChild(starBtn);
-
-        addNewMessageActionButtons(actionsDiv, msg.id);
-
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(bubbleDiv);
-        messageDiv.appendChild(infoDiv);
-        messageDiv.appendChild(actionsDiv);
-
-        if (msg.tags && msg.tags.length > 0) {
-            const tagsDiv = document.createElement('div');
-            tagsDiv.className = 'message-tags';
-            msg.tags.forEach(tagObj => {
-                const tagSpan = document.createElement('span');
-                tagSpan.className = 'message-tag ' + tagObj.color;
-                tagSpan.textContent = tagObj.tag;
-                tagsDiv.appendChild(tagSpan);
-            });
-            messageDiv.appendChild(tagsDiv);
-            messageDiv.classList.add('with-tag');
-        }
-
-        if (msg.reactions && Object.keys(msg.reactions).length > 0) {
-            const reactionsDiv = document.createElement('div');
-            reactionsDiv.className = 'message-reactions';
-
-            for (const [emoji, users] of Object.entries(msg.reactions)) {
-                const reactionSpan = document.createElement('span');
-                reactionSpan.className = 'message-reaction';
-                reactionSpan.innerHTML = `<span class="reaction-emoji">${emoji}</span><span class="reaction-count">${users.length}</span>`;
-                reactionSpan.onclick = () => showReactionUsers(msg.id, emoji);
-                reactionsDiv.appendChild(reactionSpan);
-            }
-
-            messageDiv.appendChild(reactionsDiv);
-        }
-
-        messagesArea.appendChild(messageDiv);
-
-        const isOwn = msg.username === currentUsername;
-        addMessageAnimation(messageDiv, isOwn);
-        addSentIndicator(messageDiv);
-
-        messageDiv.addEventListener('click', () => {
-            actionsDiv.style.display = 'flex';
-        });
-    };
+    // 消息渲染统一由上方完整版 addMessage 实现（含回复引用、图片/文件/位置、
+    // 加密解密、标签、举报按钮与动画），此处不再用简化版覆盖，避免丢失操作按钮。
 
     // ========== 智能推荐功能 ==========
     let userMessageHistory = [];

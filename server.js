@@ -189,7 +189,8 @@ wss.on('connection', (ws) => {
                     timestamp: timestamp,
                     room: currentRoom,
                     isPrivate: false,
-                    reads: {}
+                    reads: {},
+                    replyTo: data.replyTo || null
                 };
                 
                 roomMsgs.push(messageData);
@@ -277,7 +278,8 @@ wss.on('connection', (ws) => {
                     content: data.content || '',
                     timestamp: timestamp,
                     toUser: data.toUser,
-                    isPrivate: true
+                    isPrivate: true,
+                    replyTo: data.replyTo || null
                 };
                 
                 broadcastToUser(data.toUser, messageData);
