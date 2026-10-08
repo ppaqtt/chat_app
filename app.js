@@ -1664,6 +1664,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function sendMessage() {
+        // 编辑模式下发送按钮/回车代表“保存修改”。
+        // sendBtn 与输入框各自注册了 sendMessage 监听，startEditMessage 又额外挂了
+        // saveEditMessage，两者会同时触发；这里统一路由，避免把编辑内容当新消息发出。
+        if (editingMessageId) {
+            saveEditMessage();
+            return;
+        }
+
         const content = messageInput.value.trim();
         if (!content) return;
 
