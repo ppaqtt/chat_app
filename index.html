@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>极简聊天室</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
@@ -5959,6 +5959,273 @@
 
         .online-status-color.online { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
         .online-status-color.offline { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+
+        /* ================================================================
+           移动端适配（≤768px）
+           以下规则仅在窄屏生效，不影响桌面端既有样式
+           ================================================================ */
+        @media (max-width: 768px) {
+            /* ---- 基础：全屏显示 + 刘海屏安全区 ---- */
+            body {
+                align-items: stretch;
+                justify-content: stretch;
+                min-height: 100dvh;
+            }
+
+            .chat-container {
+                width: 100%;
+                max-width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .chat-container::before { height: 140px; }
+            body::before { width: 340px; height: 340px; }
+            body::after { width: 280px; height: 280px; }
+
+            /* ---- 顶部栏：自动换行，按钮保留可点按尺寸 ---- */
+            .header {
+                flex-wrap: wrap;
+                gap: 6px 8px;
+                padding: 10px 12px;
+                padding-top: calc(env(safe-area-inset-top) + 10px);
+            }
+
+            .header-left { flex: 0 1 auto; gap: 8px; min-width: 0; }
+            .header h1 {
+                font-size: 16px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                min-width: 0;
+            }
+            .room-btn,
+            .chat-mode-btn { padding: 5px 9px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+
+            .header-center { flex: 1 1 auto; justify-content: flex-end; min-width: 0; }
+            .users-list { gap: 6px; min-width: 0; overflow: hidden; }
+            .users-list span { font-size: 12px; white-space: nowrap; }
+            .user-tag { display: none; }
+
+            /* 占满整行并允许内部换行，避免按钮溢出屏幕 */
+            .header-right {
+                flex: 1 1 100%;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 6px;
+                min-width: 0;
+            }
+            .btn-group { gap: 4px; padding: 3px 5px; border-radius: 14px; }
+            .header-btn { padding: 9px 10px; font-size: 16px; border-radius: 13px; }
+            .more-btn { font-size: 20px !important; padding: 9px 11px !important; }
+            .more-dropdown { min-width: 220px; max-height: 62dvh; overflow-y: auto; }
+
+            /* ---- 消息区域 ---- */
+            .messages-area { padding: 14px 12px; }
+            .message { gap: 8px; }
+            .message-avatar { width: 36px; height: 36px; font-size: 15px; }
+            .message-content { max-width: 84%; }
+            .message-bubble { padding: 10px 14px; font-size: 15px; line-height: 1.45; border-radius: 16px; }
+            .message.own .message-bubble { border-radius: 16px 16px 4px 16px; }
+            .message.other .message-bubble { border-radius: 16px 16px 16px 4px; }
+            .message-bubble img { max-width: 62vw; max-height: 62vw; }
+            .message-reply { padding: 8px 10px; font-size: 12px; }
+            .message-actions { flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+            .message-action-btn { padding: 6px 9px; font-size: 12px; }
+
+            /* ---- 置顶消息栏 ---- */
+            .pinned-messages-bar { padding: 8px 12px; gap: 8px; }
+            .pinned-message-preview { max-width: 140px; }
+
+            /* ---- 输入区：操作按钮独占一行，避免输入框被挤压 ---- */
+            .input-area {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px 12px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+            }
+            /* 第一行：操作按钮；第二行：输入框 + 发送 */
+            .input-area .action-btn {
+                order: 1;
+                flex: 1 1 44px;
+                max-width: 84px;
+                padding: 10px;
+                font-size: 18px;
+                border-radius: 12px;
+            }
+            .input-area input {
+                order: 2;
+                flex: 1 1 75%;
+                min-width: 0;
+                padding: 12px 16px;
+                font-size: 16px;
+                border-radius: 22px;
+            }
+            .input-area #sendBtn { order: 3; padding: 12px 18px; font-size: 14px; border-radius: 22px; }
+
+            /* ---- 输入区上方的浮层：统一定位到输入框上方 ---- */
+            .emoji-picker {
+                left: 8px;
+                right: 8px;
+                bottom: calc(env(safe-area-inset-bottom) + 120px);
+                max-width: none;
+                max-height: 42dvh;
+                overflow-y: auto;
+                z-index: 200;
+            }
+            .emoji-item { width: calc(12.5% - 8px); font-size: 24px; }
+            .file-preview,
+            .quick-reply-panel,
+            .mention-suggestions {
+                left: 8px;
+                right: 8px;
+                bottom: calc(env(safe-area-inset-bottom) + 120px);
+                max-width: none;
+            }
+            .mention-suggestions { max-height: 38dvh; }
+            .reaction-selector {
+                bottom: calc(env(safe-area-inset-bottom) + 112px) !important;
+                max-width: calc(100vw - 16px);
+            }
+            .tag-selector { max-width: calc(100vw - 16px); }
+            .typing-indicator { left: 12px; bottom: calc(env(safe-area-inset-bottom) + 118px); }
+            .smart-recommendations { left: 8px; right: 8px; }
+            .reply-box,
+            .edit-box { padding: 10px 12px; }
+            .edit-box { flex-wrap: wrap; }
+            .active-call-bar {
+                left: 8px;
+                right: 8px;
+                transform: none;
+                bottom: calc(env(safe-area-inset-bottom) + 118px);
+                justify-content: space-between;
+                padding: 12px 16px;
+            }
+            .search-results { max-height: 46dvh; }
+
+            /* ---- 顶部下拉面板：统一改为贴底弹出的全宽浮层 ---- */
+            .private-chat-panel,
+            .room-panel,
+            .search-panel,
+            .call-panel,
+            .starred-panel,
+            .blocked-panel,
+            .stats-panel,
+            .reminder-panel,
+            .announcement-panel,
+            .vote-panel,
+            .filter-panel,
+            .devices-panel,
+            .backup-panel,
+            .style-settings-panel,
+            .ai-settings-panel,
+            .encryption-panel,
+            .tag-filter-panel {
+                left: 8px;
+                right: 8px;
+                top: auto;
+                bottom: calc(env(safe-area-inset-bottom) + 8px);
+                width: auto;
+                min-width: 0;
+                max-width: none;
+                transform: none;
+                max-height: 78dvh;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            /* 整合设置面板：底部全宽抽屉 */
+            .settings-panel {
+                left: 8px;
+                right: 8px;
+                width: auto;
+                min-width: 0;
+                max-width: none;
+                transform: none;
+                top: auto;
+                bottom: calc(env(safe-area-inset-bottom) + 8px);
+                max-height: 85dvh;
+                border-radius: 20px;
+            }
+
+            /* 居中弹层：改为全宽 */
+            .forward-panel,
+            .report-panel {
+                left: 8px;
+                right: 8px;
+                width: auto;
+                max-width: none;
+                transform: translateY(-50%);
+                max-height: 88dvh;
+                overflow-y: auto;
+            }
+
+            /* 快捷键提示 */
+            .shortcuts-hint {
+                left: 12px;
+                right: 12px;
+                min-width: 0;
+                max-width: none;
+                transform: none;
+                bottom: calc(env(safe-area-inset-bottom) + 100px);
+                padding: 14px;
+            }
+            .shortcuts-list { grid-template-columns: 1fr; }
+            .shortcut-key { min-width: 72px; }
+
+            /* ---- 通话 / 视频 ---- */
+            .incoming-call-content {
+                width: calc(100vw - 32px);
+                max-width: 360px;
+                padding: 32px 24px;
+            }
+            .voice-call-window {
+                min-width: 0;
+                width: calc(100vw - 32px);
+                max-width: 360px;
+                padding: 24px 20px;
+            }
+            .video-call-header { padding: 12px 16px; }
+            .avatar-large { width: 110px; height: 110px; font-size: 52px; }
+            .local-video-container { width: 100px; height: 140px; bottom: 190px; right: 10px; }
+            .video-call-controls { padding: 14px; gap: 12px; }
+            .video-call-btn { width: 54px; height: 54px; font-size: 24px; }
+
+            /* ---- 通知 / 预览 ---- */
+            .new-device-notification {
+                left: 12px;
+                right: 12px;
+                top: calc(env(safe-area-inset-top) + 12px);
+                max-width: none;
+            }
+            .preview-panel { max-width: calc(100vw - 24px); max-height: 88dvh; }
+
+            /* ---- 登录页 ---- */
+            .login-box {
+                width: calc(100vw - 40px);
+                max-width: 420px;
+                padding: 36px 24px;
+                border-radius: 24px;
+            }
+            .login-box h2 { font-size: 24px; margin-bottom: 22px; }
+            .login-box button { width: 100%; padding: 16px 24px; }
+        }
+
+        /* ---- 触摸设备：点击消息展开操作按钮（由 app.js 切换 .show-actions） ---- */
+        @media (hover: none) {
+            .message-actions.show-actions { display: flex; }
+        }
+
+        /* ---- 小屏手机（≤400px）进一步压缩 ---- */
+        @media (max-width: 400px) {
+            .header h1 { font-size: 15px; }
+            .header-btn { padding: 9px 10px; font-size: 15px; }
+            .message-content { max-width: 88%; }
+            .emoji-item { width: calc(16.66% - 8px); }
+        }
 
     </style>
 </head>

@@ -6172,3 +6172,35 @@ document.addEventListener('DOMContentLoaded', function() {
     initNewFeatures();
 
 });
+
+// ================= 移动端适配：触摸设备点击消息展开操作按钮 =================
+// 桌面端消息操作按钮依赖 :hover 显示，触摸屏没有 hover，因此改为点击切换
+(function initMobileMessageActions() {
+    const area = document.getElementById('messagesArea');
+    if (!area) return;
+
+    area.addEventListener('click', (e) => {
+        // 仅在无 hover 能力的触摸设备上启用，桌面端保持原有 hover 行为
+        if (!window.matchMedia('(hover: none)').matches) return;
+        // 点在这些元素上时保留原有交互，不切换操作栏
+        if (e.target.closest('img, a, .message-username, .message-action-btn')) return;
+
+        const messageEl = e.target.closest('.message');
+        if (!messageEl) return;
+
+        const actions = messageEl.querySelector('.message-actions');
+        if (!actions) return;
+
+        const willOpen = !actions.classList.contains('show-actions');
+
+        // 先收起其它消息的操作栏，并清除 hover 遗留的内联样式
+        area.querySelectorAll('.message-actions').forEach((el) => {
+            el.classList.remove('show-actions');
+            el.style.display = '';
+        });
+
+        if (willOpen) {
+            actions.classList.add('show-actions');
+        }
+    });
+})();
