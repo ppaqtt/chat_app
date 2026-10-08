@@ -255,69 +255,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 下拉菜单项点击处理
+    // 下拉菜单项点击处理：各功能的开关已在各自 init 中绑定监听，
+    // 这里只负责收起菜单，避免同一次点击触发两次 toggle 导致面板打不开。
     moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
-            const btnId = item.dataset.btn;
-            const btn = document.getElementById(btnId);
-            if (btn && btn !== item) {
-                btn.click();
-            } else if (btnId === 'statsBtn') {
-                const statsPanelEl = document.getElementById('statsPanel');
-                if (statsPanelEl) {
-                    statsPanelEl.classList.toggle('active');
-                    if (statsPanelEl.classList.contains('active')) {
-                        updateStats();
-                    }
-                }
-            } else if (btnId === 'userColorsBtn') {
-                const userColorsPanelEl = document.getElementById('userColorsPanel');
-                if (userColorsPanelEl) {
-                    userColorsPanelEl.classList.toggle('active');
-                }
-            } else if (btnId === 'styleBtn') {
-                const stylePanelEl = document.getElementById('styleSettingsPanel');
-                if (stylePanelEl) {
-                    stylePanelEl.classList.toggle('active');
-                }
-            } else if (btnId === 'backgroundBtn') {
-                renderBackgroundOptions();
-                settingsPanel.classList.add('active');
-                showTab('background');
-            } else if (btnId === 'filterBtn') {
-                const filterPanelEl = document.getElementById('filterPanel');
-                if (filterPanelEl) {
-                    filterPanelEl.classList.toggle('active');
-                }
-            } else if (btnId === 'devicesBtn') {
-                const devicesPanelEl = document.getElementById('devicesPanel');
-                if (devicesPanelEl) {
-                    devicesPanelEl.classList.toggle('active');
-                }
-            } else if (btnId === 'encryptionBtn') {
-                const encryptionPanelEl = document.getElementById('encryptionPanel');
-                if (encryptionPanelEl) {
-                    encryptionPanelEl.classList.toggle('active');
-                }
-            } else if (btnId === 'aiBtn') {
-                const aiPanel = document.getElementById('aiPanel');
-                if (aiPanel) {
-                    aiPanel.classList.toggle('active');
-                }
-            } else if (btnId === 'reminderBtn') {
-                const reminderPanelEl = document.getElementById('reminderPanel');
-                if (reminderPanelEl) {
-                    reminderPanelEl.classList.toggle('active');
-                    if (reminderPanelEl.classList.contains('active')) {
-                        renderReminders();
-                    }
-                }
-            } else if (btnId === 'exportBtn') {
-                const backupPanel = document.getElementById('backupPanel');
-                if (backupPanel) {
-                    backupPanel.classList.toggle('active');
-                }
-            }
             moreDropdown.classList.remove('active');
         });
     });
@@ -485,8 +426,6 @@ document.addEventListener('DOMContentLoaded', function() {
             searchResults.innerHTML = '';
         }
     }
-
-    searchBtn.addEventListener('click', toggleSearch);
 
     searchInput.addEventListener('input', performSearch);
     searchFilterUser.addEventListener('change', performSearch);
@@ -770,11 +709,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ws = new WebSocket(wsProtocol + '//' + window.location.host);
 
         ws.onopen = () => {
+            const deviceInfo = getDeviceInfo();
             ws.send(JSON.stringify({
                 type: 'login',
                 username: username,
                 avatar: '',
-                room: currentRoom
+                room: currentRoom,
+                deviceId: currentDeviceId,
+                deviceName: deviceInfo.name,
+                deviceIcon: deviceInfo.icon
             }));
         };
 
@@ -970,6 +913,12 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'newVote':
             case 'updateVote':
                 handleVote(data);
+                break;
+            case 'deviceList':
+                handleDeviceList(data);
+                break;
+            case 'syncData':
+                handleSyncData(data);
                 break;
         }
     }
@@ -4807,6 +4756,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 30000);
     }
 
+    // 接收服务端下发的设备列表（同一账号的其他设备）
+    function handleDeviceList(data) {
+        if (!Array.isArray(data.devices)) return;
+        data.devices.forEach(d => {
+            if (!d || !d.id || d.id === currentDeviceId) return;
+            const idx = devices.findIndex(x => x.id === d.id);
+            const rec = {
+                id: d.id,
+                name: d.name || '未知设备',
+                icon: d.icon || '📱',
+                lastActive: d.lastActive || new Date().toISOString(),
+                trusted: true
+            };
+            if (idx !== -1) devices[idx] = rec; else devices.push(rec);
+        });
+        renderDevicesList();
+    }
+
+    // 接收同一账号其他设备发来的同步数据
+    function handleSyncData(data) {
+        const payload = data.data || {};
+        if (Array.isArray(payload.messages)) {
+            const existing = new Set(allMessages.map(m => m.id));
+            let added = 0;
+            payload.messages.forEach(m => {
+                if (m && m.id && !existing.has(m.id)) {
+                    allMessages.push(m);
+                    existing.add(m.id);
+                    added++;
+                }
+            });
+            if (added > 0) {
+                allMessages.sort((a, b) => (parseInt(a.id) || 0) - (parseInt(b.id) || 0));
+                localStorage.setItem('allMessages', JSON.stringify(allMessages));
+                refreshMessages();
+                scrollToBottom();
+            }
+        }
+        if (payload.preferences) {
+            const p = payload.preferences;
+            if (typeof p.soundEnabled === 'boolean') soundEnabled = p.soundEnabled;
+            if (p.theme === 'dark' && !isDarkMode) toggleTheme();
+            if (p.theme === 'light' && isDarkMode) toggleTheme();
+        }
+        alert('已接收来自其他设备的同步数据');
+    }
+
     // ========== 私聊加密功能 ==========
     let encryptionEnabled = false;
     let encryptionKey = '';
@@ -5115,10 +5111,8 @@ document.addEventListener('DOMContentLoaded', function() {
         initPreviewFeature();
         initUserColors();
         initBackupFeature();
-        initStats();
-        initReminders();
-        initSoundSettings();
-        initKeyboardShortcuts();
+        // initStats / initReminders / initSoundSettings / initKeyboardShortcuts
+        // 已由 initExtraFeatures 初始化，此处不再重复绑定，避免监听器翻倍。
     }
 
     // 在消息操作按钮中添加新按钮

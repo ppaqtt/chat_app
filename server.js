@@ -102,6 +102,10 @@ let rooms = { '大厅': [] };
 let messages = {};
 let pinnedMessages = {};
 const MAX_MESSAGES = 200;
+let announcements = [];            // 群公告
+let votes = [];                    // 投票
+let reports = [];                  // 举报记录
+const deviceRegistry = new Map();  // `${username}::${deviceId}` -> { ws, username, deviceId, name, icon, lastSeen }
 
 function getRoomMessages(room) {
     if (!messages[room]) {
@@ -157,6 +161,21 @@ wss.on('connection', (ws) => {
                     messages: roomMessages,
                     pinnedMessages: pinnedMessages
                 }));
+
+                // 注册设备并推送当前公告 / 投票
+                if (data.deviceId) {
+                    deviceRegistry.set(username + '::' + data.deviceId, {
+                        ws: ws,
+                        username: username,
+                        deviceId: data.deviceId,
+                        name: data.deviceName || '未知设备',
+                        icon: data.deviceIcon || '📱',
+                        lastSeen: new Date().toISOString()
+                    });
+                    broadcastDeviceList(username);
+                }
+                ws.send(JSON.stringify({ type: 'announcements', announcements: announcements }));
+                ws.send(JSON.stringify({ type: 'votes', votes: votes }));
                 
             } else if (data.type === 'message') {
                 const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -493,6 +512,98 @@ wss.on('connection', (ws) => {
                 }
 
                 broadcastToRoom(currentRoom, messageData);
+            } else if (data.type === 'createAnnouncement') {
+                const content = (data.content || '').trim();
+                if (content) {
+                    announcements.push({
+                        id: Date.now().toString(),
+                        content: content,
+                        author: data.author || username,
+                        time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+                    });
+                    broadcastAnnouncements();
+                }
+            } else if (data.type === 'updateAnnouncement') {
+                const target = announcements.find(a => a.id === data.id);
+                if (target && target.author === username) {
+                    target.content = (data.content || '').trim();
+                    target.time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                    broadcastAnnouncements();
+                }
+            } else if (data.type === 'deleteAnnouncement') {
+                const idx = announcements.findIndex(a => a.id === data.id);
+                if (idx !== -1) {
+                    announcements.splice(idx, 1);
+                    broadcastAnnouncements();
+                }
+            } else if (data.type === 'createVote') {
+                const options = Array.isArray(data.options) ? data.options : [];
+                if (options.length >= 2) {
+                    const optionIndex = {};
+                    options.forEach((_, i) => { optionIndex[i] = []; });
+                    votes.push({
+                        id: Date.now().toString(),
+                        title: data.title || '未命名投票',
+                        options: options,
+                        multiSelect: !!data.multiSelect,
+                        deadline: data.deadline || null,
+                        creator: data.creator || username,
+                        votes: optionIndex,
+                        voters: {}
+                    });
+                    broadcastVotes();
+                }
+            } else if (data.type === 'submitVote') {
+                const vote = votes.find(v => v.id === data.voteId);
+                if (vote) {
+                    const voter = data.username || username;
+                    const selected = Array.isArray(data.options) ? data.options : [];
+                    Object.keys(vote.votes).forEach(k => {
+                        vote.votes[k] = vote.votes[k].filter(u => u !== voter);
+                    });
+                    selected.forEach(i => {
+                        if (!vote.votes[i]) vote.votes[i] = [];
+                        if (!vote.votes[i].includes(voter)) vote.votes[i].push(voter);
+                    });
+                    vote.voters[voter] = selected;
+                    broadcastVotes();
+                }
+            } else if (data.type === 'report') {
+                reports.push(Object.assign({ reporter: username, time: new Date().toISOString() }, data.report || {}));
+                ws.send(JSON.stringify({ type: 'reportAck', ok: true }));
+            } else if (data.type === 'webrtcOffer') {
+                broadcastToUser(data.toUser, { type: 'webrtcOffer', from: username, offer: data.offer });
+            } else if (data.type === 'webrtcAnswer') {
+                broadcastToUser(data.toUser, { type: 'webrtcAnswer', from: username, answer: data.answer });
+            } else if (data.type === 'webrtcIceCandidate') {
+                broadcastToUser(data.toUser, { type: 'webrtcIceCandidate', from: username, candidate: data.candidate });
+            } else if (data.type === 'deviceHeartbeat') {
+                if (data.deviceId) {
+                    deviceRegistry.set(username + '::' + data.deviceId, {
+                        ws: ws,
+                        username: username,
+                        deviceId: data.deviceId,
+                        name: data.name || '未知设备',
+                        icon: data.icon || '📱',
+                        lastSeen: new Date().toISOString()
+                    });
+                    broadcastDeviceList(username);
+                }
+            } else if (data.type === 'syncAll' || data.type === 'syncRequest') {
+                broadcastToUserExcept(username, ws, {
+                    type: 'syncData',
+                    from: username,
+                    data: data.data || {},
+                    timestamp: new Date().toISOString()
+                });
+            } else if (data.type === 'kickDevice') {
+                const key = username + '::' + data.deviceId;
+                const rec = deviceRegistry.get(key);
+                if (rec && rec.ws && rec.ws !== ws) {
+                    deviceRegistry.delete(key);
+                    try { rec.ws.close(); } catch (err) {}
+                    broadcastDeviceList(username);
+                }
             }
         } catch (e) {
             console.error('解析消息失败:', e);
@@ -505,6 +616,14 @@ wss.on('connection', (ws) => {
                 rooms[currentRoom] = rooms[currentRoom].filter(u => u !== username);
             }
             users.delete(ws);
+            const staleDeviceKeys = [];
+            deviceRegistry.forEach((rec, key) => {
+                if (rec.ws === ws) staleDeviceKeys.push(key);
+            });
+            if (staleDeviceKeys.length > 0) {
+                staleDeviceKeys.forEach(key => deviceRegistry.delete(key));
+                broadcastDeviceList(username);
+            }
             broadcastToRoom(currentRoom, {
                 type: 'system',
                 message: `${username} 离开了 ${currentRoom}`,
@@ -568,6 +687,51 @@ function getRoomUsers(room) {
         }
     });
     return roomUsers;
+}
+
+function getUserDevices(username) {
+    const list = [];
+    deviceRegistry.forEach((rec) => {
+        if (rec.username === username) {
+            list.push({
+                id: rec.deviceId,
+                name: rec.name,
+                icon: rec.icon,
+                lastActive: rec.lastSeen,
+                trusted: true
+            });
+        }
+    });
+    return list;
+}
+
+function broadcastDeviceList(username) {
+    broadcastToUser(username, { type: 'deviceList', devices: getUserDevices(username) });
+}
+
+function broadcastToUserExcept(targetUsername, excludeClient, data) {
+    wss.clients.forEach((client) => {
+        const user = users.get(client);
+        if (user && user.username === targetUsername && client !== excludeClient && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+function broadcastAnnouncements() {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'announcements', announcements: announcements }));
+        }
+    });
+}
+
+function broadcastVotes() {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'votes', votes: votes }));
+        }
+    });
 }
 
 server.listen(PORT, '0.0.0.0', () => {
