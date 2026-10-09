@@ -1,6 +1,6 @@
 {
   "name": "simple-chat-app",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "极简实时聊天应用，支持局域网和公网访问",
   "main": "server.js",
   "scripts": {
