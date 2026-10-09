@@ -2487,7 +2487,6 @@ document.addEventListener('DOMContentLoaded', function() {
         reminderPanel.classList.remove('active');
         quickReplyPanel.classList.remove('active');
         starredPanel.classList.remove('active');
-        backgroundPanel.classList.remove('active');
         blockedPanel.classList.remove('active');
         shortcutsHint.classList.remove('active');
         announcementPanel.classList.remove('active');
