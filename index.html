@@ -5321,174 +5321,12 @@
             margin-right: 4px;
         }
 
-        /* ========== AI助手功能样式 ========== */
-        .ai-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        }
-
-        .message.ai .message-bubble {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-        }
-
-        .message.ai .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .ai-settings-panel {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            width: 360px;
-            background: var(--bg-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            display: none;
-            z-index: 100;
-        }
-
-        .ai-settings-panel.active {
-            display: block;
-        }
-
-        .ai-settings-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--text-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ai-settings-close {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .ai-settings-content {
-            padding: 16px;
-        }
-
-        .ai-role-selector {
-            margin-bottom: 16px;
-        }
-
-        .ai-role-selector label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .ai-role-selector select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            background: var(--bg-secondary);
-            color: var(--text-color);
-        }
-
-        .ai-context-info {
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .ai-context-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .ai-context-value {
-            font-size: 14px;
-            color: var(--text-color);
-        }
-
-        .ai-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .ai-toggle label {
-            font-size: 14px;
-            color: var(--text-color);
-        }
-
-        .ai-reset-context-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--bg-secondary);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .ai-reset-context-btn:hover {
-            background: var(--hover-bg);
-        }
-
-        .ai-thinking {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .ai-thinking-dots {
-            display: flex;
-            gap: 2px;
-        }
-
-        .ai-thinking-dots span {
-            width: 6px;
-            height: 6px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            animation: ai-thinking 1.4s infinite;
-        }
-
-        .ai-thinking-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .ai-thinking-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes ai-thinking {
-            0%, 80%, 100% {
-                transform: scale(0.6);
-                opacity: 0.5;
-            }
-            40% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
         .message-action-btn.report {
             color: #f44336;
         }
 
         .message-action-btn.encryption {
             color: #4caf50;
-        }
-
-        .message-action-btn.ai {
-            color: #667eea;
         }
 
         /* 新设备登录通知 */
@@ -5782,7 +5620,8 @@
             top: 60px;
             right: 10px;
             width: 350px;
-            background: white;
+            background: var(--bg-color);
+            color: var(--text-color);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-color);
             display: none;
@@ -5829,7 +5668,8 @@
             padding: 8px 16px;
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            background: white;
+            background: var(--bg-secondary);
+            color: var(--text-color);
             cursor: pointer;
             font-size: 12px;
             transition: all 0.2s;
@@ -5844,6 +5684,8 @@
             border-radius: 8px;
             font-size: 14px;
             margin-bottom: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
         }
 
         .backup-export-btn {
@@ -5874,7 +5716,8 @@
             top: 60px;
             right: 10px;
             width: 350px;
-            background: white;
+            background: var(--bg-color);
+            color: var(--text-color);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-color);
             display: none;
@@ -6244,7 +6087,6 @@
                         <div class="dropdown-item" id="filterBtn" data-btn="filterBtn">🛡️ 过滤</div>
                         <div class="dropdown-item" id="devicesBtn" data-btn="devicesBtn">📱 设备</div>
                         <div class="dropdown-item" id="encryptionBtn" data-btn="encryptionBtn">🔐 加密</div>
-                        <div class="dropdown-item" id="aiBtn" data-btn="aiBtn">🤖 AI</div>
                         <div class="dropdown-item" id="styleBtn" data-btn="styleBtn">🎨 样式</div>
                         <div class="dropdown-item" id="userColorsBtn" data-btn="userColorsBtn">🌈 用户颜色</div>
                         <div class="dropdown-item" id="exportBtn" data-btn="exportBtn">📤 导出</div>
@@ -6658,7 +6500,6 @@
                     <div class="about-row"><span class="about-label">登记日期</span><span class="about-value">2026年09月16日</span></div>
                     <div class="about-row"><span class="about-label">登记机构</span><span class="about-value">中国版权保护中心</span></div>
                     <div class="about-note">根据《计算机软件保护条例》和《计算机软件著作权登记办法》的规定，经中国版权保护中心审核，对以上事项予以登记。</div>
-                    <div class="about-copyright">© 2026 赵钧平 · 保留所有权利</div>
                 </div>
             </div>
         </div>
@@ -7028,38 +6869,6 @@
             </div>
         </div>
 
-        <!-- AI助手设置面板 -->
-        <div class="ai-settings-panel" id="aiSettingsPanel">
-            <div class="ai-settings-header">
-                <span>🤖 AI助手设置</span>
-                <button class="ai-settings-close" id="aiSettingsClose">×</button>
-            </div>
-            <div class="ai-settings-content">
-                <div class="ai-toggle">
-                    <label>✨ 启用AI助手</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="aiEnabledToggle" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="ai-role-selector">
-                    <label>AI角色</label>
-                    <select id="aiRoleSelect">
-                        <option value="assistant">💬 智能助手</option>
-                        <option value="translator">🌐 翻译官</option>
-                        <option value="summarizer">📝 内容总结</option>
-                        <option value="coder">💻 代码助手</option>
-                        <option value="helper">🔍 问答助手</option>
-                    </select>
-                </div>
-                <div class="ai-context-info">
-                    <div class="ai-context-label">对话上下文</div>
-                    <div class="ai-context-value" id="aiContextCount">0 条消息</div>
-                </div>
-                <button class="ai-reset-context-btn" id="aiResetContextBtn">🗑️ 清空上下文</button>
-            </div>
-        </div>
-
     </div>
 
     <!-- 来电弹窗 - 保持在容器外部，因为它是全屏弹窗 -->
@@ -7075,60 +6884,7 @@
         </div>
     </div>
 
-    <!-- 视频通话窗口 - 保持在容器外部，因为它是全屏覆盖 -->
-    <div class="video-call-window" id="videoCallWindow">
-        <div class="video-call-header">
-            <div class="video-call-title" id="videoCallTitle">视频通话</div>
-            <div class="video-call-timer" id="videoCallTimer">00:00:00</div>
-        </div>
-        <div class="video-call-container">
-            <div class="remote-video-container" id="remoteVideoContainer">
-                <div class="remote-video-placeholder" id="remoteVideoPlaceholder">
-                    <div class="avatar-large" id="remoteAvatar">?</div>
-                </div>
-                <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
-            </div>
-            <div class="local-video-container">
-                <video id="localVideo" autoplay playsinline muted></video>
-            </div>
-        </div>
-        <div class="video-call-controls">
-            <div class="volume-indicator-container">
-                <span>🔊</span>
-                <div class="volume-indicator-bar">
-                    <div class="volume-indicator" id="videoVolumeIndicator"></div>
-                </div>
-            </div>
-            <div class="video-call-buttons">
-                <button class="video-call-btn mute" id="videoMuteBtn">🔇</button>
-                <button class="video-call-btn camera" id="videoCameraBtn">📹</button>
-                <button class="video-call-btn end" id="videoEndCallBtn">🔴</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 语音通话窗口 - 保持在容器外部，因为它是弹窗 -->
-    <div class="voice-call-window" id="voiceCallWindow">
-        <div class="voice-call-header">
-            <div class="voice-call-title">语音通话</div>
-        </div>
-        <div class="voice-call-avatar">
-            <div class="avatar-voice" id="voiceCallAvatar">?</div>
-        </div>
-        <div class="voice-call-name" id="voiceCallName">用户名</div>
-        <div class="voice-call-status" id="voiceCallStatus">通话中</div>
-        <div class="voice-call-timer" id="voiceCallTimer">00:00:00</div>
-        <div class="volume-indicator-container">
-            <span>🔊</span>
-            <div class="volume-indicator-bar">
-                <div class="volume-indicator" id="voiceVolumeIndicator"></div>
-            </div>
-        </div>
-        <div class="voice-call-buttons">
-            <button class="voice-call-btn mute" id="voiceMuteBtn">🔇</button>
-            <button class="voice-call-btn end" id="voiceEndCallBtn">🔴</button>
-        </div>
-    </div>
+    <!-- 通话窗口（视频/语音）由 app.js 动态创建并挂载到 body，此处不再预置静态节点，避免 id 冲突 -->
 
 
 

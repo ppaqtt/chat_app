@@ -1092,7 +1092,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageDiv = document.createElement('div');
         let messageClass = data.username === currentUsername ? 'own' : 'other';
         if (data.type === 'system') messageClass = 'system';
-        if (data.isAI) messageClass += ' ai';
         if (data.isEncrypted) messageClass += ' encrypted';
         if (data.decryptionFailed) messageClass += ' decryption-failed';
         messageDiv.className = 'message ' + messageClass;
@@ -1100,7 +1099,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
-        if (data.isAI) avatarDiv.classList.add('ai-avatar');
         if (data.avatar && !data.avatar.startsWith('#')) {
             const img = document.createElement('img');
             img.src = data.avatar;
@@ -1683,14 +1681,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const timestamp = formatTime(now);
 
         let finalContent = content;
-
-        if (shouldTriggerAI(content)) {
-            processAIRequest(content, (response) => {
-                if (response) {
-                    addAIMessage(response);
-                }
-            });
-        }
 
         if (isPrivateMode && encryptionEnabled && privateTarget) {
             finalContent = encryptMessage(content);
@@ -2874,7 +2864,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyCustomBackground() {
-        if (customBackground && customBackground.startsWith('http')) {
+        const isGradient = /gradient\(/i.test(customBackground || '');
+        if (customBackground && !isGradient) {
+            // 自定义图片通常是相对路径（如 /uploads/xxx.jpg），旧逻辑只识别 http 开头，
+            // 会把相对路径直接当作背景图字符串，导致图片无法显示。
             document.body.style.backgroundImage = 'url("' + customBackground + '")';
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
@@ -3218,8 +3211,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         peerConnection.oniceconnectionstatechange = () => {
             console.log('ICE连接状态:', peerConnection.iceConnectionState);
-            if (peerConnection.iceConnectionState === 'disconnected' ||
-                peerConnection.iceConnectionState === 'failed') {
+            // 只有 'failed' 才视为连接不可用。'disconnected' 往往是网络抖动导致的短暂状态，
+            // 之前把它也当作结束通话，会造成通话刚接通就被挂断。
+            if (peerConnection.iceConnectionState === 'failed') {
                 handleCallEnded({});
             }
         };
@@ -4995,200 +4989,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ========== AI助手功能 ==========
-    let aiEnabled = true;
-    let aiRole = 'assistant';
-    let aiContext = [];
-
-    const aiBtn = document.getElementById('aiBtn');
-    const aiSettingsPanel = document.getElementById('aiSettingsPanel');
-    const aiSettingsClose = document.getElementById('aiSettingsClose');
-    const aiEnabledToggle = document.getElementById('aiEnabledToggle');
-    const aiRoleSelect = document.getElementById('aiRoleSelect');
-    const aiContextCount = document.getElementById('aiContextCount');
-    const aiResetContextBtn = document.getElementById('aiResetContextBtn');
-
-    const aiResponses = {
-        assistant: [
-            { trigger: '你好', response: '你好！有什么我可以帮助你的吗？' },
-            { trigger: '帮助', response: '我可以帮助你回答问题、提供信息、翻译文本、总结内容或协助编程。只需@我或直接发送问题即可！' },
-            { trigger: '？', response: '我是AI助手，你可以向我提问任何问题，我会尽力回答。' }
-        ],
-        translator: [
-            { trigger: '翻译', response: '请告诉我需要翻译的内容，我会尽力翻译。格式：翻译 [语言] [内容]' }
-        ],
-        summarizer: [
-            { trigger: '总结', response: '请提供需要总结的内容，我会为你提取要点。' }
-        ],
-        coder: [
-            { trigger: '代码', response: '我可以帮你解答编程问题。请描述你遇到的问题或需要实现的功能。' }
-        ],
-        helper: [
-            { trigger: '怎么', response: '让我帮你分析这个问题。' }
-        ]
-    };
-
-    function initAIFeature() {
-        loadAISettings();
-
-        aiBtn.addEventListener('click', () => {
-            aiSettingsPanel.classList.toggle('active');
-        });
-
-        aiSettingsClose.addEventListener('click', () => {
-            aiSettingsPanel.classList.remove('active');
-        });
-
-        aiEnabledToggle.addEventListener('change', () => {
-            aiEnabled = aiEnabledToggle.checked;
-            saveAISettings();
-        });
-
-        aiRoleSelect.addEventListener('change', () => {
-            aiRole = aiRoleSelect.value;
-            saveAISettings();
-        });
-
-        aiResetContextBtn.addEventListener('click', () => {
-            if (confirm('确定要清空AI对话上下文吗？')) {
-                aiContext = [];
-                saveAISettings();
-                updateAIContextCount();
-                alert('上下文已清空');
-            }
-        });
-
-        updateAIContextCount();
-    }
-
-    function loadAISettings() {
-        const saved = localStorage.getItem('aiSettings');
-        if (saved) {
-            const settings = JSON.parse(saved);
-            aiEnabled = settings.enabled !== false;
-            aiRole = settings.role || 'assistant';
-            aiContext = settings.context || [];
-
-            aiEnabledToggle.checked = aiEnabled;
-            aiRoleSelect.value = aiRole;
-        }
-    }
-
-    function saveAISettings() {
-        localStorage.setItem('aiSettings', JSON.stringify({
-            enabled: aiEnabled,
-            role: aiRole,
-            context: aiContext
-        }));
-    }
-
-    function updateAIContextCount() {
-        aiContextCount.textContent = aiContext.length + ' 条消息';
-    }
-
-    function shouldTriggerAI(text) {
-        return text.startsWith('@AI') || 
-               text.startsWith('/ai') || 
-               text.startsWith('ai:') ||
-               text.includes('？') && text.length < 50;
-    }
-
-    function processAIRequest(text, callback) {
-        if (!aiEnabled) {
-            callback(null);
-            return;
-        }
-
-        const cleanText = text.replace(/^(@AI|\/ai|ai:)\s*/i, '').trim();
-
-        aiContext.push({
-            role: 'user',
-            content: cleanText,
-            timestamp: Date.now()
-        });
-
-        setTimeout(() => {
-            const response = generateAIResponse(cleanText);
-
-            aiContext.push({
-                role: 'assistant',
-                content: response,
-                timestamp: Date.now()
-            });
-
-            if (aiContext.length > 20) {
-                aiContext = aiContext.slice(-20);
-            }
-
-            saveAISettings();
-            updateAIContextCount();
-
-            callback(response);
-        }, 1000 + Math.random() * 1000);
-    }
-
-    function generateAIResponse(text) {
-        const roleResponses = aiResponses[aiRole] || aiResponses.assistant;
-
-        for (const item of roleResponses) {
-            if (text.includes(item.trigger)) {
-                return item.response;
-            }
-        }
-
-        const responses = [
-            '收到你的消息了，让我思考一下...',
-            '这是一个有趣的问题，我正在处理中。',
-            '好的，我已经理解你的问题了。',
-            '让我帮你分析一下这个问题。',
-            '感谢你的提问，我会尽力帮助你。'
-        ];
-
-        let response = responses[Math.floor(Math.random() * responses.length)];
-
-        if (aiRole === 'translator' && text.length < 100) {
-            response = '请提供需要翻译的完整内容，我会为你翻译。';
-        } else if (aiRole === 'summarizer' && text.length > 50) {
-            response = '我已经阅读了内容。主要信息是：' + text.substring(0, 50) + '...';
-        } else if (aiRole === 'coder') {
-            response = '关于代码问题，请提供更多细节，如使用的编程语言和具体需求。';
-        }
-
-        return response;
-    }
-
-    function addAIMessage(content) {
-        const messageId = 'msg_' + Date.now();
-        // 与服务端消息保持统一的时间格式，便于日期分隔/统计/导出解析。
-        const timestamp = formatTime(new Date());
-
-        const msg = {
-            id: messageId,
-            username: 'AI助手',
-            content: content,
-            timestamp: timestamp,
-            isAI: true,
-            avatar: '',
-            reactions: {},
-            isPrivate: false,
-            toUser: null,
-            tags: []
-        };
-
-        allMessages.push(msg);
-        addMessage(msg);
-        scrollToBottom();
-
-        return messageId;
-    }
-
     // ========== 初始化所有新功能 ==========
     function initNewFeatures() {
         initFilterFeature();
         initReportFeature();
         initDevicesFeature();
         initEncryptionFeature();
-        initAIFeature();
         initSmartRecommendations();
         initBubbleStyles();
         initPreviewFeature();
