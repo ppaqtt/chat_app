@@ -754,8 +754,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             userJoinTimes[msg.username] = msg.timestamp || formatTime(new Date());
                         }
                         allMessages.push(msg);
-                        addMessage(msg);
                     });
+                    // 历史消息统一走带日期分隔的渲染，按日期分组显示。
+                    refreshMessagesWithDateDividers();
                 }
                 if (data.announcements) {
                     announcements = data.announcements;
@@ -846,8 +847,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.messages) {
                     data.messages.forEach(msg => {
                         allMessages.push(msg);
-                        addMessage(msg);
                     });
+                    // 通过带日期分隔的渲染，保证历史消息按日期分组显示。
+                    refreshMessagesWithDateDividers();
                 }
                 if (data.users) {
                     onlineUsers = data.users;
@@ -1197,7 +1199,9 @@ document.addEventListener('DOMContentLoaded', function() {
         info.appendChild(usernameSpan);
 
         const timestampSpan = document.createElement('span');
-        timestampSpan.textContent = ' ' + data.timestamp;
+        // 服务端时间戳为 "YYYY-MM-DD HH:MM:SS"，消息气泡上只显示 "HH:MM"。
+        const rawTs = data.timestamp || '';
+        timestampSpan.textContent = ' ' + (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(rawTs) ? rawTs.slice(11, 16) : rawTs);
         info.appendChild(timestampSpan);
 
         if (data.edited) {
@@ -2562,6 +2566,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function getDateDisplayString(timestamp) {
         try {
             const date = new Date(timestamp.replace(' ', 'T'));
+            // 服务端时间戳可能只有时间（如 "14:05"），此时解析为 Invalid Date，
+            // 返回空串以避免显示出 "NaN月NaN日" 的分隔条。
+            if (isNaN(date.getTime())) return '';
             const today = new Date();
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
@@ -2630,8 +2637,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         quickReplyBtn.addEventListener('click', () => {
-            renderQuickReplies();
-            quickReplyPanel.classList.add('active');
+            // 与其他工具栏面板一致：再次点击可关闭。
+            if (!quickReplyPanel.classList.contains('active')) {
+                renderQuickReplies();
+            }
+            quickReplyPanel.classList.toggle('active');
         });
 
         quickReplyClose.addEventListener('click', () => {
@@ -2649,8 +2659,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         starredBtn.addEventListener('click', () => {
-            renderStarredMessages();
-            starredPanel.classList.add('active');
+            // 与其他工具栏面板一致：再次点击可关闭。
+            if (!starredPanel.classList.contains('active')) {
+                renderStarredMessages();
+            }
+            starredPanel.classList.toggle('active');
         });
 
         starredClose.addEventListener('click', () => {
@@ -5146,7 +5159,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addAIMessage(content) {
         const messageId = 'msg_' + Date.now();
-        const timestamp = new Date().toLocaleString();
+        // 与服务端消息保持统一的时间格式，便于日期分隔/统计/导出解析。
+        const timestamp = formatTime(new Date());
 
         const msg = {
             id: messageId,
@@ -5941,7 +5955,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const now = new Date();
         filteredMessages = filteredMessages.filter(msg => {
-            const msgDate = new Date(msg.timestamp);
+            const msgDate = new Date((msg.timestamp || '').replace(' ', 'T'));
             switch (backupTimeRange) {
                 case 'today':
                     return msgDate.toDateString() === now.toDateString();

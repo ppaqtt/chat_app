@@ -12,6 +12,18 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR);
 }
 
+// 消息时间统一使用 "YYYY-MM-DD HH:MM:SS" 完整格式，
+// 前端据此解析日期（日期分隔条、今日消息统计、按日期导出）。
+// 此前只发送 "HH:MM" 会导致前端解析为 Invalid Date，出现 "NaN月NaN日" 等问题。
+function formatMsgTime(date = new Date()) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0') + ' ' +
+        String(date.getHours()).padStart(2, '0') + ':' +
+        String(date.getMinutes()).padStart(2, '0') + ':' +
+        String(date.getSeconds()).padStart(2, '0');
+}
+
 const server = http.createServer((req, res) => {
     if (req.url === '/api/upload' && req.method === 'POST') {
         let data = [];
@@ -178,7 +190,7 @@ wss.on('connection', (ws) => {
                 ws.send(JSON.stringify({ type: 'votes', votes: votes }));
                 
             } else if (data.type === 'message') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const roomMsgs = getRoomMessages(currentRoom);
                 const messageData = {
                     type: 'message',
@@ -201,7 +213,7 @@ wss.on('connection', (ws) => {
                 broadcastToRoom(currentRoom, messageData);
                 
             } else if (data.type === 'imageMessage') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const roomMsgs = getRoomMessages(currentRoom);
                 const messageData = {
                     type: 'imageMessage',
@@ -224,7 +236,7 @@ wss.on('connection', (ws) => {
                 broadcastToRoom(currentRoom, messageData);
                 
             } else if (data.type === 'fileMessage') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const roomMsgs = getRoomMessages(currentRoom);
                 const messageData = {
                     type: 'fileMessage',
@@ -250,7 +262,7 @@ wss.on('connection', (ws) => {
                 broadcastToRoom(currentRoom, messageData);
                 
             } else if (data.type === 'privateFileMessage') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const messageData = {
                     type: 'privateFileMessage',
                     id: Date.now().toString(),
@@ -269,7 +281,7 @@ wss.on('connection', (ws) => {
                 ws.send(JSON.stringify(messageData));
                 
             } else if (data.type === 'privateMessage') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const messageData = {
                     type: 'privateMessage',
                     id: Date.now().toString(),
@@ -491,7 +503,7 @@ wss.on('connection', (ws) => {
                     from: username
                 });
             } else if (data.type === 'locationMessage') {
-                const timestamp = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const timestamp = formatMsgTime();
                 const roomMsgs = getRoomMessages(currentRoom);
                 const messageData = {
                     type: 'locationMessage',
