@@ -216,15 +216,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '👍', '👎', '👏', '🙌'];
 
     function initTheme() {
+        // 默认使用深色（应用原本的视觉基调）；仅当用户主动选择过浅色时才用浅色
         const savedTheme = localStorage.getItem('chatTheme');
-        if (savedTheme === 'dark') {
-            isDarkMode = true;
-            document.body.classList.add('dark-mode');
-            themeBtn.textContent = '☀️';
-        } else {
+        if (savedTheme === 'light') {
             isDarkMode = false;
             document.body.classList.remove('dark-mode');
             themeBtn.textContent = '🌙';
+        } else {
+            isDarkMode = true;
+            document.body.classList.add('dark-mode');
+            themeBtn.textContent = '☀️';
         }
     }
 
