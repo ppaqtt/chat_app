@@ -10,6 +10,7 @@
     "get-ip": "node get-ip.js"
   },
   "dependencies": {
+    "better-sqlite3": "^13.1.1",
     "ws": "^8.20.1"
   },
   "keywords": [

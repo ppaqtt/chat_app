@@ -141,6 +141,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const voteDeadlineInput = document.getElementById('voteDeadlineInput');
     const voteCreateBtn = document.getElementById('voteCreateBtn');
     const voteList = document.getElementById('voteList');
+    const todoBtn = document.getElementById('todoBtn');
+    const todoPanel = document.getElementById('todoPanel');
+    const todoClose = document.getElementById('todoClose');
+    const todoTitleInput = document.getElementById('todoTitleInput');
+    const todoAssigneeSelect = document.getElementById('todoAssigneeSelect');
+    const todoDueInput = document.getElementById('todoDueInput');
+    const todoCreateBtn = document.getElementById('todoCreateBtn');
+    const todoList = document.getElementById('todoList');
+    const exportHtmlBtn = document.getElementById('exportHtmlBtn');
+    const exportMdBtn = document.getElementById('exportMdBtn');
     const userProfileCard = document.getElementById('userProfileCard');
     const profileCardClose = document.getElementById('profileCardClose');
     const profileCardAvatar = document.getElementById('profileCardAvatar');
@@ -212,6 +222,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let profileTargetUser = null;
     let userJoinTimes = {};
 
+    // 历史消息分页 / 房间待办 / 搜索
+    let todos = [];
+    let historyHasMore = false;
+    let historyLoading = false;
+    let oldestRoomSeq = null;
+    let pendingScrollId = null;
+    let bulkRendering = false;
+    let searchToken = 0;
+
     const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '👍', '👎', '👏', '🙌'];
 
     function initTheme() {
@@ -259,6 +278,11 @@ document.addEventListener('DOMContentLoaded', function() {
     moreDropdown.querySelectorAll('.dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
             const btnId = item.dataset.btn;
+            if (btnId === 'exportHtmlBtn' || btnId === 'exportMdBtn') {
+                exportRoomArchive(btnId === 'exportMdBtn' ? 'md' : 'html');
+                moreDropdown.classList.remove('active');
+                return;
+            }
             const btn = document.getElementById(btnId);
             if (btn && btn !== item) {
                 btn.click();
@@ -513,6 +537,13 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleSearch();
         if (searchPanel.classList.contains('active')) {
             updateSearchFilterUsers();
+        }
+    });
+
+    // 上拉加载更早的历史消息
+    messagesArea.addEventListener('scroll', () => {
+        if (messagesArea.scrollTop <= 60) {
+            loadOlderMessages();
         }
     });
 
@@ -804,14 +835,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.rooms) {
                     updateRoomList(data.rooms);
                 }
+
+                allMessages = [];
+                messagesArea.innerHTML = '';
+                historyHasMore = !!data.hasMore;
+                historyLoading = false;
+                oldestRoomSeq = null;
+                ensureHistoryLoader();
+
                 if (data.messages) {
+                    bulkRendering = true;
                     data.messages.forEach(msg => {
                         if (msg.username && !userJoinTimes[msg.username]) {
                             userJoinTimes[msg.username] = msg.timestamp || formatTime(new Date());
                         }
                         allMessages.push(msg);
                         addMessage(msg);
+                        if (!msg.isPrivate && msg.seq && (oldestRoomSeq === null || msg.seq < oldestRoomSeq)) {
+                            oldestRoomSeq = msg.seq;
+                        }
                     });
+                    bulkRendering = false;
+                }
+                ensureHistoryLoader();
+                if (data.pinnedMessages) {
+                    handlePinnedMessages(data);
+                }
+                if (Array.isArray(data.todos)) {
+                    todos = data.todos;
+                    renderTodoList();
                 }
                 if (data.announcements) {
                     announcements = data.announcements;
@@ -899,11 +951,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageInput.placeholder = '在 ' + currentRoom + ' 发消息...';
                 messagesArea.innerHTML = '';
                 allMessages = [];
+                historyHasMore = !!data.hasMore;
+                historyLoading = false;
+                oldestRoomSeq = null;
+                ensureHistoryLoader();
                 if (data.messages) {
+                    bulkRendering = true;
                     data.messages.forEach(msg => {
                         allMessages.push(msg);
                         addMessage(msg);
+                        if (!msg.isPrivate && msg.seq && (oldestRoomSeq === null || msg.seq < oldestRoomSeq)) {
+                            oldestRoomSeq = msg.seq;
+                        }
                     });
+                    bulkRendering = false;
+                }
+                ensureHistoryLoader();
+                if (data.pinnedMessages) {
+                    handlePinnedMessages(data);
+                }
+                if (Array.isArray(data.todos)) {
+                    todos = data.todos;
+                    renderTodoList();
                 }
                 if (data.users) {
                     onlineUsers = data.users;
@@ -926,6 +995,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 updateRoomList(Object.keys(rooms));
                 scrollToBottom();
+                break;
+            case 'history':
+                handleHistory(data);
+                break;
+            case 'todos':
+                todos = Array.isArray(data.todos) ? data.todos : [];
+                renderTodoList();
                 break;
             case 'reactionAdded':
                 updateMessageReactions(data.messageId, data.reactions);
@@ -1037,6 +1113,263 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ========== 历史消息分页 / 房间待办 / 服务端导出 ==========
+    function ensureHistoryLoader() {
+        let loader = document.getElementById('historyLoader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'historyLoader';
+            loader.className = 'history-loader';
+            messagesArea.prepend(loader);
+        }
+        if (historyLoading) {
+            loader.textContent = '正在加载更早的消息…';
+            loader.style.display = 'block';
+        } else if (historyHasMore) {
+            loader.textContent = '↑ 继续向上滚动加载更早消息';
+            loader.style.display = 'block';
+        } else {
+            loader.textContent = '';
+            loader.style.display = 'none';
+        }
+        return loader;
+    }
+
+    function loadOlderMessages() {
+        if (historyLoading || !historyHasMore || !oldestRoomSeq || isPrivateMode) return;
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        historyLoading = true;
+        ensureHistoryLoader();
+        ws.send(JSON.stringify({
+            type: 'loadHistory',
+            room: currentRoom,
+            before: oldestRoomSeq,
+            limit: 30
+        }));
+    }
+
+    function handleHistory(data) {
+        if (data.room && data.room !== currentRoom) return;
+        const messages = data.messages || [];
+        const existing = new Set(allMessages.map(m => m.id));
+        const fresh = messages.filter(m => !existing.has(m.id));
+
+        historyLoading = false;
+        historyHasMore = !!data.hasMore;
+
+        if (fresh.length) {
+            const firstMessageNode = messagesArea.querySelector('.message');
+            const beforeHeight = messagesArea.scrollHeight;
+            const beforeTop = messagesArea.scrollTop;
+            const beforeNodes = new Set(Array.from(messagesArea.children));
+
+            bulkRendering = true;
+            fresh.forEach(msg => addMessage(msg));
+            bulkRendering = false;
+
+            const addedNodes = Array.from(messagesArea.children).filter(node => !beforeNodes.has(node));
+            if (firstMessageNode) {
+                addedNodes.forEach(node => messagesArea.insertBefore(node, firstMessageNode));
+            }
+            messagesArea.scrollTop = beforeTop + (messagesArea.scrollHeight - beforeHeight);
+
+            allMessages = fresh.concat(allMessages);
+            fresh.forEach(msg => {
+                if (!msg.isPrivate && msg.seq && (oldestRoomSeq === null || msg.seq < oldestRoomSeq)) {
+                    oldestRoomSeq = msg.seq;
+                }
+            });
+        }
+
+        ensureHistoryLoader();
+
+        if (pendingScrollId) {
+            const target = pendingScrollId;
+            const targetNode = messagesArea.querySelector('[data-message-id="' + target + '"]');
+            if (targetNode) {
+                pendingScrollId = null;
+                setTimeout(() => scrollToMessage(target), 80);
+            } else if (historyHasMore && fresh.length > 0) {
+                // 目标消息尚未加载，继续向更早的方向翻页
+                setTimeout(loadOlderMessages, 30);
+            } else {
+                pendingScrollId = null;
+            }
+        }
+    }
+
+    function initTodoFeature() {
+        if (!todoBtn || !todoPanel) return;
+
+        todoBtn.onclick = (e) => {
+            e.stopPropagation();
+            todoPanel.classList.toggle('active');
+            if (todoPanel.classList.contains('active')) {
+                updateTodoAssigneeOptions();
+                renderTodoList();
+            }
+        };
+
+        if (todoClose) {
+            todoClose.onclick = () => todoPanel.classList.remove('active');
+        }
+        if (todoCreateBtn) {
+            todoCreateBtn.onclick = createTodoFromInput;
+        }
+        if (todoTitleInput) {
+            todoTitleInput.onkeydown = (e) => {
+                if (e.key === 'Enter') createTodoFromInput();
+            };
+        }
+        if (todoList) {
+            todoList.onclick = (e) => {
+                const toggle = e.target.closest('[data-todo-toggle]');
+                if (toggle) {
+                    ws.send(JSON.stringify({ type: 'toggleTodo', id: toggle.dataset.todoToggle }));
+                    return;
+                }
+                const del = e.target.closest('[data-todo-delete]');
+                if (del) {
+                    if (confirm('确定删除这条待办吗？')) {
+                        ws.send(JSON.stringify({ type: 'deleteTodo', id: del.dataset.todoDelete }));
+                    }
+                }
+            };
+        }
+
+        updateTodoAssigneeOptions();
+        renderTodoList();
+    }
+
+    function updateTodoAssigneeOptions() {
+        if (!todoAssigneeSelect) return;
+        const previous = todoAssigneeSelect.value;
+        const names = [];
+        onlineUsers.forEach(user => {
+            if (user && user.username && !names.includes(user.username)) names.push(user.username);
+        });
+        if (currentUsername && !names.includes(currentUsername)) names.push(currentUsername);
+
+        todoAssigneeSelect.innerHTML = '';
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '不指定负责人';
+        todoAssigneeSelect.appendChild(emptyOption);
+        names.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            todoAssigneeSelect.appendChild(option);
+        });
+        if (names.includes(previous)) {
+            todoAssigneeSelect.value = previous;
+        }
+    }
+
+    function createTodoFromInput() {
+        const title = todoTitleInput.value.trim();
+        if (!title) {
+            alert('请输入待办内容');
+            return;
+        }
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({
+            type: 'createTodo',
+            title: title,
+            assignee: todoAssigneeSelect ? todoAssigneeSelect.value : '',
+            dueAt: todoDueInput ? todoDueInput.value : ''
+        }));
+        todoTitleInput.value = '';
+        if (todoDueInput) todoDueInput.value = '';
+    }
+
+    function renderTodoList() {
+        if (!todoList) return;
+        todoList.innerHTML = '';
+
+        if (!todos.length) {
+            const empty = document.createElement('div');
+            empty.className = 'todo-empty';
+            empty.textContent = '还没有待办，添加一条让房间成员一起跟进吧';
+            todoList.appendChild(empty);
+            return;
+        }
+
+        const sorted = todos.slice().sort((a, b) => {
+            if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+            if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
+            if (a.dueAt) return -1;
+            if (b.dueAt) return 1;
+            return (a.createdAt || 0) - (b.createdAt || 0);
+        });
+
+        sorted.forEach(todo => {
+            const item = document.createElement('div');
+            item.className = 'todo-item' + (todo.done ? ' done' : '');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'todo-checkbox';
+            checkbox.checked = !!todo.done;
+            checkbox.dataset.todoToggle = todo.id;
+            item.appendChild(checkbox);
+
+            const body = document.createElement('div');
+            body.className = 'todo-body';
+
+            const title = document.createElement('div');
+            title.className = 'todo-item-title';
+            title.textContent = todo.title;
+            body.appendChild(title);
+
+            const meta = document.createElement('div');
+            meta.className = 'todo-meta';
+
+            if (todo.assignee) {
+                const assignee = document.createElement('span');
+                assignee.textContent = '@' + todo.assignee;
+                meta.appendChild(assignee);
+            }
+
+            if (todo.dueAt) {
+                const due = document.createElement('span');
+                const dueDate = new Date(todo.dueAt);
+                due.textContent = '截止 ' + todo.dueAt.replace('T', ' ');
+                if (!todo.done && !isNaN(dueDate.getTime()) && dueDate.getTime() < Date.now()) {
+                    due.classList.add('overdue');
+                    due.textContent += '（已逾期）';
+                }
+                meta.appendChild(due);
+            }
+
+            if (todo.done && todo.completedBy) {
+                const completed = document.createElement('span');
+                completed.textContent = '由 ' + todo.completedBy + ' 完成';
+                meta.appendChild(completed);
+            }
+
+            body.appendChild(meta);
+            item.appendChild(body);
+
+            if (todo.createdBy === currentUsername) {
+                const del = document.createElement('button');
+                del.className = 'todo-delete';
+                del.title = '删除待办';
+                del.textContent = '×';
+                del.dataset.todoDelete = todo.id;
+                item.appendChild(del);
+            }
+
+            todoList.appendChild(item);
+        });
+    }
+
+    function exportRoomArchive(format) {
+        if (!currentRoom) return;
+        const url = '/api/rooms/' + encodeURIComponent(currentRoom) + '/export?format=' + encodeURIComponent(format);
+        window.location.href = url;
+    }
+
     // ========== 通话事件处理 ==========
     function handleIncomingCall(data) {
         if (currentCall) {
@@ -1134,7 +1467,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other');
+        messageDiv.className = 'message ' + (data.isBot ? 'bot ' : '') + (data.username === currentUsername ? 'own' : 'other');
         messageDiv.dataset.messageId = data.id;
 
         const avatarDiv = document.createElement('div');
@@ -1228,6 +1561,13 @@ document.addEventListener('DOMContentLoaded', function() {
         usernameSpan.dataset.username = data.username;
         usernameSpan.textContent = data.username;
         info.appendChild(usernameSpan);
+
+        if (data.isBot) {
+            const botBadge = document.createElement('span');
+            botBadge.className = 'bot-badge';
+            botBadge.textContent = 'BOT';
+            info.appendChild(botBadge);
+        }
 
         const timestampSpan = document.createElement('span');
         timestampSpan.textContent = ' ' + data.timestamp;
@@ -1420,7 +1760,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateMessageReactions(data.id, data.reactions);
         }
 
-        if (data.username !== currentUsername && !data.isPrivate) {
+        if (data.username !== currentUsername && !data.isPrivate && !data.isBot && !bulkRendering) {
             ws.send(JSON.stringify({
                 type: 'readMessage',
                 messageId: data.id
@@ -2153,6 +2493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initSoundSettings();
         initKeyboardShortcuts();
         startOnlineTimer();
+        initTodoFeature();
     }
 
     // ========== 消息统计功能 ==========
@@ -2612,6 +2953,13 @@ document.addEventListener('DOMContentLoaded', function() {
             addMessage(msg);
         });
 
+        const loader = document.getElementById('historyLoader');
+        if (isPrivateMode) {
+            if (loader) loader.style.display = 'none';
+        } else {
+            ensureHistoryLoader();
+        }
+
         scrollToBottom();
     }
 
@@ -2986,45 +3334,139 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function performSearch() {
-        const keyword = searchInput.value.toLowerCase().trim();
+        const rawKeyword = searchInput.value.trim();
+        const keyword = rawKeyword.toLowerCase();
         const filterUser = searchFilterUser.value;
         const filterStarred = searchFilterStarred.checked;
-        
+        const token = ++searchToken;
+
         searchResults.innerHTML = '';
-        
+
         let filtered = allMessages;
-        
+
         if (keyword) {
-            filtered = filtered.filter(msg => 
+            filtered = filtered.filter(msg =>
                 (msg.content && msg.content.toLowerCase().includes(keyword)) ||
-                msg.username.toLowerCase().includes(keyword)
+                (msg.username && msg.username.toLowerCase().includes(keyword))
             );
         }
-        
+
         if (filterUser) {
             filtered = filtered.filter(msg => msg.username === filterUser);
         }
-        
+
         if (filterStarred) {
             filtered = filtered.filter(msg => starredMessages.includes(msg.id));
         }
-        
-        if (filtered.length === 0) {
-            searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">无搜索结果</div>';
+
+        const renderedIds = new Set();
+        filtered.slice(0, 50).forEach(msg => {
+            renderedIds.add(msg.id);
+            searchResults.appendChild(createSearchResultItem(msg, false));
+        });
+
+        // 仅在不含本地专属筛选、且为群聊模式时，追加服务端历史搜索结果
+        const shouldSearchServer = keyword.length > 0 && !filterUser && !filterStarred && !isPrivateMode;
+        if (!shouldSearchServer) {
+            showSearchEmptyState(renderedIds.size);
             return;
         }
-        
-        filtered.slice(0, 50).forEach(msg => {
-            const item = document.createElement('div');
-            item.className = 'search-result-item';
-            const content = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
-            item.innerHTML = '<div class="search-result-author">' + msg.username + '</div><div class="search-result-content">' + content + '</div>';
-            item.onclick = () => {
-                scrollToMessage(msg.id);
-                toggleSearch();
-            };
-            searchResults.appendChild(item);
-        });
+
+        const loadingNode = document.createElement('div');
+        loadingNode.className = 'search-section-title';
+        loadingNode.textContent = '正在检索服务端历史…';
+        searchResults.appendChild(loadingNode);
+
+        fetch('/api/search?q=' + encodeURIComponent(rawKeyword) +
+            '&room=' + encodeURIComponent(currentRoom) + '&limit=50')
+            .then(res => res.json())
+            .then(data => {
+                if (token !== searchToken) return;
+                if (loadingNode.parentNode) loadingNode.remove();
+
+                const results = (data && data.results) || [];
+                const freshResults = results.filter(item => !renderedIds.has(String(item.id)));
+                if (freshResults.length) {
+                    const section = document.createElement('div');
+                    section.className = 'search-section-title';
+                    section.textContent = '服务端历史消息（' + freshResults.length + '）';
+                    searchResults.appendChild(section);
+
+                    freshResults.forEach(item => {
+                        const id = String(item.id);
+                        if (renderedIds.has(id)) return;
+                        renderedIds.add(id);
+                        searchResults.appendChild(createSearchResultItem({
+                            id: id,
+                            seq: item.seq,
+                            room: item.room,
+                            username: item.username,
+                            content: item.content,
+                            timestamp: item.timestamp
+                        }, true));
+                    });
+                }
+
+                showSearchEmptyState(renderedIds.size);
+            })
+            .catch(() => {
+                if (token !== searchToken) return;
+                if (loadingNode.parentNode) loadingNode.remove();
+                showSearchEmptyState(renderedIds.size);
+            });
+    }
+
+    function showSearchEmptyState(renderedCount) {
+        if (renderedCount > 0) return;
+        if (searchResults.querySelector('.search-empty')) return;
+        const empty = document.createElement('div');
+        empty.className = 'search-empty';
+        empty.style.padding = '20px';
+        empty.style.textAlign = 'center';
+        empty.style.color = 'var(--text-secondary)';
+        empty.textContent = '无搜索结果';
+        searchResults.appendChild(empty);
+    }
+
+    function createSearchResultItem(msg, fromServer) {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+
+        const author = document.createElement('div');
+        author.className = 'search-result-author';
+        author.textContent = msg.username || '';
+        if (fromServer) {
+            const badge = document.createElement('span');
+            badge.className = 'search-source-badge';
+            badge.textContent = '历史';
+            author.appendChild(badge);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'search-result-content';
+        content.textContent = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
+
+        item.appendChild(author);
+        item.appendChild(content);
+        item.onclick = () => {
+            jumpToSearchResult(msg);
+        };
+        return item;
+    }
+
+    function jumpToSearchResult(msg) {
+        if (allMessages.some(m => m.id === msg.id)) {
+            scrollToMessage(msg.id);
+            toggleSearch();
+            return;
+        }
+        if (msg.room && msg.room !== currentRoom) {
+            return;
+        }
+        // 消息不在当前已加载区间，向上翻页直到定位到它
+        pendingScrollId = msg.id;
+        loadOlderMessages();
+        toggleSearch();
     }
 
     function exportChatHistory() {

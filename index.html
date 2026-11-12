@@ -5960,6 +5960,215 @@
         .online-status-color.online { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
         .online-status-color.offline { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
 
+        /* 历史消息加载提示 */
+        .history-loader {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 8px 0 12px;
+            user-select: none;
+        }
+
+        /* 机器人消息 */
+        .message.bot .message-bubble {
+            border-left: 3px solid #8B5CF6;
+        }
+
+        .bot-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 5px;
+            border-radius: 4px;
+            font-size: 10px;
+            line-height: 15px;
+            color: #fff;
+            background: #8B5CF6;
+            vertical-align: middle;
+        }
+
+        /* 房间待办面板 */
+        .todo-panel {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 420px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: none;
+            z-index: 100;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .todo-panel.active {
+            display: block;
+        }
+
+        .todo-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .todo-create {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .todo-title-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .todo-title-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .todo-create-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .todo-assignee-select,
+        .todo-due-input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .todo-create-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .todo-create-btn:hover {
+            opacity: 0.9;
+        }
+
+        .todo-list {
+            padding: 8px 16px 16px;
+        }
+
+        .todo-empty {
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-checkbox {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .todo-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .todo-item-title {
+            font-size: 14px;
+            color: var(--text-color);
+            word-break: break-word;
+        }
+
+        .todo-item.done .todo-item-title {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+
+        .todo-meta {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .todo-meta .overdue {
+            color: #ef4444;
+        }
+
+        .todo-delete {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px 4px;
+        }
+
+        .todo-delete:hover {
+            color: #ef4444;
+        }
+
+        .search-section-title {
+            padding: 10px 18px 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .search-result-item .search-source-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 5px;
+            border-radius: 4px;
+            font-size: 10px;
+            background: rgba(139, 92, 246, 0.25);
+            color: #c4b5fd;
+        }
     </style>
 </head>
 <body>
@@ -5997,6 +6206,7 @@
                 <div class="btn-group">
                     <button class="header-btn" id="announcementBtn" title="公告">📢</button>
                     <button class="header-btn" id="voteBtn" title="投票">🗳️</button>
+                    <button class="header-btn" id="todoBtn" title="房间待办">✅</button>
                     <button class="header-btn" id="callBtn" title="通话">📞</button>
                 </div>
                 <div class="btn-group">
@@ -6016,6 +6226,8 @@
                         <div class="dropdown-item" id="styleBtn" data-btn="styleBtn">🎨 样式</div>
                         <div class="dropdown-item" id="userColorsBtn" data-btn="userColorsBtn">🌈 用户颜色</div>
                         <div class="dropdown-item" id="exportBtn" data-btn="exportBtn">📤 导出</div>
+                        <div class="dropdown-item" id="exportHtmlBtn" data-btn="exportHtmlBtn">🌐 服务端导出 HTML</div>
+                        <div class="dropdown-item" id="exportMdBtn" data-btn="exportMdBtn">📝 服务端导出 Markdown</div>
                         <div class="dropdown-item" id="backgroundBtn" data-btn="backgroundBtn">🎨 背景</div>
                     </div>
                 </div>
@@ -6613,6 +6825,25 @@
                 <button class="vote-create-btn" id="voteCreateBtn">发起投票</button>
             </div>
             <div class="vote-list" id="voteList"></div>
+        </div>
+
+        <!-- 房间待办面板 -->
+        <div class="todo-panel" id="todoPanel">
+            <div class="todo-header">
+                <span>✅ 房间待办</span>
+                <button class="todo-close" id="todoClose">×</button>
+            </div>
+            <div class="todo-create">
+                <input type="text" class="todo-title-input" id="todoTitleInput" placeholder="待办内容" maxlength="200">
+                <div class="todo-create-row">
+                    <select id="todoAssigneeSelect" class="todo-assignee-select">
+                        <option value="">不指定负责人</option>
+                    </select>
+                    <input type="datetime-local" id="todoDueInput" class="todo-due-input">
+                </div>
+                <button class="todo-create-btn" id="todoCreateBtn">添加待办</button>
+            </div>
+            <div class="todo-list" id="todoList"></div>
         </div>
 
         <!-- 用户资料卡 -->
