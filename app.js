@@ -510,8 +510,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    searchBtn.addEventListener('click', toggleSearch);
-
     searchInput.addEventListener('input', performSearch);
     searchFilterUser.addEventListener('change', performSearch);
     searchFilterStarred.addEventListener('change', performSearch);
@@ -2833,7 +2831,8 @@ document.addEventListener('DOMContentLoaded', function() {
         reminderPanel.classList.remove('active');
         quickReplyPanel.classList.remove('active');
         starredPanel.classList.remove('active');
-        backgroundPanel.classList.remove('active');
+        const backgroundPanelEl = document.getElementById('backgroundPanel');
+        if (backgroundPanelEl) backgroundPanelEl.classList.remove('active');
         blockedPanel.classList.remove('active');
         shortcutsHint.classList.remove('active');
         announcementPanel.classList.remove('active');
@@ -3377,8 +3376,11 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingNode.textContent = '正在检索服务端历史…';
         searchResults.appendChild(loadingNode);
 
-        fetch('/api/search?q=' + encodeURIComponent(rawKeyword) +
-            '&room=' + encodeURIComponent(currentRoom) + '&limit=50')
+        fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: rawKeyword, room: currentRoom, limit: 50 })
+        })
             .then(res => res.json())
             .then(data => {
                 if (token !== searchToken) return;

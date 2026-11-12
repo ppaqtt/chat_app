@@ -502,11 +502,29 @@ async function handleApi(req, res, pathname, query) {
         return true;
     }
 
-    // 全文搜索（FTS5）
-    if (pathname === '/api/search' && req.method === 'GET') {
-        const q = (query.get('q') || '').trim();
-        const room = query.get('room') || '';
-        const limit = Math.min(Math.max(Number(query.get('limit')) || 30, 1), 100);
+    // 全文搜索（FTS5）：GET 查询参数，或 POST JSON（避免代理层改写非 ASCII 查询串）
+    if (pathname === '/api/search' && (req.method === 'GET' || req.method === 'POST')) {
+        let q = '';
+        let room = '';
+        let limit = 30;
+        if (req.method === 'POST') {
+            const raw = await readBody(req, 64 * 1024);
+            let body = {};
+            try {
+                body = JSON.parse(raw.toString('utf8')) || {};
+            } catch (e) {
+                body = {};
+            }
+            q = String(body.q || '');
+            room = String(body.room || '');
+            limit = Math.min(Math.max(Number(body.limit) || 30, 1), 100);
+        } else {
+            q = query.get('q') || '';
+            room = query.get('room') || '';
+            limit = Math.min(Math.max(Number(query.get('limit')) || 30, 1), 100);
+        }
+        q = q.trim();
+
         if (!q) {
             sendJson(res, 200, { results: [] });
             return true;
