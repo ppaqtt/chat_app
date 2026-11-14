@@ -79,13 +79,21 @@
 - **后端**: Node.js
 - **实时通信**: WebSocket (ws 库)
 - **音视频通信**: WebRTC API
-- **数据存储**: localStorage (客户端)
+- **数据存储**: SQLite（服务端 `data/chat.db`，完整历史）+ localStorage（客户端偏好）
 - **加密**: CryptoJS AES
+
+### 服务端增强配置
+
+- **机器人命令**：在聊天框发送 `/weather 杭州`、`/rate 100 USD CNY`、`/today`、`/help`。
+- **历史分页/搜索**：聊天区向上滚动或点击「加载更早消息」；搜索会自动检索服务端完整历史。
+- **服务端导出**：设置 → 导出 → 服务端归档，支持 JSON / Markdown / HTML。
+- **TURN 中继**（跨 NAT 通话）：启动时设置环境变量 `TURN_URLS`（逗号分隔，如 `turn:host:3478?transport=udp,turn:host:3478?transport=tcp`）、`TURN_USERNAME`、`TURN_CREDENTIAL`。
+- **历史上的今天数据源**：优先读取 `data/historical_events.json`，其次 `LSSDJT_URL`（默认 lssdjt），不可用时自动降级到百度百科公开数据。
 
 ## 🚀 快速开始
 
 ### 环境要求
-- Node.js (v14+)
+- Node.js (v24+，使用内置 `node:sqlite`)
 - npm 或 yarn
 - 现代浏览器（支持 WebSocket、WebRTC）
 

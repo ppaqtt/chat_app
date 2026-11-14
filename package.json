@@ -3,6 +3,9 @@
   "version": "1.7.0",
   "description": "极简实时聊天应用，支持局域网和公网访问",
   "main": "server.js",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",

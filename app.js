@@ -30,10 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const privateChatUsers = document.getElementById('privateChatUsers');
     const imageBtn = document.getElementById('imageBtn');
     const imageInput = document.getElementById('imageInput');
+    const voiceBtn = document.getElementById('voiceBtn');
     const roomPanel = document.getElementById('roomPanel');
     const roomList = document.getElementById('roomList');
     const newRoomInput = document.getElementById('newRoomInput');
+    const newRoomTopic = document.getElementById('newRoomTopic');
     const createRoomBtn = document.getElementById('createRoomBtn');
+    const refreshRoomsBtn = document.getElementById('refreshRoomsBtn');
+    const historyLoadBar = document.getElementById('historyLoadBar');
+    const loadOlderBtn = document.getElementById('loadOlderBtn');
     const themeBtn = document.getElementById('themeBtn');
     const searchBtn = document.getElementById('searchBtn');
     const searchPanel = document.getElementById('searchPanel');
@@ -193,6 +198,17 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     let rooms = {};
+    let roomDiscovery = [];
+    let roomDiscoveryTimer = null;
+    let oldestMessageId = null;
+    let hasOlderMessages = false;
+    let loadingOlderMessages = false;
+    let pendingMessageJump = null;
+    let voiceRecorder = null;
+    let voiceStream = null;
+    let voiceChunks = [];
+    let voiceStartedAt = 0;
+    let isRecordingVoice = false;
     let onlineUsers = [];
     let allMessages = [];
     let reminders = [];
@@ -486,8 +502,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    searchBtn.addEventListener('click', toggleSearch);
-
     searchInput.addEventListener('input', performSearch);
     searchFilterUser.addEventListener('change', performSearch);
     searchFilterStarred.addEventListener('change', performSearch);
@@ -626,7 +640,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (roomName) {
             ws.send(JSON.stringify({
                 type: 'createRoom',
-                roomName: roomName
+                roomName: roomName,
+                topic: newRoomTopic ? newRoomTopic.value : '其他'
             }));
             newRoomInput.value = '';
         }
@@ -639,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     sendBtn.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !mentionMode) sendMessage();
+        if (e.key === 'Enter' && !e.shiftKey && !mentionMode) sendMessage();
     });
 
     messageInput.addEventListener('input', () => {
@@ -745,7 +760,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('roomBtn').addEventListener('click', () => {
         roomPanel.classList.toggle('active');
+        if (roomPanel.classList.contains('active')) {
+            loadRoomDiscovery();
+        } else if (roomDiscoveryTimer) {
+            clearInterval(roomDiscoveryTimer);
+            roomDiscoveryTimer = null;
+        }
     });
+
+    if (refreshRoomsBtn) {
+        refreshRoomsBtn.addEventListener('click', () => loadRoomDiscovery());
+    }
 
     function login() {
         const username = usernameInput.value.trim();
@@ -812,7 +837,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         allMessages.push(msg);
                         addMessage(msg);
                     });
+                    oldestMessageId = data.messages.length ? data.messages[0].id : null;
                 }
+                hasOlderMessages = !!data.hasMore;
+                updateHistoryBar();
                 if (data.announcements) {
                     announcements = data.announcements;
                     if (announcements.length > 0) {
@@ -854,6 +882,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 addMessage(data);
                 scrollToBottom();
                 break;
+            case 'audioMessage':
+                allMessages.push(data);
+                addMessage(data);
+                if (data.username !== currentUsername) {
+                    playSound(currentSoundType);
+                }
+                scrollToBottom();
+                break;
             case 'privateMessage':
                 allMessages.push(data);
                 addMessage(data);
@@ -893,18 +929,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'roomCreated':
                 addRoomToList(data.room);
+                if (roomPanel.classList.contains('active')) {
+                    loadRoomDiscovery();
+                }
                 break;
             case 'joinedRoom':
                 currentRoom = data.room;
                 messageInput.placeholder = '在 ' + currentRoom + ' 发消息...';
                 messagesArea.innerHTML = '';
                 allMessages = [];
+                oldestMessageId = null;
+                hasOlderMessages = !!data.hasMore;
                 if (data.messages) {
                     data.messages.forEach(msg => {
                         allMessages.push(msg);
                         addMessage(msg);
                     });
+                    oldestMessageId = data.messages.length ? data.messages[0].id : null;
                 }
+                updateHistoryBar();
                 if (data.users) {
                     onlineUsers = data.users;
                     updateUsersList(data.users);
@@ -926,6 +969,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 updateRoomList(Object.keys(rooms));
                 scrollToBottom();
+                if (pendingMessageJump) {
+                    const target = pendingMessageJump;
+                    pendingMessageJump = null;
+                    window.setTimeout(() => jumpToHistoryMessage(target), 120);
+                }
                 break;
             case 'reactionAdded':
                 updateMessageReactions(data.messageId, data.reactions);
@@ -1126,15 +1174,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function addMessage(data) {
+    function addMessage(data, prepend = false) {
         if (isPrivateMode && privateTarget) {
-            if (data.type !== 'privateMessage' || (data.toUser !== privateTarget && data.username !== privateTarget)) {
+            const isPrivateType = data.type === 'privateMessage' || data.type === 'privateFileMessage';
+            if (!isPrivateType || (data.toUser !== privateTarget && data.username !== privateTarget)) {
                 return;
             }
         }
 
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other');
+        messageDiv.className = 'message ' + (data.username === currentUsername ? 'own' : 'other') + (data.isBot ? ' bot' : '');
         messageDiv.dataset.messageId = data.id;
 
         const avatarDiv = document.createElement('div');
@@ -1152,15 +1201,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.replyTo) {
             const replyDiv = document.createElement('div');
             replyDiv.className = 'message-reply';
-            replyDiv.innerHTML = '<div class="message-reply-author">' + data.replyTo.author + '</div><div>' + data.replyTo.content + '</div>';
+
+            const replyAuthor = document.createElement('div');
+            replyAuthor.className = 'message-reply-author';
+            replyAuthor.textContent = data.replyTo.author || '';
+
+            const replyContent = document.createElement('div');
+            replyContent.textContent = data.replyTo.content || '';
+
+            replyDiv.appendChild(replyAuthor);
+            replyDiv.appendChild(replyContent);
             messageDiv.appendChild(replyDiv);
         }
 
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
 
-        let content = data.content || '';
-        content = content.replace(/@(\w+)/g, '<span class="mention-highlight">@$1</span>');
+        const content = renderMessageContent(data.content || '');
 
         if (data.type === 'imageMessage' && data.imageUrl) {
             const img = document.createElement('img');
@@ -1168,14 +1225,27 @@ document.addEventListener('DOMContentLoaded', function() {
             img.alt = '发送的图片';
             img.onclick = () => window.open(data.imageUrl, '_blank');
             bubble.appendChild(img);
+        } else if (data.type === 'audioMessage' && data.audioUrl) {
+            bubble.innerHTML = content;
+            const audio = document.createElement('audio');
+            audio.className = 'message-audio';
+            audio.controls = true;
+            audio.preload = 'metadata';
+            audio.src = data.audioUrl;
+            bubble.appendChild(audio);
         } else if ((data.type === 'fileMessage' || data.type === 'privateFileMessage') && data.fileUrl) {
             const fileDiv = document.createElement('div');
             fileDiv.className = 'message-file';
             fileDiv.onclick = () => window.open(data.fileUrl, '_blank');
 
+            const lowerName = String(data.fileName || '').toLowerCase();
+            const isPdf = lowerName.endsWith('.pdf') || data.fileType === 'application/pdf';
+            const isAudio = /\.(mp3|wav|ogg|m4a|webm|aac)$/.test(lowerName) || String(data.fileType || '').startsWith('audio/');
+            const isImage = /\.(png|jpe?g|gif|webp|svg)$/.test(lowerName) || String(data.fileType || '').startsWith('image/');
+
             const fileIcon = document.createElement('span');
             fileIcon.className = 'message-file-icon';
-            fileIcon.textContent = '📄';
+            fileIcon.textContent = isPdf ? '📕' : isAudio ? '🎧' : isImage ? '🖼️' : '📄';
 
             const fileInfo = document.createElement('div');
             fileInfo.className = 'message-file-info';
@@ -1186,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const fileSize = document.createElement('div');
             fileSize.className = 'message-file-size';
-            fileSize.textContent = formatFileSize(data.fileSize);
+            fileSize.textContent = formatFileSize(data.fileSize) + (isPdf || isAudio || isImage ? ' · 点击预览' : '');
 
             fileInfo.appendChild(fileName);
             fileInfo.appendChild(fileSize);
@@ -1196,6 +1266,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
             bubble.innerHTML = content;
             bubble.appendChild(fileDiv);
+
+            if (isImage) {
+                const img = document.createElement('img');
+                img.src = data.fileUrl;
+                img.alt = data.fileName || '图片';
+                img.onclick = () => window.open(data.fileUrl, '_blank');
+                bubble.appendChild(img);
+            } else if (isPdf) {
+                const embed = document.createElement('embed');
+                embed.className = 'message-pdf-preview';
+                embed.type = 'application/pdf';
+                embed.src = data.fileUrl;
+                bubble.appendChild(embed);
+            } else if (isAudio) {
+                const audio = document.createElement('audio');
+                audio.className = 'message-audio-file';
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.src = data.fileUrl;
+                bubble.appendChild(audio);
+            }
         } else if ((data.type === 'locationMessage') && data.latitude && data.longitude) {
             bubble.innerHTML = content;
 
@@ -1228,6 +1319,13 @@ document.addEventListener('DOMContentLoaded', function() {
         usernameSpan.dataset.username = data.username;
         usernameSpan.textContent = data.username;
         info.appendChild(usernameSpan);
+
+        if (data.isBot) {
+            const botBadge = document.createElement('span');
+            botBadge.className = 'bot-badge';
+            botBadge.textContent = 'BOT';
+            info.appendChild(botBadge);
+        }
 
         const timestampSpan = document.createElement('span');
         timestampSpan.textContent = ' ' + data.timestamp;
@@ -1414,18 +1512,61 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.appendChild(avatarDiv);
         messageDiv.appendChild(bubble);
         messageDiv.appendChild(info);
-        messagesArea.appendChild(messageDiv);
+        if (prepend) {
+            messagesArea.insertBefore(messageDiv, messagesArea.firstChild);
+        } else {
+            messagesArea.appendChild(messageDiv);
+        }
+
+        highlightCodeBlocks(bubble);
 
         if (data.reactions && Object.keys(data.reactions).length > 0) {
             updateMessageReactions(data.id, data.reactions);
         }
 
-        if (data.username !== currentUsername && !data.isPrivate) {
+        if (data.username !== currentUsername && !data.isPrivate && !prepend) {
             ws.send(JSON.stringify({
                 type: 'readMessage',
                 messageId: data.id
             }));
         }
+    }
+
+    // 文本渲染：支持代码块、行内代码、@提及，并对用户内容做转义
+    function renderMessageContent(text) {
+        const raw = String(text || '');
+        const segments = raw.split(/```/);
+        let html = '';
+
+        segments.forEach((segment, index) => {
+            if (index % 2 === 1) {
+                const lines = segment.replace(/^\n/, '').split('\n');
+                let language = '';
+                if (lines.length > 0 && /^[a-zA-Z0-9_+-]{1,20}$/.test(lines[0].trim())) {
+                    language = lines.shift().trim();
+                }
+                const code = lines.join('\n').replace(/\n$/, '');
+                html += '<pre><code' + (language ? ' class="language-' + escapeHtml(language) + '"' : '') + '>' + escapeHtml(code) + '</code></pre>';
+            } else {
+                let escaped = escapeHtml(segment);
+                escaped = escaped.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
+                escaped = escaped.replace(/@(\w+)/g, '<span class="mention-highlight">@$1</span>');
+                html += escaped.replace(/\n/g, '<br>');
+            }
+        });
+
+        return html;
+    }
+
+    function highlightCodeBlocks(container) {
+        if (!window.hljs) return;
+        container.querySelectorAll('pre code').forEach(block => {
+            try {
+                window.hljs.highlightElement(block);
+            } catch (e) {
+                // 忽略高亮失败，保留原始代码
+            }
+        });
     }
 
     function recallMessage(messageId, username) {
@@ -1521,12 +1662,134 @@ document.addEventListener('DOMContentLoaded', function() {
         roomListData.forEach(room => {
             rooms[room] = true;
         });
-        renderRoomList();
+        if (roomDiscovery.length === 0) {
+            renderRoomList();
+        }
+        updateBackupRoomOptions();
     }
 
     function addRoomToList(room) {
         rooms[room] = true;
-        renderRoomList();
+        if (roomDiscovery.length === 0) {
+            renderRoomList();
+        }
+        updateBackupRoomOptions();
+    }
+
+    function encodeParam(value) {
+        try {
+            return btoa(encodeURIComponent(value))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function formatRelativeTime(timestamp) {
+        if (!timestamp) return '暂无消息';
+        const diff = Date.now() - timestamp;
+        if (diff < 60 * 1000) return '刚刚';
+        if (diff < 60 * 60 * 1000) return Math.floor(diff / 60000) + ' 分钟前';
+        if (diff < 24 * 60 * 60 * 1000) return Math.floor(diff / 3600000) + ' 小时前';
+        return Math.floor(diff / 86400000) + ' 天前';
+    }
+
+    async function loadRoomDiscovery() {
+        try {
+            const response = await fetch('/api/rooms');
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const data = await response.json();
+            roomDiscovery = Array.isArray(data.rooms) ? data.rooms : [];
+            roomDiscovery.forEach(room => { rooms[room.name] = true; });
+            renderRoomDiscovery();
+            updateBackupRoomOptions();
+
+            if (!roomDiscoveryTimer) {
+                roomDiscoveryTimer = setInterval(() => {
+                    if (roomPanel.classList.contains('active')) {
+                        loadRoomDiscovery();
+                    } else {
+                        clearInterval(roomDiscoveryTimer);
+                        roomDiscoveryTimer = null;
+                    }
+                }, 10000);
+            }
+        } catch (error) {
+            console.error('加载房间失败:', error);
+            if (roomDiscovery.length === 0) {
+                renderRoomList();
+            }
+        }
+    }
+
+    function renderRoomDiscovery() {
+        roomList.innerHTML = '';
+        if (roomDiscovery.length === 0) {
+            roomList.innerHTML = '<div class="room-empty">还没有房间，创建一个吧</div>';
+            return;
+        }
+
+        const groups = {};
+        roomDiscovery.forEach(room => {
+            const topic = room.topic || '其他';
+            if (!groups[topic]) groups[topic] = [];
+            groups[topic].push(room);
+        });
+
+        Object.keys(groups).forEach(topic => {
+            const group = document.createElement('div');
+            group.className = 'room-topic-group';
+
+            const title = document.createElement('div');
+            title.className = 'room-topic-title';
+            title.textContent = topic;
+            group.appendChild(title);
+
+            groups[topic].forEach(room => {
+                const card = document.createElement('div');
+                card.className = 'room-card' + (room.name === currentRoom ? ' active' : '');
+
+                const top = document.createElement('div');
+                top.className = 'room-card-top';
+
+                const name = document.createElement('div');
+                name.className = 'room-card-name';
+                name.textContent = room.name;
+                top.appendChild(name);
+
+                const badge = document.createElement('span');
+                badge.className = 'room-card-topic';
+                badge.textContent = room.topic || '其他';
+                top.appendChild(badge);
+
+                const meta = document.createElement('div');
+                meta.className = 'room-card-meta';
+                meta.textContent = `在线 ${room.onlineCount || 0} · ${room.messageCount || 0} 条消息 · ${formatRelativeTime(room.lastActivity)}`;
+
+                card.appendChild(top);
+                card.appendChild(meta);
+                card.onclick = () => joinRoom(room.name);
+                group.appendChild(card);
+            });
+
+            roomList.appendChild(group);
+        });
+    }
+
+    function joinRoom(roomName) {
+        if (roomName !== currentRoom) {
+            ws.send(JSON.stringify({
+                type: 'joinRoom',
+                room: roomName
+            }));
+        }
+        roomPanel.classList.remove('active');
+        if (roomDiscoveryTimer) {
+            clearInterval(roomDiscoveryTimer);
+            roomDiscoveryTimer = null;
+        }
     }
 
     function renderRoomList() {
@@ -1535,15 +1798,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const roomItem = document.createElement('div');
             roomItem.className = 'room-item ' + (room === currentRoom ? 'active' : '');
             roomItem.innerHTML = '<span>' + room + '</span>';
-            roomItem.onclick = () => {
-                if (room !== currentRoom) {
-                    ws.send(JSON.stringify({
-                        type: 'joinRoom',
-                        room: room
-                    }));
-                    roomPanel.classList.remove('active');
-                }
-            };
+            roomItem.onclick = () => joinRoom(room);
             roomList.appendChild(roomItem);
         });
     }
@@ -1857,6 +2112,115 @@ document.addEventListener('DOMContentLoaded', function() {
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
+    // ========== 历史消息分页 / 定位 ==========
+    function updateHistoryBar() {
+        if (!historyLoadBar) return;
+        historyLoadBar.classList.toggle('active', !!hasOlderMessages);
+        loadOlderBtn.disabled = false;
+        loadOlderBtn.textContent = '↑ 加载更早消息';
+    }
+
+    async function loadOlderMessages() {
+        if (loadingOlderMessages || !hasOlderMessages || !oldestMessageId) return;
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        loadingOlderMessages = true;
+        loadOlderBtn.disabled = true;
+        loadOlderBtn.textContent = '加载中…';
+
+        const roomWhenRequested = currentRoom;
+        const previousHeight = messagesArea.scrollHeight;
+
+        try {
+            const response = await fetch('/api/messages?roomId=' + encodeParam(roomWhenRequested) +
+                '&before=' + encodeURIComponent(oldestMessageId) + '&limit=30');
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const data = await response.json();
+            if (roomWhenRequested !== currentRoom) return;
+
+            const older = Array.isArray(data.messages) ? data.messages : [];
+            if (older.length > 0) {
+                allMessages = older.concat(allMessages);
+                older.slice().reverse().forEach(message => addMessage(message, true));
+                oldestMessageId = older[0].id;
+                messagesArea.scrollTop += messagesArea.scrollHeight - previousHeight;
+            }
+            hasOlderMessages = !!data.hasMore;
+        } catch (error) {
+            console.error('加载历史失败:', error);
+        } finally {
+            loadingOlderMessages = false;
+            updateHistoryBar();
+        }
+    }
+
+    async function jumpToHistoryMessage(message) {
+        if (!message) return;
+        if (message.room && message.room !== currentRoom) {
+            pendingMessageJump = message;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'joinRoom', room: message.room }));
+            }
+            return;
+        }
+
+        const existing = messagesArea.querySelector('[data-message-id="' + String(message.id) + '"]');
+        if (existing) {
+            existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            existing.style.background = 'rgba(139, 92, 246, 0.35)';
+            setTimeout(() => { existing.style.background = ''; }, 2000);
+            return;
+        }
+
+        await loadHistoryPageEndingAt(message);
+    }
+
+    async function loadHistoryPageEndingAt(message) {
+        const room = message.room || currentRoom;
+        const endId = Number(message.id);
+        if (!Number.isFinite(endId)) return;
+
+        try {
+            const response = await fetch('/api/messages?roomId=' + encodeParam(room) +
+                '&before=' + (endId + 1) + '&limit=50');
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const data = await response.json();
+            const messages = Array.isArray(data.messages) ? data.messages : [];
+
+            messagesArea.innerHTML = '';
+            allMessages = [];
+            messages.forEach(item => {
+                allMessages.push(item);
+                addMessage(item);
+            });
+            oldestMessageId = messages.length ? messages[0].id : null;
+            hasOlderMessages = !!data.hasMore;
+            updateHistoryBar();
+
+            const target = messagesArea.querySelector('[data-message-id="' + String(message.id) + '"]');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.style.background = 'rgba(139, 92, 246, 0.35)';
+                setTimeout(() => { target.style.background = ''; }, 2500);
+            }
+            addSystemMessage('已定位到历史消息，向上滚动可继续加载更早记录');
+        } catch (error) {
+            console.error('定位历史消息失败:', error);
+            alert('加载历史消息失败');
+        }
+    }
+
+    if (loadOlderBtn) {
+        loadOlderBtn.addEventListener('click', loadOlderMessages);
+    }
+
+    messagesArea.addEventListener('scroll', () => {
+        if (messagesArea.scrollTop < 40 && hasOlderMessages && !loadingOlderMessages &&
+            messagesArea.scrollHeight > messagesArea.clientHeight + 80) {
+            loadOlderMessages();
+        }
+    });
+
     fileBtn.addEventListener('click', () => {
         fileInput.click();
     });
@@ -1897,7 +2261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     if (data.url) {
-                        sendFileMessage(data.url, file.name, file.size);
+                        sendFileMessage(data.url, file.name, file.size, data.type || file.type);
                     }
                     filePreview.classList.remove('active');
                     pendingFile = null;
@@ -1925,7 +2289,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function sendFileMessage(fileUrl, fileName, fileSize) {
+    function sendFileMessage(fileUrl, fileName, fileSize, fileType) {
         const now = new Date();
         const timestamp = formatTime(now);
 
@@ -1934,6 +2298,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fileUrl: fileUrl,
             fileName: fileName,
             fileSize: fileSize,
+            fileType: fileType || '',
             timestamp: timestamp
         };
 
@@ -1949,6 +2314,124 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         ws.send(JSON.stringify(messageData));
+    }
+
+    // ========== 语音消息 ==========
+    function setVoiceButtonState(recording) {
+        isRecordingVoice = recording;
+        if (!voiceBtn) return;
+        voiceBtn.classList.toggle('recording', recording);
+        voiceBtn.textContent = recording ? '⏹' : '🎤';
+        voiceBtn.title = recording ? '停止录音' : '语音消息';
+    }
+
+    function pickAudioMimeType() {
+        if (!window.MediaRecorder) return '';
+        const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+        return candidates.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    }
+
+    async function toggleVoiceRecording() {
+        if (isRecordingVoice) {
+            if (voiceRecorder && voiceRecorder.state !== 'inactive') {
+                voiceRecorder.stop();
+            }
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+            alert('当前浏览器不支持语音录制');
+            return;
+        }
+
+        try {
+            voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mimeType = pickAudioMimeType();
+            voiceRecorder = mimeType ? new MediaRecorder(voiceStream, { mimeType }) : new MediaRecorder(voiceStream);
+            voiceChunks = [];
+            voiceStartedAt = Date.now();
+
+            voiceRecorder.addEventListener('dataavailable', event => {
+                if (event.data && event.data.size > 0) {
+                    voiceChunks.push(event.data);
+                }
+            });
+
+            voiceRecorder.addEventListener('stop', async () => {
+                const duration = Math.max(1, Math.round((Date.now() - voiceStartedAt) / 1000));
+                const type = voiceRecorder.mimeType || 'audio/webm';
+                const blob = new Blob(voiceChunks, { type });
+                stopVoiceStream();
+                setVoiceButtonState(false);
+
+                if (blob.size === 0) {
+                    alert('没有录到声音，请重试');
+                    return;
+                }
+
+                const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+                const file = new File([blob], `voice-${Date.now()}.${ext}`, { type });
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (!data.url) throw new Error('上传失败');
+                    sendVoiceMessage(data.url, duration, blob.size, type);
+                } catch (error) {
+                    console.error('语音发送失败:', error);
+                    alert('语音发送失败');
+                }
+            });
+
+            voiceRecorder.start();
+            setVoiceButtonState(true);
+        } catch (error) {
+            console.error('录音启动失败:', error);
+            stopVoiceStream();
+            setVoiceButtonState(false);
+            alert('无法访问麦克风，请检查权限');
+        }
+    }
+
+    function stopVoiceStream() {
+        if (voiceStream) {
+            voiceStream.getTracks().forEach(track => track.stop());
+            voiceStream = null;
+        }
+        voiceRecorder = null;
+    }
+
+    function sendVoiceMessage(audioUrl, duration, size, mimeType) {
+        const messageData = {
+            type: 'audioMessage',
+            audioUrl: audioUrl,
+            duration: duration,
+            content: '[语音] ' + duration + 's',
+            timestamp: formatTime(new Date())
+        };
+
+        if (replyingTo) {
+            messageData.replyTo = replyingTo;
+            clearReply();
+        }
+
+        if (isPrivateMode && privateTarget) {
+            messageData.type = 'privateFileMessage';
+            messageData.toUser = privateTarget;
+            messageData.fileUrl = audioUrl;
+            messageData.fileName = '语音消息.' + (mimeType && mimeType.includes('mp4') ? 'm4a' : 'webm');
+            messageData.fileSize = size;
+            messageData.fileType = mimeType;
+            messageData.content = '[语音] ' + duration + 's';
+        }
+
+        ws.send(JSON.stringify(messageData));
+    }
+
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', toggleVoiceRecording);
     }
 
     function formatFileSize(bytes) {
@@ -2492,7 +2975,7 @@ document.addEventListener('DOMContentLoaded', function() {
         reminderPanel.classList.remove('active');
         quickReplyPanel.classList.remove('active');
         starredPanel.classList.remove('active');
-        backgroundPanel.classList.remove('active');
+        backgroundOptions.classList.remove('active');
         blockedPanel.classList.remove('active');
         shortcutsHint.classList.remove('active');
         announcementPanel.classList.remove('active');
@@ -2896,7 +3379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const originalKeypress = messageInput.onkeypress;
         messageInput.onkeypress = (e) => {
-            if (e.key === 'Enter' && !mentionMode) saveEditMessage();
+            if (e.key === 'Enter' && !e.shiftKey && !mentionMode) saveEditMessage();
         };
     }
 
@@ -2925,7 +3408,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sendBtn.textContent = '发送';
         sendBtn.onclick = sendMessage;
         messageInput.onkeypress = (e) => {
-            if (e.key === 'Enter' && !mentionMode) sendMessage();
+            if (e.key === 'Enter' && !e.shiftKey && !mentionMode) sendMessage();
         };
     }
 
@@ -2985,42 +3468,72 @@ document.addEventListener('DOMContentLoaded', function() {
         forwardingMessageId = null;
     }
 
-    function performSearch() {
-        const keyword = searchInput.value.toLowerCase().trim();
+    async function performSearch() {
+        const keyword = searchInput.value.trim();
         const filterUser = searchFilterUser.value;
         const filterStarred = searchFilterStarred.checked;
-        
-        searchResults.innerHTML = '';
-        
+
+        searchResults.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-secondary);">搜索中…</div>';
+
         let filtered = allMessages;
-        
-        if (keyword) {
-            filtered = filtered.filter(msg => 
-                (msg.content && msg.content.toLowerCase().includes(keyword)) ||
-                msg.username.toLowerCase().includes(keyword)
-            );
+
+        // 有搜索关键字且未限定收藏时，走服务端全量历史搜索
+        if (keyword && !filterStarred) {
+            try {
+                let url = '/api/messages?room=all&qId=' + encodeParam(keyword) + '&limit=50';
+                if (filterUser) url += '&userId=' + encodeParam(filterUser);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                filtered = Array.isArray(data.messages) ? data.messages : [];
+            } catch (error) {
+                console.error('服务端搜索失败，回退到本地搜索:', error);
+                const lower = keyword.toLowerCase();
+                filtered = allMessages.filter(msg =>
+                    (msg.content && msg.content.toLowerCase().includes(lower)) ||
+                    (msg.username && msg.username.toLowerCase().includes(lower))
+                );
+                if (filterUser) filtered = filtered.filter(msg => msg.username === filterUser);
+            }
+        } else {
+            if (keyword) {
+                const lower = keyword.toLowerCase();
+                filtered = filtered.filter(msg =>
+                    (msg.content && msg.content.toLowerCase().includes(lower)) ||
+                    (msg.username && msg.username.toLowerCase().includes(lower))
+                );
+            }
+            if (filterUser) {
+                filtered = filtered.filter(msg => msg.username === filterUser);
+            }
+            if (filterStarred) {
+                filtered = filtered.filter(msg => starredMessages.includes(msg.id));
+            }
         }
-        
-        if (filterUser) {
-            filtered = filtered.filter(msg => msg.username === filterUser);
-        }
-        
-        if (filterStarred) {
-            filtered = filtered.filter(msg => starredMessages.includes(msg.id));
-        }
-        
+
+        searchResults.innerHTML = '';
+
         if (filtered.length === 0) {
             searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">无搜索结果</div>';
             return;
         }
-        
+
         filtered.slice(0, 50).forEach(msg => {
             const item = document.createElement('div');
             item.className = 'search-result-item';
-            const content = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
-            item.innerHTML = '<div class="search-result-author">' + msg.username + '</div><div class="search-result-content">' + content + '</div>';
+
+            const author = document.createElement('div');
+            author.className = 'search-result-author';
+            author.textContent = (msg.room ? '[' + msg.room + '] ' : '') + (msg.username || '');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'search-result-content';
+            contentDiv.textContent = msg.content || (msg.fileName ? '[文件] ' + msg.fileName : '[图片]');
+
+            item.appendChild(author);
+            item.appendChild(contentDiv);
             item.onclick = () => {
-                scrollToMessage(msg.id);
+                jumpToHistoryMessage(msg);
                 toggleSearch();
             };
             searchResults.appendChild(item);
@@ -5161,12 +5674,13 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // ========== 修改现有消息显示函数以支持新功能 ==========
+    // ========== 在统一消息渲染器上叠加“新功能”扩展 ==========
     const originalAddMessage = addMessage;
 
-    addMessage = function(msg) {
-        if (msg.isPrivate && privateTarget) {
-            if (msg.toUser !== privateTarget && msg.username !== privateTarget) {
+    addMessage = function(msg, prepend = false) {
+        if (isPrivateMode && privateTarget) {
+            const isPrivateType = msg.type === 'privateMessage' || msg.type === 'privateFileMessage';
+            if (!isPrivateType || (msg.toUser !== privateTarget && msg.username !== privateTarget)) {
                 return;
             }
         }
@@ -5175,99 +5689,24 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const messageDiv = document.createElement('div');
-
-        let messageClass = msg.username === currentUsername ? 'own' : 'other';
-        if (msg.type === 'system') messageClass = 'system';
-        if (msg.isAI) messageClass += ' ai';
-        if (msg.isEncrypted) messageClass += ' encrypted';
-        if (msg.decryptionFailed) messageClass += ' decryption-failed';
-
-        messageDiv.className = 'message ' + messageClass;
-        messageDiv.dataset.messageId = msg.id;
-
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar';
-        if (msg.isAI) avatarDiv.classList.add('ai-avatar');
-
-        if (msg.avatar && !msg.avatar.startsWith('#')) {
-            avatarDiv.innerHTML = '<img src="' + msg.avatar + '" alt="avatar">';
-        } else {
-            const avatarColor = msg.avatar || generateAvatarColor(msg.username);
-            avatarDiv.style.backgroundColor = avatarColor;
-            avatarDiv.textContent = (msg.username.charAt(0) || '?').toUpperCase();
+        const processed = processMessageContent(msg.content, msg.isEncrypted);
+        const enriched = Object.assign({}, msg);
+        if (processed && typeof processed === 'object') {
+            enriched.content = processed.text;
+            if (processed.failed) enriched.decryptionFailed = true;
+            if (processed.filtered) enriched.filtered = true;
+        } else if (typeof processed === 'string') {
+            enriched.content = processed;
         }
 
-        const bubbleDiv = document.createElement('div');
-        bubbleDiv.className = 'message-bubble';
+        originalAddMessage(enriched, prepend);
 
-        const contentResult = processMessageContent(msg.content, msg.isEncrypted);
+        const messageDiv = prepend ? messagesArea.firstElementChild : messagesArea.lastElementChild;
+        if (!messageDiv) return;
 
-        if (msg.decryptionFailed) {
-            bubbleDiv.innerHTML = '<span class="decryption-failed-icon">⚠️</span>' + contentResult.text;
-        } else {
-            bubbleDiv.textContent = contentResult.text;
-        }
-
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'message-info';
-        infoDiv.innerHTML = `
-            <span>${msg.username}</span>
-            <span>${msg.timestamp}</span>
-        `;
-
-        if (msg.edited) {
-            const editedSpan = document.createElement('span');
-            editedSpan.className = 'edited';
-            editedSpan.textContent = '(已编辑)';
-            infoDiv.appendChild(editedSpan);
-        }
-
-        if (msg.readCount && msg.readCount > 0) {
-            const readSpan = document.createElement('span');
-            readSpan.className = 'read-count';
-            readSpan.textContent = '已读 ' + msg.readCount;
-            infoDiv.appendChild(readSpan);
-        }
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'message-actions';
-
-        if (msg.username === currentUsername) {
-            const recallBtn = document.createElement('button');
-            recallBtn.className = 'message-action-btn recall';
-            recallBtn.textContent = '撤回';
-            recallBtn.onclick = () => recallMessage(msg.id);
-            actionsDiv.appendChild(recallBtn);
-
-            const editBtn = document.createElement('button');
-            editBtn.className = 'message-action-btn edit';
-            editBtn.textContent = '编辑';
-            editBtn.onclick = () => editMessage(msg.id);
-            actionsDiv.appendChild(editBtn);
-        }
-
-        const reactBtn = document.createElement('button');
-        reactBtn.className = 'message-action-btn react';
-        reactBtn.textContent = '👍';
-        reactBtn.onclick = (e) => {
-            e.stopPropagation();
-            showReactionSelector(msg.id, reactBtn);
-        };
-        actionsDiv.appendChild(reactBtn);
-
-        const starBtn = document.createElement('button');
-        starBtn.className = 'message-action-btn star';
-        starBtn.textContent = '⭐';
-        starBtn.onclick = () => toggleStar(msg.id);
-        actionsDiv.appendChild(starBtn);
-
-        addNewMessageActionButtons(actionsDiv, msg.id);
-
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(bubbleDiv);
-        messageDiv.appendChild(infoDiv);
-        messageDiv.appendChild(actionsDiv);
+        if (msg.isAI) messageDiv.classList.add('ai');
+        if (msg.isEncrypted) messageDiv.classList.add('encrypted');
+        if (msg.decryptionFailed) messageDiv.classList.add('decryption-failed');
 
         if (msg.tags && msg.tags.length > 0) {
             const tagsDiv = document.createElement('div');
@@ -5282,30 +5721,15 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.classList.add('with-tag');
         }
 
-        if (msg.reactions && Object.keys(msg.reactions).length > 0) {
-            const reactionsDiv = document.createElement('div');
-            reactionsDiv.className = 'message-reactions';
-
-            for (const [emoji, users] of Object.entries(msg.reactions)) {
-                const reactionSpan = document.createElement('span');
-                reactionSpan.className = 'message-reaction';
-                reactionSpan.innerHTML = `<span class="reaction-emoji">${emoji}</span><span class="reaction-count">${users.length}</span>`;
-                reactionSpan.onclick = () => showReactionUsers(msg.id, emoji);
-                reactionsDiv.appendChild(reactionSpan);
-            }
-
-            messageDiv.appendChild(reactionsDiv);
+        const actionsDiv = messageDiv.querySelector('.message-actions');
+        if (actionsDiv) {
+            addNewMessageActionButtons(actionsDiv, msg.id);
         }
 
-        messagesArea.appendChild(messageDiv);
-
-        const isOwn = msg.username === currentUsername;
-        addMessageAnimation(messageDiv, isOwn);
-        addSentIndicator(messageDiv);
-
-        messageDiv.addEventListener('click', () => {
-            actionsDiv.style.display = 'flex';
-        });
+        if (!prepend) {
+            addMessageAnimation(messageDiv, msg.username === currentUsername);
+            addSentIndicator(messageDiv);
+        }
     };
 
     // ========== 智能推荐功能 ==========
@@ -5976,6 +6400,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         exportChatBtn.addEventListener('click', exportChat);
 
+        const serverExportBtn = document.getElementById('serverExportBtn');
+        const serverExportFormat = document.getElementById('serverExportFormat');
+        if (serverExportBtn && serverExportFormat) {
+            serverExportBtn.addEventListener('click', () => {
+                serverExport(serverExportFormat.value);
+            });
+        }
+
         importChatBtn.addEventListener('click', () => {
             const input = document.createElement('input');
             input.type = 'file';
@@ -6006,6 +6438,20 @@ document.addEventListener('DOMContentLoaded', function() {
             option.textContent = room;
             backupRoomSelect.appendChild(option);
         });
+    }
+
+    function serverExport(format) {
+        const room = document.getElementById('backupRoom').value || 'all';
+        const url = '/api/export?roomId=' + encodeParam(room) + '&format=' + encodeURIComponent(format);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        backupPanel.classList.remove('active');
     }
 
     function exportChat() {
@@ -6167,6 +6613,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 5 * 60 * 1000);
         }
     }
+
+    async function loadIceServers() {
+        try {
+            const response = await fetch('/api/ice');
+            if (!response.ok) return;
+            const data = await response.json();
+            if (Array.isArray(data.iceServers) && data.iceServers.length > 0) {
+                iceServers = data.iceServers;
+            }
+        } catch (error) {
+            console.warn('加载 ICE 配置失败，使用默认 STUN:', error);
+        }
+    }
+
+    loadIceServers();
 
     // 在页面加载完成后初始化新功能
     initNewFeatures();
