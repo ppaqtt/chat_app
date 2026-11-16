@@ -5960,9 +5960,114 @@
         .online-status-color.online { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
         .online-status-color.offline { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
 
+        /* ========== Markdown 消息渲染 ========== */
+        .message-bubble p { margin: 0 0 6px; }
+        .message-bubble p:last-child { margin-bottom: 0; }
+        .message-bubble pre {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 10px 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 6px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .message-bubble code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.92em;
+        }
+        .message-bubble pre code { background: transparent; padding: 0; }
+        .message-bubble ul, .message-bubble ol { margin: 4px 0 4px 20px; }
+        .message-bubble blockquote {
+            border-left: 3px solid rgba(255, 255, 255, 0.35);
+            padding-left: 10px;
+            margin: 6px 0;
+            opacity: 0.85;
+        }
+        .message-bubble a { color: #93c5fd; text-decoration: underline; }
+        .message-bubble table { border-collapse: collapse; margin: 6px 0; }
+        .message-bubble th, .message-bubble td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            font-size: 13px;
+        }
+
+        /* ========== 语音消息 ========== */
+        .message-voice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 150px;
+            padding: 2px 0;
+        }
+        .voice-play-btn {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .voice-play-btn:hover { background: rgba(255, 255, 255, 0.32); }
+        .voice-wave { letter-spacing: 1px; font-size: 12px; opacity: 0.8; }
+        .message-voice.playing .voice-wave { animation: pulse 1s infinite; }
+        .voice-duration { font-size: 12px; opacity: 0.8; }
+        .message-voice audio { display: none; }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .recording-indicator.active { display: inline-flex; }
+        .input-area .action-btn.recording {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        /* ========== 连接状态提示 ========== */
+        .connection-banner {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(239, 68, 68, 0.92);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .connection-banner.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .video-call-btn.screen.active { background: rgba(6, 182, 212, 0.45); }
+
     </style>
 </head>
 <body>
+    <div class="connection-banner" id="connectionBanner"></div>
+
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h2>欢迎来到聊天室</h2>
@@ -6418,8 +6523,10 @@
             <button class="action-btn" id="emojiBtn">😀</button>
             <button class="action-btn" id="imageBtn">🖼️</button>
             <button class="action-btn" id="fileBtn">📎</button>
+            <button class="action-btn" id="voiceRecordBtn" title="语音消息">🎤</button>
             <button class="action-btn" id="locationBtn">📍</button>
             <button class="action-btn" id="atAllBtn">@</button>
+            <span class="recording-indicator" id="recordingIndicator"></span>
             <input type="file" id="fileInput" style="display: none;">
             <input type="text" id="messageInput" placeholder="输入消息..." maxlength="500" autocomplete="off">
             <button id="sendBtn">发送</button>
@@ -6881,6 +6988,8 @@
 
 
 
+    <script src="vendor/marked.umd.js"></script>
+    <script src="vendor/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="app.js"></script>
 </body>

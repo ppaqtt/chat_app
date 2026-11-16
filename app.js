@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const tagFilterBtn = document.getElementById('tagFilterBtn');
     const tagFilterPanel = document.getElementById('tagFilterPanel');
     const tagFilterOptions = document.getElementById('tagFilterOptions');
+    const voiceRecordBtn = document.getElementById('voiceRecordBtn');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+    const connectionBanner = document.getElementById('connectionBanner');
 
     let newAvatarUrl = '';
     let editingMessageId = null;
@@ -173,6 +176,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let callTimer = null;
     let callSeconds = 0;
     let peerConnection = null;
+    let pendingOffer = null;
+    let pendingIceCandidates = [];
     let localStream = null;
     let remoteStream = null;
     let audioContext = null;
@@ -211,6 +216,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTagFilter = 'all';
     let profileTargetUser = null;
     let userJoinTimes = {};
+    let reconnectAttempts = 0;
+    let reconnectTimer = null;
+    let lastSeqMap = loadLastSeqMap();
+    let extraFeaturesInitialized = false;
+    let mediaRecorder = null;
+    let recordingChunks = [];
+    let recordingStartedAt = 0;
+    let recordingTimer = null;
+    let recordingCancelled = false;
+    let screenSharing = false;
+    let screenTrack = null;
+    let originalVideoTrack = null;
 
     const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴', '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '👍', '👎', '👏', '🙌'];
 
@@ -637,6 +654,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') login();
     });
 
+    window.addEventListener('online', () => {
+        if (!currentUsername) return;
+        if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+            reconnectNow();
+        } else if (ws.readyState === WebSocket.OPEN) {
+            requestSyncMessages(currentRoom, lastSeqMap[currentRoom]);
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden || !currentUsername) return;
+        if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+            reconnectNow();
+        } else if (ws.readyState === WebSocket.OPEN) {
+            requestSyncMessages(currentRoom, lastSeqMap[currentRoom]);
+        }
+    });
+
     sendBtn.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !mentionMode) sendMessage();
@@ -747,9 +782,127 @@ document.addEventListener('DOMContentLoaded', function() {
         roomPanel.classList.toggle('active');
     });
 
+    function loadLastSeqMap() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('chatLastSeq') || '{}');
+            return saved && typeof saved === 'object' ? saved : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveLastSeqMap() {
+        try {
+            localStorage.setItem('chatLastSeq', JSON.stringify(lastSeqMap));
+        } catch (e) {
+            // 本地存储不可用时忽略
+        }
+    }
+
+    function trackMessageSeq(data) {
+        if (!data || !data.room || typeof data.roomSeq !== 'number') return;
+        if (typeof lastSeqMap[data.room] !== 'number' || data.roomSeq > lastSeqMap[data.room]) {
+            lastSeqMap[data.room] = data.roomSeq;
+            saveLastSeqMap();
+        }
+    }
+
+    function appendMessageIfNew(data) {
+        if (data.id && allMessages.some(msg => msg.id === data.id)) return false;
+        allMessages.push(data);
+        return true;
+    }
+
+    function setConnectionStatus(status) {
+        if (!connectionBanner) return;
+        if (status === 'connected') {
+            connectionBanner.classList.remove('active');
+            return;
+        }
+        connectionBanner.textContent = status === 'offline' ? '连接已断开，正在重连…' : '正在连接…';
+        connectionBanner.classList.add('active');
+    }
+
+    function requestSyncMessages(room, seq) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        if (typeof seq !== 'number') return;
+        ws.send(JSON.stringify({
+            type: 'syncMessages',
+            room: room,
+            lastSeq: seq
+        }));
+    }
+
+    function connectSocket() {
+        if (!currentUsername) return;
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        setConnectionStatus('connecting');
+
+        try {
+            ws = new WebSocket(wsProtocol + '//' + window.location.host);
+        } catch (error) {
+            console.error('创建 WebSocket 失败:', error);
+            scheduleReconnect();
+            return;
+        }
+
+        ws.onopen = () => {
+            const lastSeq = typeof lastSeqMap[currentRoom] === 'number' ? lastSeqMap[currentRoom] : null;
+            ws.send(JSON.stringify({
+                type: 'login',
+                username: currentUsername,
+                avatar: currentAvatar || '',
+                room: currentRoom,
+                lastSeq: lastSeq
+            }));
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                handleMessage(JSON.parse(event.data));
+            } catch (error) {
+                console.error('解析服务器消息失败:', error);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket 错误:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket 连接已关闭');
+            setConnectionStatus('offline');
+            scheduleReconnect();
+        };
+    }
+
+    function scheduleReconnect() {
+        if (!currentUsername || reconnectTimer) return;
+
+        const delay = Math.min(15000, 1000 * Math.pow(2, reconnectAttempts));
+        reconnectAttempts++;
+        setConnectionStatus('offline');
+        reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            connectSocket();
+        }, delay);
+    }
+
+    function reconnectNow() {
+        if (!currentUsername) return;
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+        if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+            connectSocket();
+        }
+    }
+
     function login() {
         const username = usernameInput.value.trim();
-        
+
         if (!username) {
             alert('请输入昵称');
             return;
@@ -766,31 +919,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         currentUsername = username;
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(wsProtocol + '//' + window.location.host);
-
-        ws.onopen = () => {
-            ws.send(JSON.stringify({
-                type: 'login',
-                username: username,
-                avatar: '',
-                room: currentRoom
-            }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            handleMessage(data);
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket 错误:', error);
-            alert('连接失败，请刷新页面重试');
-        };
-
-        ws.onclose = () => {
-            console.log('WebSocket 连接已关闭');
-        };
+        reconnectAttempts = 0;
+        connectSocket();
     }
 
     function handleMessage(data) {
@@ -800,27 +930,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUsername = data.username;
                 currentAvatar = data.avatar;
                 currentRoom = data.room || '大厅';
+                reconnectAttempts = 0;
+                setConnectionStatus('connected');
                 userJoinTimes[currentUsername] = formatTime(new Date());
                 if (data.rooms) {
                     updateRoomList(data.rooms);
                 }
+                if (data.pinnedMessages) {
+                    handlePinnedMessages({ pinnedMessages: data.pinnedMessages });
+                }
                 if (data.messages) {
                     data.messages.forEach(msg => {
+                        trackMessageSeq(msg);
                         if (msg.username && !userJoinTimes[msg.username]) {
                             userJoinTimes[msg.username] = msg.timestamp || formatTime(new Date());
                         }
-                        allMessages.push(msg);
-                        addMessage(msg);
+                        if (appendMessageIfNew(msg)) {
+                            addMessage(msg);
+                        }
+                    });
+                }
+                if (data.privateHistory) {
+                    data.privateHistory.forEach(msg => {
+                        trackMessageSeq(msg);
+                        if (appendMessageIfNew(msg)) {
+                            addMessage(msg);
+                        }
                     });
                 }
                 if (data.announcements) {
                     announcements = data.announcements;
                     if (announcements.length > 0) {
                         showAnnouncementBanner(announcements[announcements.length - 1]);
+                        renderAnnouncementList();
                     }
                 }
                 if (data.votes) {
                     votes = data.votes;
+                    renderVoteList();
                 }
                 messageInput.focus();
                 initTheme();
@@ -836,39 +983,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 usernameInput.focus();
                 break;
             case 'message':
-                allMessages.push(data);
-                addMessage(data);
-                if (data.username !== currentUsername) {
-                    playSound(currentSoundType);
+            case 'imageMessage':
+            case 'fileMessage':
+            case 'voiceMessage':
+            case 'locationMessage':
+            case 'privateMessage':
+            case 'privateFileMessage':
+            case 'privateVoiceMessage':
+                trackMessageSeq(data);
+                if (appendMessageIfNew(data)) {
+                    addMessage(data);
+                    if (data.type === 'message' && data.username !== currentUsername) {
+                        playSound(currentSoundType);
+                    }
                 }
                 updateStats();
                 scrollToBottom();
                 break;
-            case 'imageMessage':
-                allMessages.push(data);
-                addMessage(data);
-                scrollToBottom();
+            case 'syncMessages': {
+                const missing = Array.isArray(data.messages) ? data.messages : [];
+                let added = 0;
+                missing.forEach(msg => {
+                    trackMessageSeq(msg);
+                    if (appendMessageIfNew(msg)) {
+                        addMessage(msg);
+                        added++;
+                    }
+                });
+                if (added > 0) {
+                    addSystemMessage(`已补发 ${added} 条离线消息`);
+                    updateStats();
+                    scrollToBottom();
+                }
+                if (data.truncated) {
+                    addSystemMessage('离线消息较多，仅补发了最近 500 条');
+                }
                 break;
-            case 'fileMessage':
-                allMessages.push(data);
-                addMessage(data);
-                scrollToBottom();
-                break;
-            case 'privateMessage':
-                allMessages.push(data);
-                addMessage(data);
-                scrollToBottom();
-                break;
-            case 'privateFileMessage':
-                allMessages.push(data);
-                addMessage(data);
-                scrollToBottom();
-                break;
-            case 'locationMessage':
-                allMessages.push(data);
-                addMessage(data);
-                scrollToBottom();
-                break;
+            }
             case 'system':
                 addSystemMessage(data.message);
                 if (data.users) {
@@ -894,20 +1045,27 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'roomCreated':
                 addRoomToList(data.room);
                 break;
-            case 'joinedRoom':
+            case 'joinedRoom': {
+                const previousSeq = lastSeqMap[data.room];
                 currentRoom = data.room;
                 messageInput.placeholder = '在 ' + currentRoom + ' 发消息...';
                 messagesArea.innerHTML = '';
                 allMessages = [];
                 if (data.messages) {
                     data.messages.forEach(msg => {
-                        allMessages.push(msg);
-                        addMessage(msg);
+                        trackMessageSeq(msg);
+                        if (appendMessageIfNew(msg)) {
+                            addMessage(msg);
+                        }
                     });
                 }
                 if (data.users) {
                     onlineUsers = data.users;
                     updateUsersList(data.users);
+                }
+                if (data.pinnedMessages) {
+                    pinnedMessages = data.pinnedMessages;
+                    updatePinnedMessagesBar();
                 }
                 if (data.announcements) {
                     announcements = data.announcements;
@@ -924,9 +1082,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     votes = [];
                 }
+                requestSyncMessages(data.room, previousSeq);
                 updateRoomList(Object.keys(rooms));
                 scrollToBottom();
                 break;
+            }
             case 'reactionAdded':
                 updateMessageReactions(data.messageId, data.reactions);
                 break;
@@ -1126,9 +1286,139 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function renderMarkdown(text) {
+        const raw = String(text == null ? '' : text);
+
+        if (window.marked && typeof window.marked.parse === 'function' && window.DOMPurify) {
+            try {
+                const html = window.marked.parse(raw, { breaks: true, gfm: true });
+                return window.DOMPurify.sanitize(html, {
+                    ALLOWED_TAGS: [
+                        'p', 'br', 'strong', 'em', 'del', 'code', 'pre', 'ul', 'ol', 'li',
+                        'blockquote', 'a', 'h1', 'h2', 'h3', 'h4', 'hr', 'table', 'thead',
+                        'tbody', 'tr', 'th', 'td', 'span'
+                    ],
+                    ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'class', 'start']
+                });
+            } catch (error) {
+                console.error('Markdown 渲染失败:', error);
+            }
+        }
+
+        return escapeHtml(raw).replace(/\n/g, '<br>');
+    }
+
+    function decorateMessageBubble(root) {
+        root.querySelectorAll('a').forEach(link => {
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+        });
+
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                if (!node.nodeValue || node.nodeValue.indexOf('@') === -1) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                const parent = node.parentElement;
+                if (!parent || parent.closest('code, pre, a')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        });
+
+        const textNodes = [];
+        while (walker.nextNode()) {
+            textNodes.push(walker.currentNode);
+        }
+
+        textNodes.forEach(node => {
+            const text = node.nodeValue;
+            const fragment = document.createDocumentFragment();
+            let lastIndex = 0;
+
+            text.replace(/@([\w\u4e00-\u9fa5]+)/g, (match, name, offset) => {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
+                const span = document.createElement('span');
+                span.className = 'mention-highlight';
+                span.textContent = match;
+                fragment.appendChild(span);
+                lastIndex = offset + match.length;
+                return match;
+            });
+
+            if (lastIndex === 0) return;
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+            node.parentNode.replaceChild(fragment, node);
+        });
+    }
+
+    function formatVoiceDuration(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const minutes = Math.floor(total / 60);
+        const rest = total % 60;
+        return minutes + ':' + String(rest).padStart(2, '0');
+    }
+
+    function createVoicePlayer(data) {
+        const wrap = document.createElement('div');
+        wrap.className = 'message-voice';
+
+        const playBtn = document.createElement('button');
+        playBtn.type = 'button';
+        playBtn.className = 'voice-play-btn';
+        playBtn.textContent = '▶';
+
+        const wave = document.createElement('span');
+        wave.className = 'voice-wave';
+        wave.textContent = '▁▃▅▂▆▃▁▄▆▂';
+
+        const duration = document.createElement('span');
+        duration.className = 'voice-duration';
+        duration.textContent = formatVoiceDuration(data.duration);
+
+        const audio = document.createElement('audio');
+        audio.src = data.voiceUrl;
+        audio.preload = 'metadata';
+
+        audio.addEventListener('loadedmetadata', () => {
+            if (!data.duration && isFinite(audio.duration)) {
+                duration.textContent = formatVoiceDuration(audio.duration);
+            }
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play().catch(error => console.error('播放语音失败:', error));
+            } else {
+                audio.pause();
+            }
+        });
+
+        audio.addEventListener('play', () => {
+            playBtn.textContent = '⏸';
+            wrap.classList.add('playing');
+        });
+        audio.addEventListener('pause', () => {
+            playBtn.textContent = '▶';
+            wrap.classList.remove('playing');
+        });
+        audio.addEventListener('ended', () => {
+            playBtn.textContent = '▶';
+            wrap.classList.remove('playing');
+            audio.currentTime = 0;
+        });
+
+        wrap.appendChild(playBtn);
+        wrap.appendChild(wave);
+        wrap.appendChild(duration);
+        wrap.appendChild(audio);
+        return wrap;
+    }
+
     function addMessage(data) {
         if (isPrivateMode && privateTarget) {
-            if (data.type !== 'privateMessage' || (data.toUser !== privateTarget && data.username !== privateTarget)) {
+            if (!data.isPrivate || (data.toUser !== privateTarget && data.username !== privateTarget)) {
                 return;
             }
         }
@@ -1152,15 +1442,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.replyTo) {
             const replyDiv = document.createElement('div');
             replyDiv.className = 'message-reply';
-            replyDiv.innerHTML = '<div class="message-reply-author">' + data.replyTo.author + '</div><div>' + data.replyTo.content + '</div>';
+
+            const replyAuthor = document.createElement('div');
+            replyAuthor.className = 'message-reply-author';
+            replyAuthor.textContent = data.replyTo.author || '';
+
+            const replyContent = document.createElement('div');
+            replyContent.textContent = data.replyTo.content || '';
+
+            replyDiv.appendChild(replyAuthor);
+            replyDiv.appendChild(replyContent);
             messageDiv.appendChild(replyDiv);
         }
 
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
 
-        let content = data.content || '';
-        content = content.replace(/@(\w+)/g, '<span class="mention-highlight">@$1</span>');
+        const content = data.content || '';
 
         if (data.type === 'imageMessage' && data.imageUrl) {
             const img = document.createElement('img');
@@ -1194,10 +1492,18 @@ document.addEventListener('DOMContentLoaded', function() {
             fileDiv.appendChild(fileIcon);
             fileDiv.appendChild(fileInfo);
 
-            bubble.innerHTML = content;
+            bubble.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubble);
             bubble.appendChild(fileDiv);
+        } else if ((data.type === 'voiceMessage' || data.type === 'privateVoiceMessage') && data.voiceUrl) {
+            if (content) {
+                bubble.innerHTML = renderMarkdown(content);
+                decorateMessageBubble(bubble);
+            }
+            bubble.appendChild(createVoicePlayer(data));
         } else if ((data.type === 'locationMessage') && data.latitude && data.longitude) {
-            bubble.innerHTML = content;
+            bubble.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubble);
 
             const locationDiv = document.createElement('div');
             locationDiv.className = 'message-location';
@@ -1217,7 +1523,8 @@ document.addEventListener('DOMContentLoaded', function() {
             locationDiv.appendChild(infoDiv);
             bubble.appendChild(locationDiv);
         } else {
-            bubble.innerHTML = content;
+            bubble.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubble);
         }
 
         const info = document.createElement('div');
@@ -1957,6 +2264,159 @@ document.addEventListener('DOMContentLoaded', function() {
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
+    // ========== 语音消息 ==========
+    if (voiceRecordBtn) {
+        voiceRecordBtn.addEventListener('click', toggleVoiceRecording);
+    }
+
+    function resetRecordingUI() {
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+        mediaRecorder = null;
+        if (voiceRecordBtn) {
+            voiceRecordBtn.classList.remove('recording');
+            voiceRecordBtn.textContent = '🎤';
+            voiceRecordBtn.title = '语音消息';
+        }
+        if (recordingIndicator) {
+            recordingIndicator.classList.remove('active');
+            recordingIndicator.textContent = '';
+        }
+    }
+
+    function updateRecordingIndicator() {
+        if (!recordingIndicator) return;
+        const seconds = (Date.now() - recordingStartedAt) / 1000;
+        recordingIndicator.textContent = '● ' + formatVoiceDuration(seconds) + ' 点击 🎤 结束';
+    }
+
+    function toggleVoiceRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopVoiceRecording(false);
+            return;
+        }
+        startVoiceRecording();
+    }
+
+    async function startVoiceRecording() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof window.MediaRecorder === 'undefined') {
+            alert('当前浏览器不支持语音消息');
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+            const mimeType = candidates.find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) || '';
+            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+            mediaRecorder = recorder;
+            recordingChunks = [];
+            recordingCancelled = false;
+            recordingStartedAt = Date.now();
+
+            recorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    recordingChunks.push(event.data);
+                }
+            };
+
+            recorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+
+                const duration = Math.max(1, Math.round((Date.now() - recordingStartedAt) / 1000));
+                const cancelled = recordingCancelled;
+                const chunks = recordingChunks.slice();
+                const type = recorder.mimeType || mimeType || 'audio/webm';
+
+                resetRecordingUI();
+
+                if (cancelled) return;
+                if (chunks.length === 0) {
+                    alert('录音失败，请重试');
+                    return;
+                }
+
+                const blob = new Blob(chunks, { type });
+                if (blob.size < 300) {
+                    alert('录音时间太短');
+                    return;
+                }
+                uploadVoiceMessage(blob, duration);
+            };
+
+            recorder.start();
+            voiceRecordBtn.classList.add('recording');
+            voiceRecordBtn.textContent = '⏹';
+            voiceRecordBtn.title = '停止录音';
+            if (recordingIndicator) {
+                recordingIndicator.classList.add('active');
+                updateRecordingIndicator();
+            }
+            recordingTimer = setInterval(updateRecordingIndicator, 250);
+        } catch (error) {
+            console.error('开始录音失败:', error);
+            resetRecordingUI();
+            alert('无法访问麦克风，请检查浏览器权限');
+        }
+    }
+
+    function stopVoiceRecording(cancelled) {
+        recordingCancelled = !!cancelled;
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        } else {
+            resetRecordingUI();
+        }
+    }
+
+    async function uploadVoiceMessage(blob, duration) {
+        const ext = blob.type.indexOf('mp4') !== -1 ? 'm4a' : blob.type.indexOf('ogg') !== -1 ? 'ogg' : 'webm';
+        const formData = new FormData();
+        formData.append('file', blob, 'voice_' + Date.now() + '.' + ext);
+
+        try {
+            const response = await fetch('/api/upload', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('上传失败');
+            const result = await response.json();
+            if (result.url) {
+                sendVoiceMessage(result.url, duration);
+            }
+        } catch (error) {
+            console.error('语音消息上传失败:', error);
+            alert('语音消息发送失败');
+        }
+    }
+
+    function sendVoiceMessage(voiceUrl, duration) {
+        const messageData = {
+            type: 'voiceMessage',
+            voiceUrl: voiceUrl,
+            duration: duration,
+            content: ''
+        };
+
+        if (replyingTo) {
+            messageData.replyTo = replyingTo;
+            clearReply();
+        }
+
+        if (isPrivateMode && privateTarget) {
+            messageData.type = 'privateVoiceMessage';
+            messageData.toUser = privateTarget;
+        }
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(messageData));
+        }
+    }
+
     // ========== 位置共享功能 ==========
     locationBtn.addEventListener('click', () => {
         if (!navigator.geolocation) {
@@ -2144,6 +2604,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initExtraFeatures() {
+        if (extraFeaturesInitialized) return;
+        extraFeaturesInitialized = true;
+
         loadExtraFeaturesFromStorage();
         bindExtraFeatureEvents();
         applyCustomBackground();
@@ -3272,8 +3735,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function flushPendingIceCandidates() {
+        if (!peerConnection || !peerConnection.remoteDescription) return;
+
+        const candidates = pendingIceCandidates;
+        pendingIceCandidates = [];
+        for (const candidate of candidates) {
+            try {
+                await peerConnection.addIceCandidate(candidate);
+            } catch (error) {
+                console.error('添加缓冲ICE候选失败:', error);
+            }
+        }
+    }
+
     async function handleWebRTCOffer(data) {
-        if (!currentCall || currentCall.status !== 'incoming') return;
+        if (!currentCall) return;
+
+        if (!peerConnection) {
+            pendingOffer = data;
+            return;
+        }
 
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -3288,6 +3770,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     answer: answer
                 }));
             }
+
+            await flushPendingIceCandidates();
         } catch (error) {
             console.error('处理WebRTC Offer失败:', error);
         }
@@ -3297,16 +3781,22 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
             console.log('WebRTC Answer已设置');
+            await flushPendingIceCandidates();
         } catch (error) {
             console.error('处理WebRTC Answer失败:', error);
         }
     }
 
     async function handleWebRTCIceCandidate(data) {
+        if (!data.candidate) return;
+
+        if (!peerConnection || !peerConnection.remoteDescription) {
+            pendingIceCandidates.push(new RTCIceCandidate(data.candidate));
+            return;
+        }
+
         try {
-            if (peerConnection && data.candidate) {
-                await peerConnection.addIceCandidate(new RTCCandidate(data.candidate));
-            }
+            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         } catch (error) {
             console.error('添加ICE候选失败:', error);
         }
@@ -3373,6 +3863,12 @@ document.addEventListener('DOMContentLoaded', function() {
             localStream = stream;
 
             createPeerConnection();
+
+            if (pendingOffer) {
+                const offer = pendingOffer;
+                pendingOffer = null;
+                await handleWebRTCOffer(offer);
+            }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
@@ -3456,6 +3952,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="video-call-btn camera" id="videoToggleBtn" title="关闭摄像头">
                         <span>📹</span>
                     </button>
+                    <button class="video-call-btn screen" id="screenShareBtn" title="共享屏幕">
+                        <span>🖥️</span>
+                    </button>
                     <button class="video-call-btn end" id="videoEndCallBtn" title="挂断">
                         <span>📞</span>
                     </button>
@@ -3465,12 +3964,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.body.appendChild(callVideoWindow);
 
-        localVideo = document.getElementById('localVideo');
-        remoteVideo = document.getElementById('remoteVideo');
-        audioToggleBtn = document.getElementById('audioToggleBtn');
-        videoToggleBtn = document.getElementById('videoToggleBtn');
-        volumeIndicator = document.getElementById('volumeIndicator');
-        const videoEndCallBtn = document.getElementById('videoEndCallBtn');
+        localVideo = callVideoWindow.querySelector('#localVideo');
+        remoteVideo = callVideoWindow.querySelector('#remoteVideo');
+        audioToggleBtn = callVideoWindow.querySelector('#audioToggleBtn');
+        videoToggleBtn = callVideoWindow.querySelector('#videoToggleBtn');
+        volumeIndicator = callVideoWindow.querySelector('#volumeIndicator');
+        const screenShareBtn = callVideoWindow.querySelector('#screenShareBtn');
+        const videoEndCallBtn = callVideoWindow.querySelector('#videoEndCallBtn');
 
         if (localStream) {
             localVideo.srcObject = localStream;
@@ -3482,6 +3982,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         audioToggleBtn.addEventListener('click', toggleAudio);
         videoToggleBtn.addEventListener('click', toggleVideo);
+        screenShareBtn.addEventListener('click', toggleScreenShare);
         videoEndCallBtn.addEventListener('click', () => {
             if (ws && ws.readyState === WebSocket.OPEN && currentCall) {
                 const target = currentCall.target || currentCall.from;
@@ -3493,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', function() {
             endCurrentCall();
         });
 
-        const videoCallTimer = document.getElementById('videoCallTimer');
+        const videoCallTimer = callVideoWindow.querySelector('#videoCallTimer');
         if (callTimer) clearInterval(callTimer);
         callTimer = setInterval(() => {
             callSeconds++;
@@ -3621,6 +4122,97 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function toggleScreenShare() {
+        if (!currentCall || currentCall.type !== 'video') return;
+
+        if (screenSharing) {
+            stopScreenShare();
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('当前浏览器不支持屏幕共享');
+            return;
+        }
+
+        try {
+            const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+            const track = displayStream.getVideoTracks()[0];
+            if (!track) return;
+
+            originalVideoTrack = localStream ? localStream.getVideoTracks()[0] : null;
+            screenTrack = track;
+
+            const sender = peerConnection
+                ? peerConnection.getSenders().find(item => item.track && item.track.kind === 'video')
+                : null;
+
+            if (sender) {
+                await sender.replaceTrack(track);
+            } else if (peerConnection) {
+                peerConnection.addTrack(track, displayStream);
+            }
+
+            if (localVideo) {
+                localVideo.srcObject = displayStream;
+            }
+            screenSharing = true;
+
+            const btn = callVideoWindow ? callVideoWindow.querySelector('#screenShareBtn') : null;
+            if (btn) {
+                btn.classList.add('active');
+                btn.title = '停止共享';
+                const icon = btn.querySelector('span');
+                if (icon) icon.textContent = '⏹';
+            }
+
+            track.onended = () => stopScreenShare();
+        } catch (error) {
+            screenTrack = null;
+            if (!error || error.name !== 'NotAllowedError') {
+                console.error('屏幕共享失败:', error);
+                alert('屏幕共享失败，请检查浏览器权限');
+            }
+        }
+    }
+
+    async function stopScreenShare() {
+        if (!screenSharing && !screenTrack) return;
+
+        const track = screenTrack;
+        screenTrack = null;
+        screenSharing = false;
+
+        if (track) {
+            track.onended = null;
+            track.stop();
+        }
+
+        const sender = peerConnection
+            ? peerConnection.getSenders().find(item => item.track && item.track.kind === 'video')
+            : null;
+        if (sender && originalVideoTrack) {
+            try {
+                await sender.replaceTrack(originalVideoTrack);
+            } catch (error) {
+                console.error('恢复摄像头失败:', error);
+            }
+        }
+        originalVideoTrack = null;
+
+        if (localVideo && localStream) {
+            localVideo.srcObject = localStream;
+        }
+
+        const btn = callVideoWindow ? callVideoWindow.querySelector('#screenShareBtn') : null;
+        if (btn) {
+            btn.classList.remove('active');
+            btn.title = '共享屏幕';
+            const icon = btn.querySelector('span');
+            if (icon) icon.textContent = '🖥️';
+        }
+    }
+
     function endCurrentCall() {
         cleanupCall();
 
@@ -3634,6 +4226,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function cleanupCall() {
+        pendingOffer = null;
+        pendingIceCandidates = [];
+
+        if (screenTrack) {
+            screenTrack.onended = null;
+            screenTrack.stop();
+            screenTrack = null;
+        }
+        screenSharing = false;
+        originalVideoTrack = null;
+
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
             localStream = null;
@@ -5202,11 +5805,84 @@ document.addEventListener('DOMContentLoaded', function() {
         bubbleDiv.className = 'message-bubble';
 
         const contentResult = processMessageContent(msg.content, msg.isEncrypted);
+        const content = contentResult.text || '';
 
         if (msg.decryptionFailed) {
-            bubbleDiv.innerHTML = '<span class="decryption-failed-icon">⚠️</span>' + contentResult.text;
+            bubbleDiv.textContent = '⚠️ ' + content;
+        } else if (msg.type === 'imageMessage' && msg.imageUrl) {
+            const img = document.createElement('img');
+            img.src = msg.imageUrl;
+            img.alt = '发送的图片';
+            img.onclick = () => window.open(msg.imageUrl, '_blank');
+            bubbleDiv.appendChild(img);
+        } else if ((msg.type === 'fileMessage' || msg.type === 'privateFileMessage') && msg.fileUrl) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'message-file';
+            fileDiv.onclick = () => window.open(msg.fileUrl, '_blank');
+
+            const fileIcon = document.createElement('span');
+            fileIcon.className = 'message-file-icon';
+            fileIcon.textContent = '📄';
+
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'message-file-info';
+
+            const fileName = document.createElement('div');
+            fileName.className = 'message-file-name';
+            fileName.textContent = msg.fileName;
+
+            const fileSize = document.createElement('div');
+            fileSize.className = 'message-file-size';
+            fileSize.textContent = formatFileSize(msg.fileSize);
+
+            fileInfo.appendChild(fileName);
+            fileInfo.appendChild(fileSize);
+            fileDiv.appendChild(fileIcon);
+            fileDiv.appendChild(fileInfo);
+
+            bubbleDiv.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubbleDiv);
+            bubbleDiv.appendChild(fileDiv);
+        } else if ((msg.type === 'voiceMessage' || msg.type === 'privateVoiceMessage') && msg.voiceUrl) {
+            if (content) {
+                bubbleDiv.innerHTML = renderMarkdown(content);
+                decorateMessageBubble(bubbleDiv);
+            }
+            bubbleDiv.appendChild(createVoicePlayer(msg));
+        } else if (msg.type === 'locationMessage' && msg.latitude && msg.longitude) {
+            bubbleDiv.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubbleDiv);
+
+            const locationDiv = document.createElement('div');
+            locationDiv.className = 'message-location';
+            locationDiv.onclick = () => {
+                window.open('https://uri.amap.com/marker?position=' + msg.longitude + ',' + msg.latitude + '&name=位置&coordinate=wgs84&callnative=0', '_blank');
+            };
+
+            const locationInfo = document.createElement('div');
+            locationInfo.className = 'message-location-info';
+            locationInfo.textContent = '📍 ' + Number(msg.latitude).toFixed(4) + ', ' + Number(msg.longitude).toFixed(4);
+            locationDiv.appendChild(locationInfo);
+            bubbleDiv.appendChild(locationDiv);
         } else {
-            bubbleDiv.textContent = contentResult.text;
+            bubbleDiv.innerHTML = renderMarkdown(content);
+            decorateMessageBubble(bubbleDiv);
+        }
+
+        if (msg.replyTo) {
+            const replyDiv = document.createElement('div');
+            replyDiv.className = 'message-reply';
+
+            const replyAuthor = document.createElement('div');
+            replyAuthor.className = 'message-reply-author';
+            replyAuthor.textContent = (msg.replyTo.author || '') + ': ';
+
+            const replyText = document.createElement('span');
+            replyText.textContent = msg.replyTo.content || '';
+
+            replyDiv.appendChild(replyAuthor);
+            replyDiv.appendChild(replyText);
+            messageDiv.appendChild(replyDiv);
         }
 
         const infoDiv = document.createElement('div');
